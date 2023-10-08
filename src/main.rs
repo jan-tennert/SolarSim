@@ -13,7 +13,6 @@ mod diameter;
 mod pan_orbit;
 mod ui;
 mod orbit_lines;
-mod lib;
 
 use bevy::app::{App, PluginGroup};
 use bevy::DefaultPlugins;
