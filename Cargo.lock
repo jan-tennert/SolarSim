@@ -324,7 +324,6 @@ name = "bevy"
 version = "0.11.3"
 source = "git+https://github.com/jan-tennert/bevy?branch=skybox-fix#7603b1895214ccc4a8fc84de5b976761e95f9dce"
 dependencies = [
- "bevy_dylib",
  "bevy_internal",
 ]
 
@@ -546,14 +545,6 @@ dependencies = [
  "bevy_time",
  "bevy_utils",
  "sysinfo",
-]
-
-[[package]]
-name = "bevy_dylib"
-version = "0.11.3"
-source = "git+https://github.com/jan-tennert/bevy?branch=skybox-fix#7603b1895214ccc4a8fc84de5b976761e95f9dce"
-dependencies = [
- "bevy_internal",
 ]
 
 [[package]]
