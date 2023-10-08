@@ -7,9 +7,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
-      - name: Install
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      
+      - name: Install latest nightly
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: stable
+            override: true
+            target: wasm32-unknown-unknown
+            components: wasm-bindgen-cli
 
       - uses: actions/cache@v2
         with:
@@ -22,23 +27,26 @@ jobs:
             cache-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
             cache-${{ runner.os }}-cargo
 
-      - name: Build
-        run: wasm-pack build --target web --release
-
-      - name: Copy Assets
-        run: |
-          mkdir build
-          cp -r pkg build/.
-          cp -r assets build/.
-          cp index.html build/.
-          rm build/pkg/.gitignore
+      - name: Run cargo check
+        uses: actions-rs/cargo@v1
+        with:
+          command: build --release --target wasm32-unknown-unknown --features webgl
+      - name: WASM
+        run: wasm-bindgen --out-name Simulation --out-dir wasm/target --target web target/wasm32-unknown-unknown/release/Simulation.wasm
+    #  - name: Copy Assets
+      #  run: |
+     #     mkdir build
+   #       cp -r pkg build/.
+   #       cp -r assets build/.
+   #       cp index.html build/.
+   #       rm build/pkg/.gitignore
 
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          path: 'build'
+          path: 'wasm'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1
