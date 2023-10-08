@@ -14,7 +14,6 @@ jobs:
             toolchain: stable
             override: true
             target: wasm32-unknown-unknown
-            components: wasm-bindgen-cli
 
       - uses: actions/cache@v2
         with:
@@ -26,6 +25,9 @@ jobs:
           restore-keys: |
             cache-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
             cache-${{ runner.os }}-cargo
+            
+      - name: Install wasm-bindgen-cli
+        run: cargo install wasm-bindgen-cli
 
       - name: Run cargo check
         uses: actions-rs/cargo@v1
