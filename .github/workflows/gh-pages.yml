@@ -29,12 +29,10 @@ jobs:
       - name: Install wasm-bindgen-cli
         run: cargo install wasm-bindgen-cli
 
-      - name: Run cargo check
-        uses: actions-rs/cargo@v1
-        with:
-          command: build --release --target wasm32-unknown-unknown --features webgl
+      - name: Run build
+        run: build --release --target wasm32-unknown-unknown
       - name: WASM
-        run: wasm-bindgen --out-name Simulation --out-dir wasm/target --target web target/wasm32-unknown-unknown/release/Simulation.wasm
+        run: wasm-bindgen --out-dir ./out/ --target web ./target/
     #  - name: Copy Assets
       #  run: |
      #     mkdir build
@@ -48,7 +46,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          path: 'wasm'
+          path: 'out'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1
