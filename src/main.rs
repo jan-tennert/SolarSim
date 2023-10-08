@@ -3,16 +3,16 @@ mod constants;
 mod setup;
 mod bodies;
 mod physics;
-//mod ui;
 mod input;
 mod speed;
 mod fps;
 mod selection;
 mod menu;
-mod ui;
 mod skybox;
 mod diameter;
 mod pan_orbit;
+mod ui;
+mod orbit_lines;
 
 use bevy::app::{App, PluginGroup};
 use bevy::DefaultPlugins;
@@ -20,7 +20,6 @@ use bevy::prelude::{default, States};
 use bevy::render::RenderPlugin;
 use bevy::render::settings::{Backends, WgpuSettings};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use diameter::DiameterPlugin;
 use pan_orbit::lib::PanOrbitCameraPlugin;
 use skybox::SkyboxPlugin;
 use speed::SpeedPlugin;
@@ -47,7 +46,7 @@ fn main() {
                 backends: Some(Backends::VULKAN),
                 ..default()
             },
-        }))
+        })) 
         .add_plugins(WorldInspectorPlugin::new())
   //      .add_plugins(DefaultPickingPlugins)
         .add_plugins(PanOrbitCameraPlugin)

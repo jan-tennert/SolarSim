@@ -12,11 +12,28 @@ opt-level = 1
 opt-level = 3
 
 [dependencies]
-bevy = { version = "0.11.3", features = ["dynamic_linking"] } #delete feature before building release build!
-bevy_easings = "0.11"
+#bevy = { git = "https://github.com/bevyengine/bevy", branch = "release-0.11.3", features = ["dynamic_linking"] } 
+bevy = { version = "0.11.3", features = ["dynamic_linking"] }
+bevy_easings = "0.11.1"
 #bevy_panorbit_camera = { git = "https://github.com/jan-tennert/bevy_panorbit_camera", rev = "7e3c3f8" }
-bevy-inspector-egui = { version = "0.19", default-features = false }
+bevy-inspector-egui = { version = "0.19", default-features = true }
 #bevy_mod_picking = "0.15"
-bevy_screen_diagnostics = "0.3"
 bevy_egui = "0.21"
 chrono = "0.4.23"
+
+[patch.crates-io]
+bevy = { git = "https://github.com/jan-tennert/bevy", branch = "skybox-fix" }
+bevy_ecs = { git = "https://github.com/jan-tennert/bevy", branch = "skybox-fix" }
+bevy_app = { git = "https://github.com/jan-tennert/bevy", branch = "skybox-fix" }
+bevy_tasks = { git = "https://github.com/jan-tennert/bevy", branch = "skybox-fix" }
+bevy_reflect = { git = "https://github.com/jan-tennert/bevy", branch = "skybox-fix" }
+bevy_core = { git = "https://github.com/jan-tennert/bevy", branch = "skybox-fix" }
+bevy_asset = { git = "https://github.com/jan-tennert/bevy", branch = "skybox-fix" }
+bevy_math = { git = "https://github.com/jan-tennert/bevy", branch = "skybox-fix" }
+bevy_render = { git = "https://github.com/jan-tennert/bevy", branch = "skybox-fix" }
+bevy_hierarchy = { git = "https://github.com/jan-tennert/bevy", branch = "skybox-fix" }
+bevy_log = { git = "https://github.com/jan-tennert/bevy", branch = "skybox-fix" }
+bevy_utils = { git = "https://github.com/jan-tennert/bevy", branch = "skybox-fix" }
+bevy_window = { git = "https://github.com/jan-tennert/bevy", branch = "skybox-fix" }
+bevy_pbr = { git = "https://github.com/jan-tennert/bevy", branch = "skybox-fix" }
+bevy_transform = { git = "https://github.com/jan-tennert/bevy", branch = "skybox-fix" }

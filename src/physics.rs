@@ -1,10 +1,11 @@
 use std::process::exit;
 use bevy::app::{App, Plugin, Update};
 use bevy::math::Vec3;
-use bevy::prelude::{in_state, IntoSystemConfigs, Mut, Query, Res, Resource, Time, Transform};
+use bevy::prelude::{in_state, IntoSystemConfigs, Mut, Query, Res, Resource, Time, Transform, Entity, GlobalTransform};
 use crate::body::{Acceleration, Mass, SimPosition, Velocity};
 use crate::constants::{G, KM_TO_AU};
 use crate::SimState;
+use crate::selection::SelectedEntity;
 use crate::speed::Speed;
 
 pub struct PhysicsPlugin;
@@ -13,6 +14,10 @@ impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<Pause>()
+            .register_type::<Velocity>()
+            .register_type::<Acceleration>()
+            .register_type::<Mass>()
+            .register_type::<SimPosition>()
             .add_systems(Update, (update_acceleration, update_velocity.after(update_acceleration), update_position.after(update_velocity)).run_if(in_state(SimState::Simulation)));
     }
 }
@@ -55,12 +60,33 @@ fn update_velocity(
 }
 
 pub fn update_position(
-    mut query: Query<(&mut SimPosition, &mut Transform, &Velocity)>,
+    mut query: Query<(Entity, &mut SimPosition, &mut Transform, &Velocity)>,
     time: Res<Time>,
-    speed: Res<Speed>
+    speed: Res<Speed>,
+    selected_entity: Res<SelectedEntity>,
 ) {
-    for (mut sim_pos, mut transform, vel) in query.iter_mut() {
-        sim_pos.0 += vel.0 * time.delta_seconds() * speed.0;
-        transform.translation = sim_pos.0 * KM_TO_AU;
+    let delta_time = time.delta_seconds();
+    // Calculate the offset based on the selected entity's position
+    let offset = match selected_entity.0 {
+        Some(selected) => {
+            if let Ok((_, mut sim_pos, mut transform, vel)) = query.get_mut(selected) {
+                sim_pos.0 += vel.0 * delta_time * speed.0; //this is the same step as below, but we are doing this first for the offset
+                let raw_translation = sim_pos.0 * KM_TO_AU;
+                transform.translation = Vec3::ZERO; //the selected entity will always be at 0,0,0
+                -raw_translation 
+            } else {
+                Vec3::ZERO 
+            }
+        }
+        None => Vec3::ZERO,
+    };
+    for (entity, mut sim_pos, mut transform, vel) in query.iter_mut() {
+        if let Some(s_entity) = selected_entity.0 {
+            if s_entity == entity {
+                continue;
+            }
+        }
+        sim_pos.0 += vel.0 * delta_time * speed.0;
+        transform.translation = (sim_pos.0 * KM_TO_AU) + offset; //apply offset
     }
 }

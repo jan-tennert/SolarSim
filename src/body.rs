@@ -1,9 +1,9 @@
 use bevy::core::Name;
 use bevy::math::Vec3;
 use bevy::pbr::PointLight;
-use bevy::prelude::{Bundle, Component, Reflect, Transform};
+use bevy::prelude::{Bundle, Component, Reflect, Transform, Entity};
 
-#[derive(Component, Clone, Default)]
+#[derive(Component, Clone, Default, Reflect)]
 pub struct Mass(pub f64);
 
 #[derive(Default, Component, Reflect, Clone)]
@@ -19,10 +19,13 @@ pub struct Diameter(pub f32);
 pub struct ModelPath(pub String);
 
 #[derive(Component, Reflect, Clone, Default)]
-pub struct Selectable(pub bool);
+pub struct BodyChildren(pub Vec<Entity>);
 
 #[derive(Component, Reflect, Clone, Default)]
-pub struct Parent(pub Option<String>);
+pub struct DrawOrbitLines(pub bool);
+
+#[derive(Component, Reflect, Clone, Default)]
+pub struct OrbitLines(pub Vec<(Vec3, Vec3)>);
 
 #[derive(Component, Reflect, Clone, Default)]
 pub struct LightSource {
@@ -36,6 +39,16 @@ pub struct LightSource {
 #[derive(Component, Reflect, Clone, Default)]
 pub struct SimPosition(pub Vec3);
 
+//Types:
+#[derive(Component, Reflect, Clone, Default)]
+pub struct Star;
+
+#[derive(Component, Reflect, Clone, Default)]
+pub struct Planet;
+
+#[derive(Component, Reflect, Clone, Default)]
+pub struct Moon;
+
 #[derive(Bundle, Clone, Default)]
 pub struct BodyBundle {
 
@@ -48,6 +61,7 @@ pub struct BodyBundle {
     pub name: Name,
     pub model_path: ModelPath,
     pub light: LightSource,
-    pub selectable: Selectable,
-    pub parent: Parent
+    pub draw_orbit_lines: DrawOrbitLines,
+    pub orbit_lines: OrbitLines
+        
 }

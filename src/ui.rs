@@ -3,23 +3,22 @@ use std::collections::HashMap;
 use bevy::{
     prelude::{
         App, Camera, Commands, DespawnRecursiveExt, Entity, Input, KeyCode,
-        Mut, Name, Plugin, PointLight, Query, Res, ResMut, Resource, Transform, Vec3, Visibility, With, Without, NextState,
+        Mut, Name, Plugin, PointLight, Query, Res, ResMut, Resource, Transform, Vec3, Visibility, With, Without, NextState, Children, IntoSystemConfigs, GizmoConfig,
     },
     reflect::Reflect,
     time::Time,
-    window::PresentMode,
+    window::PresentMode, render::camera::TemporalJitter, pbr::{ScreenSpaceAmbientOcclusionSettings, ScreenSpaceAmbientOcclusionQualityLevel},
 };
 use bevy::app::Update;
-use bevy::prelude::{in_state, IntoSystemConfigs, Window};
-use bevy_egui::{egui, EguiContexts, EguiPlugin};
+use bevy::prelude::{in_state, Window};
+use bevy_egui::{egui::{self, Ui, InnerResponse, Response, ComboBox}, EguiContexts};
 use bevy_inspector_egui::egui::{RichText, TextEdit};
 use chrono::{Days, NaiveDate};
 //use crate::fps::Fps;
-use crate::{input::BlockInputPlugin, body::{Mass, Selectable, Velocity, Parent}, constants::DAY_IN_SECONDS};
+use crate::{input::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, DrawOrbitLines}, constants::DAY_IN_SECONDS, selection::SelectedEntity};
 use crate::physics::{Pause, update_position};
 use crate::SimState;
 use crate::speed::Speed;
-
 #[derive(Resource, Reflect, Default)]
 pub struct SimTime(pub f32);
 
@@ -62,7 +61,7 @@ pub fn time_ui(
     }
     let date = NaiveDate::from_ymd_opt(2023, 10, 1)
         .unwrap()
-        .checked_add_days(Days::new(sim_time.0.round() as u64))
+        .checked_add_days(Days::new((((sim_time.0 * 100.0).round()) / 100.0) as u64))
         .unwrap();
     egui::TopBottomPanel::bottom("time_panel")
         .resizable(false)
@@ -115,66 +114,121 @@ pub fn time_ui(
 
 pub fn system_ui(
     mut egui_context: EguiContexts,
-    mut body_query: Query<(
+    mut star_query: Query<(
         &Name,
-        &mut Selectable,
-        &Parent,
-        With<Mass>,
-        &mut Visibility,
+        &BodyChildren,
+        Entity,
+        &mut Visibility,        
+        With<Star>,
+        Without<Planet>,
+        Without<Planet>
     )>,
-    mut camera: Query<&mut Camera>,
+    mut planet_query: Query<(
+        &Name,
+        &BodyChildren,
+        Entity,
+        &mut Visibility,        
+        With<Planet>,
+        Without<Star>,
+        Without<Moon>
+    )>,
+    mut moon_query: Query<(
+        &Name,
+        Entity,
+        &mut Visibility,        
+        With<Moon>,
+        Without<Planet>,
+        Without<Star>
+    )>,
+  //  mut camera: Query<&mut Camera>,
     mut light: Query<&mut PointLight>,
-    mut state: ResMut<NextState<SimState>>
+    mut state: ResMut<NextState<SimState>>,
+    mut selected_entity: ResMut<SelectedEntity>,
+    mut config: ResMut<GizmoConfig>,
+    mut camera: Query<&mut Camera>,    
 ) {
-    let mut new_selected: Option<&Name> = None;
-    let mut bodies: Vec<(&Name, Mut<Selectable>)> = Vec::new();
+    let mut camera = camera.get_single_mut().unwrap();
     egui::SidePanel::left("system_panel")
         .default_width(400.0)
         .resizable(true)
         .show(egui_context.ctx_mut(), |ui| {
             ui.heading("Bodies");
-            for (name, selectable, _, _, _) in body_query.iter_mut() {
-                ui.horizontal(|ui| {
-               //     ui.checkbox(&mut visibility.is_visible, "");
-                    if ui.button(name.as_str()).clicked() {
-                        new_selected = Some(name);
-                    }
-                }); 
-                bodies.push((name, selectable))
-              //  points.push((name, selected));
+            for (s_name, s_children, s_entity,  _, _, _, _) in &mut star_query {
+                let s_old_selected = selected_entity.0 == Some(s_entity);
+                let mut s_selected = s_old_selected;
+                body_tree(ui, &mut s_selected, s_name, true, |ui| {
+                    for planet_child in &s_children.0 {
+                        if let Ok((p_name, p_children, p_entity, _, _, _, _)) = planet_query.get_mut(*planet_child) {
+                            let p_old_selected = selected_entity.0 == Some(p_entity);
+                            let mut p_selected = p_old_selected;
+                            body_tree(ui, &mut p_selected, p_name, false, |ui| {
+                                for moon_child in &p_children.0 {
+                                    if let Ok((m_name, m_entity,  _, _, _, _)) = moon_query.get_mut(*moon_child) {
+                                        let m_old_selected = selected_entity.0 == Some(m_entity);
+                                        let mut m_selected = m_old_selected;
+                                        ui.horizontal(|ui| {
+                                            ui.toggle_value(&mut m_selected, m_name.as_str());
+                                        });
+                                        if m_selected && !m_old_selected {
+                                            selected_entity.0 = Some(m_entity);
+                                        }
+                                    }
+                                }          
+                            });
+                            if p_selected && !p_old_selected {
+                                selected_entity.0 = Some(p_entity);
+                            }
+                        }
+                    } 
+                });
+                if s_selected && !s_old_selected {
+                    selected_entity.0 = Some(s_entity);
+                }
             }
             ui.heading("Options");
-            if let Ok(mut camera) = camera.get_single_mut() {
-                ui.checkbox(&mut camera.hdr, "HDR/Bloom");
-            }
+            ui.checkbox(&mut camera.hdr, "HDR/Bloom");
             if let Ok(mut light) = light.get_single_mut() {
                 ui.checkbox(&mut light.shadows_enabled, "Shadows");
             }
+            ui.checkbox(&mut config.aabb.draw_all, "Draw Outlines");
+            
             ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
                 if ui.button("Back to Menu").clicked() {
                     let _ = state.set(SimState::ExitToMainMenu);
                 }
             });
         });
-    if let Some(new_name) = new_selected {
-        for (name, ref mut selectable) in bodies.iter_mut() {
-            if name.clone() == new_name.clone() && !selectable.0  {
-                selectable.0 = true;
-            } else if name.clone() != new_name.clone() && selectable.0 {
-                selectable.0 = false;
-            }
-        }
-    }
+}
+
+fn body_tree<R>(
+    ui: &mut Ui, 
+    mut selected: &mut bool, 
+    name: &Name, 
+    default_open: bool,
+    add_body: impl FnOnce(&mut Ui) -> R
+) -> (
+    Response,
+    InnerResponse<()>,
+    Option<InnerResponse<R>>,
+) {
+    let id = ui.make_persistent_id(name.as_str());
+    egui::collapsing_header::CollapsingState::load_with_default_open(ui.ctx(), id, default_open)
+        .show_header(ui, |ui| {
+            ui.toggle_value(&mut selected, name.as_str());
+        })
+        .body(add_body)
 }
 
 fn body_ui(
     mut egui_context: EguiContexts,
     mut commands: Commands,
-    mut query: Query<(&Name, &Selectable, Entity, &Transform, &Velocity, &mut Mass)>,
+    mut query: Query<(&Name, Entity, &Transform, &Velocity, &mut DrawOrbitLines, &mut Mass)>,
+    selected_entity: Res<SelectedEntity>
 ) {
     let sun_pos = Vec3::splat(0.0);
-    if let Some((name, _, entity, transform, velocity, mut mass)) = query.iter_mut().find(|(_, s, _, _, _, _)| s.0) {
-        egui::SidePanel::right("body_panel")
+    if let Some(entity) = selected_entity.0 {
+        if let Ok((name, entity, transform, velocity, mut draw_orbit_lines, mut mass)) = query.get_mut(entity) {
+            egui::SidePanel::right("body_panel")
                 .max_width(250.0)
                 .resizable(true)
                 .show(egui_context.ctx_mut(), |ui| {
@@ -223,15 +277,17 @@ fn body_ui(
                     ui.label(format!("{:.3} km/s", velocity.0.length() / 1000.0));
                     // Distance from Sun
                     ui.label(RichText::new("Distance from sun").size(16.0).underline());
-                    let distance_in_au = transform.translation.distance(sun_pos) / 1000.0;
+                    let distance_in_au = transform.translation.distance(sun_pos) / 100.0;
                     ui.label(format!("{} km", (distance_in_au * 1.496e+8) as f64));
                     ui.label(format!("{:.3} au", distance_in_au));
+                    ui.checkbox(&mut draw_orbit_lines.0, "Draw Orbit lines");
                     ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
                         if ui.button("Delete").clicked() {
                             commands.entity(entity).despawn_recursive()
                         }
                     });
                 });
+            }
     }
     
 }

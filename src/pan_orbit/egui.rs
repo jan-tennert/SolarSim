@@ -1,4 +1,5 @@
 use bevy::prelude::{DetectChangesMut, Query, ResMut, Resource};
+use bevy_egui::EguiContexts;
 
 #[derive(Resource, PartialEq, Eq, Default)]
 pub struct EguiWantsFocus {
@@ -10,16 +11,11 @@ pub struct EguiWantsFocus {
 }
 
 pub fn check_egui_wants_focus(
-    mut contexts: Query<&mut bevy_egui::EguiContext>,
+    mut contexts: EguiContexts,
     mut wants_focus: ResMut<EguiWantsFocus>,
 ) {
-    let ctx = contexts.iter_mut().next();
-    let new_wants_focus = if let Some(mut ctx) = ctx {
-        let ctx = ctx.get_mut();
-        ctx.wants_pointer_input() || ctx.wants_keyboard_input()
-    } else {
-        false
-    };
+    let ctx = contexts.ctx_mut();
+    let new_wants_focus = ctx.wants_pointer_input() || ctx.wants_keyboard_input();
     let new_res = EguiWantsFocus {
         prev: wants_focus.curr,
         curr: new_wants_focus,

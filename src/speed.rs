@@ -1,7 +1,7 @@
 use bevy::app::{App, Plugin};
 use bevy::prelude::Resource;
 
-use crate::constants::DAY_IN_SECONDS;
+use crate::constants::{DAY_IN_SECONDS, DEFAULT_TIMESTEP};
 
 pub struct SpeedPlugin;
 
@@ -49,7 +49,7 @@ impl Plugin for SpeedPlugin {
 impl Default for Speed {
 
     fn default() -> Self {
-        Self(DAY_IN_SECONDS)
+        Self(DEFAULT_TIMESTEP)
     }
 
 }
