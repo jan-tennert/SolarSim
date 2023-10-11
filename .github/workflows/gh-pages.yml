@@ -1,9 +1,21 @@
 on:
   push:
     branches: []
+permissions: 
+   contents: read 
+   pages: write 
+   id-token: write 
+  
+ # Allow one concurrent deployment
+concurrency: 
+  group: "pages" 
+  cancel-in-progress: true  
 
 jobs:
   test:
+    environment: 
+       name: github-pages 
+       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -32,7 +44,7 @@ jobs:
       - name: Run build
         run: cargo build --release --target wasm32-unknown-unknown
       - name: WASM
-        run: wasm-bindgen --out-dir /out/ --target web /target/
+        run: wasm-bindgen --out-dir out/ --target web ./target/wasm32-unknown-unknown/release/Simulation.wasm
     #  - name: Copy Assets
       #  run: |
      #     mkdir build
