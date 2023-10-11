@@ -11,14 +11,17 @@ opt-level = 1
 [profile.dev.package."*"]
 opt-level = 3
 
+[target.wasm32-unknown-unknown]
+runner = "wasm-server-runner"
+
 [dependencies]
 #bevy = { git = "https://github.com/bevyengine/bevy", branch = "release-0.11.3", features = ["dynamic_linking"] } 
-bevy = { version = "0.11.3" }
+bevy = { version = "0.11.3", features = ["dynamic_linking"] }
 bevy_easings = "0.11.1"
 #bevy_panorbit_camera = { git = "https://github.com/jan-tennert/bevy_panorbit_camera", rev = "7e3c3f8" }
-bevy-inspector-egui = { version = "0.19", default-features = true }
+bevy-inspector-egui = { version = "0.20", default-features = false }
 #bevy_mod_picking = "0.15"
-bevy_egui = "0.21"
+bevy_egui = "0.22"
 chrono = "0.4.23"
 
 [patch.crates-io]

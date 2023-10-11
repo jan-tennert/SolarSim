@@ -222,12 +222,23 @@ fn body_tree<R>(
 fn body_ui(
     mut egui_context: EguiContexts,
     mut commands: Commands,
-    mut query: Query<(&Name, Entity, &Transform, &Velocity, &mut DrawOrbitLines, &mut Mass)>,
+    mut query: Query<(&Name, Entity, &Transform, &Velocity, &mut DrawOrbitLines, &mut Mass, Option<&BodyChildren>)>,
     selected_entity: Res<SelectedEntity>
 ) {
-    let sun_pos = Vec3::splat(0.0);
     if let Some(entity) = selected_entity.0 {
-        if let Ok((name, entity, transform, velocity, mut draw_orbit_lines, mut mass)) = query.get_mut(entity) {
+        let mut parent_transform: Option<(&Transform, &Name)> = None;
+        let mut selected: Option<(&Name, Entity, &Transform, &Velocity, Mut<DrawOrbitLines>, Mut<Mass>)> = None;
+        for (name, b_entity, transform, velocity, mut draw_orbit_lines, mut mass, children) in query.iter_mut() {
+            if let Some(children) = children {
+                if children.0.contains(&entity) {
+                    parent_transform = Some((transform, name));
+                }
+            }
+            if b_entity == entity {
+                selected = Some((name, b_entity, transform, velocity, draw_orbit_lines, mass));
+            }
+        }
+        if let Some((name, entity, transform, velocity, mut draw_orbit_lines, mut mass)) = selected {
             egui::SidePanel::right("body_panel")
                 .max_width(250.0)
                 .resizable(true)
@@ -276,16 +287,18 @@ fn body_ui(
                     ui.label(RichText::new("Velocity").size(16.0).underline());
                     ui.label(format!("{:.3} km/s", velocity.0.length() / 1000.0));
                     // Distance from Sun
-                    ui.label(RichText::new("Distance from sun").size(16.0).underline());
-                    let distance_in_au = transform.translation.distance(sun_pos) / 100.0;
-                    ui.label(format!("{} km", (distance_in_au * 1.496e+8) as f64));
-                    ui.label(format!("{:.3} au", distance_in_au));
-                    ui.checkbox(&mut draw_orbit_lines.0, "Draw Orbit lines");
-                    ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
-                        if ui.button("Delete").clicked() {
-                            commands.entity(entity).despawn_recursive()
-                        }
-                    });
+                    if let Some((parent_tr, p_name)) = parent_transform {
+                        ui.label(RichText::new(format!("Distance to {}", p_name)).size(16.0).underline());
+                        let distance_in_au = transform.translation.distance(parent_tr.translation) / 100.0;
+                        ui.label(format!("{} km", (distance_in_au * 1.496e+8) as f64));
+                        ui.label(format!("{:.3} au", distance_in_au));
+                        ui.checkbox(&mut draw_orbit_lines.0, "Draw Orbit lines");
+                        ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
+                            if ui.button("Delete").clicked() {
+                                commands.entity(entity).despawn_recursive()
+                            }
+                        });
+                    }
                 });
             }
     }

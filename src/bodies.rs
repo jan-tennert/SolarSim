@@ -87,6 +87,27 @@ impl Bodies {
         }
     }
           
+    pub fn titan() -> BodyBundle {
+        let sim_pos = Vec3::new(
+            1.317062395789841E+09, -6.254109541976979E+08, -4.200566301576936E+07
+        ) * 1000.0; //convert it to m
+        BodyBundle {
+            mass: Mass(1.3452e23),
+            sim_position: SimPosition(sim_pos),
+            transform: Transform::from_translation(
+                sim_pos * KM_TO_AU as f32
+            ),
+            vel: Velocity(Vec3::new(
+                -1.060852998165573E+00, 6.402666517530363E+00, 1.357634287951674E+00
+            ) * 1000.0) , //convert it to m/s
+            acc: Default::default(),
+            diameter: Diameter(0.00001),
+            name: Name::new("Titan"),
+            model_path: ModelPath("models/titan.glb#Scene0".to_string()),
+            ..default()
+        }
+    }
+          
     pub fn jupiter() -> BodyBundle {
         let sim_pos = Vec3::new(
             5.911164050429280E+08, 4.486127736586710E+08, -1.508610682481316E+07
@@ -343,7 +364,12 @@ impl Bodies {
                     },
                     BodyEntry {
                         bundle: Bodies::saturn(),
-                        children: vec![]
+                        children: vec![
+                            BodyEntry {
+                                bundle: Bodies::titan(),
+                                children: vec![]
+                            }
+                        ]
                     },
                     BodyEntry {
                         bundle: Bodies::jupiter(),

@@ -104,7 +104,7 @@ pub fn setup_camera(
         },
         Skybox(skybox_handle.clone()),
         BloomSettings {
-            intensity: 0.5, // the default is 0.3
+            intensity: 0.3, // the default is 0.3
             ..default()
         }
     ));
