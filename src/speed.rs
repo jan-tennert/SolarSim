@@ -15,7 +15,7 @@ impl Plugin for SpeedPlugin {
 }
 
     #[derive(Resource, Debug)]
-    pub struct Speed(pub f32); //speed in seconds
+    pub struct Speed(pub f64); //speed in seconds
     
     impl Speed {
         

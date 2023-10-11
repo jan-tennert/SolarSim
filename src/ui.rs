@@ -57,7 +57,7 @@ pub fn time_ui(
 ) {
     let mut window = windows.single_mut();
     if !pause.0 {
-        sim_time.0 += time.delta_seconds() * (speed.0 / DAY_IN_SECONDS);
+        sim_time.0 += time.delta_seconds() * ((speed.0 / DAY_IN_SECONDS) as f32);
     }
     let date = NaiveDate::from_ymd_opt(2023, 10, 1)
         .unwrap()

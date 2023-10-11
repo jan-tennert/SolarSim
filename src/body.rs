@@ -1,5 +1,5 @@
 use bevy::core::Name;
-use bevy::math::Vec3;
+use bevy::math::{Vec3, DVec3};
 use bevy::pbr::PointLight;
 use bevy::prelude::{Bundle, Component, Reflect, Transform, Entity};
 
@@ -7,10 +7,10 @@ use bevy::prelude::{Bundle, Component, Reflect, Transform, Entity};
 pub struct Mass(pub f64);
 
 #[derive(Default, Component, Reflect, Clone)]
-pub struct Velocity(pub Vec3);
+pub struct Velocity(pub DVec3);
 
 #[derive(Default, Component, Reflect, Clone)]
-pub struct Acceleration(pub Vec3);
+pub struct Acceleration(pub DVec3);
 
 #[derive(Component, Reflect, Clone, Default)]
 pub struct Diameter(pub f32);
@@ -37,7 +37,7 @@ pub struct LightSource {
 }
 
 #[derive(Component, Reflect, Clone, Default)]
-pub struct SimPosition(pub Vec3);
+pub struct SimPosition(pub DVec3);
 
 //Types:
 #[derive(Component, Reflect, Clone, Default)]
