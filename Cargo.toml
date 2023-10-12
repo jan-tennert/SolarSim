@@ -16,7 +16,7 @@ runner = "wasm-server-runner"
 
 [dependencies]
 #bevy = { git = "https://github.com/bevyengine/bevy", branch = "release-0.11.3", features = ["dynamic_linking"] } 
-bevy = { version = "0.11.3", features = ["dynamic_linking"] }
+bevy = { version = "0.11.3" }
 bevy_easings = "0.11.1"
 #bevy_panorbit_camera = { git = "https://github.com/jan-tennert/bevy_panorbit_camera", rev = "7e3c3f8" }
 bevy-inspector-egui = { version = "0.20", default-features = false }
@@ -24,6 +24,22 @@ bevy-inspector-egui = { version = "0.20", default-features = false }
 bevy_egui = "0.22"
 chrono = "0.4.23"
 itertools = "0.11.0"
+
+[profile.wasm-release]
+# Use release profile as default values
+inherits = "release"
+
+# Optimize with size in mind, also try "s", sometimes it is better.
+# This doesn't increase compilation times compared to -O3, great improvements
+opt-level = "z"
+
+# Do a second optimization pass removing duplicate or unused code from dependencies.
+# Slows compile times, marginal improvements
+lto = "fat"
+
+# When building crates, optimize larger chunks at a time
+# Slows compile times, marginal improvements
+codegen-units = 1
 
 [patch.crates-io]
 bevy = { git = "https://github.com/jan-tennert/bevy", branch = "skybox-fix" }
