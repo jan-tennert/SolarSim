@@ -23,6 +23,7 @@ bevy-inspector-egui = { version = "0.20", default-features = false }
 #bevy_mod_picking = "0.15"
 bevy_egui = "0.22"
 chrono = "0.4.23"
+itertools = "0.11.0"
 
 [patch.crates-io]
 bevy = { git = "https://github.com/jan-tennert/bevy", branch = "skybox-fix" }

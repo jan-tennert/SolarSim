@@ -22,6 +22,7 @@ use bevy::render::RenderPlugin;
 use bevy::render::settings::{Backends, WgpuSettings};
 use bevy::window::{WindowPlugin, Window, PresentMode};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use orbit_lines::OrbitLinePlugin;
 use pan_orbit::lib::PanOrbitCameraPlugin;
 use skybox::SkyboxPlugin;
 use speed::SpeedPlugin;
@@ -61,6 +62,7 @@ fn main() {
         .add_plugins(SkyboxPlugin)
         .add_plugins(UIPlugin)
         .add_plugins(SpeedPlugin)
+        .add_plugins(OrbitLinePlugin)
         .add_plugins(LogDiagnosticsPlugin::default())
         .add_plugins(FrameTimeDiagnosticsPlugin::default())
       //  .add_plugins(DiameterPlugin)

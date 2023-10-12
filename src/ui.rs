@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use bevy::{
     prelude::{
         App, Camera, Commands, DespawnRecursiveExt, Entity, Input, KeyCode,
-        Mut, Name, Plugin, PointLight, Query, Res, ResMut, Resource, Transform, Vec3, Visibility, With, Without, NextState, Children, IntoSystemConfigs, GizmoConfig,
+        Mut, Name, Plugin, PointLight, Query, Res, ResMut, Resource, Transform, Vec3, Visibility, With, Without, NextState, Children, IntoSystemConfigs, GizmoConfig, Color,
     },
     reflect::Reflect,
     time::Time,
@@ -15,7 +15,7 @@ use bevy_egui::{egui::{self, Ui, InnerResponse, Response, ComboBox}, EguiContext
 use bevy_inspector_egui::egui::{RichText, TextEdit};
 use chrono::{Days, NaiveDate};
 //use crate::fps::Fps;
-use crate::{input::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, DrawOrbitLines}, constants::DAY_IN_SECONDS, selection::SelectedEntity};
+use crate::{input::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, DrawOrbitLines, OrbitLines, OrbitColor, MaxOrbitPoints}, constants::DAY_IN_SECONDS, selection::SelectedEntity, orbit_lines};
 use crate::physics::{Pause, update_position};
 use crate::SimState;
 use crate::speed::Speed;
@@ -222,23 +222,23 @@ fn body_tree<R>(
 fn body_ui(
     mut egui_context: EguiContexts,
     mut commands: Commands,
-    mut query: Query<(&Name, Entity, &Transform, &Velocity, &mut DrawOrbitLines, &mut Mass, Option<&BodyChildren>)>,
+    mut query: Query<(&Name, Entity, &Transform, &Velocity, &mut DrawOrbitLines, &mut OrbitLines, &mut OrbitColor, &mut MaxOrbitPoints, &mut Mass, Option<&BodyChildren>)>,
     selected_entity: Res<SelectedEntity>
 ) {
     if let Some(entity) = selected_entity.0 {
         let mut parent_transform: Option<(&Transform, &Name)> = None;
-        let mut selected: Option<(&Name, Entity, &Transform, &Velocity, Mut<DrawOrbitLines>, Mut<Mass>)> = None;
-        for (name, b_entity, transform, velocity, mut draw_orbit_lines, mut mass, children) in query.iter_mut() {
+        let mut selected: Option<(&Name, Entity, &Transform, &Velocity, Mut<DrawOrbitLines>, Mut<OrbitLines>, Mut<OrbitColor>, Mut<MaxOrbitPoints>, Mut<Mass>)> = None;
+        for (name, b_entity, transform, velocity, draw_orbit_lines, orbit_lines, orbit_color, max_orbit_points, mass, children) in query.iter_mut() {
             if let Some(children) = children {
                 if children.0.contains(&entity) {
                     parent_transform = Some((transform, name));
                 }
             }
             if b_entity == entity {
-                selected = Some((name, b_entity, transform, velocity, draw_orbit_lines, mass));
+                selected = Some((name, b_entity, transform, velocity, draw_orbit_lines, orbit_lines, orbit_color, max_orbit_points, mass));
             }
         }
-        if let Some((name, entity, transform, velocity, mut draw_orbit_lines, mut mass)) = selected {
+        if let Some((name, entity, transform, velocity, mut draw_orbit_lines, mut orbit_lines, mut orbit_color, mut max_orbit_points, mut mass)) = selected {
             egui::SidePanel::right("body_panel")
                 .max_width(250.0)
                 .resizable(true)
@@ -292,7 +292,28 @@ fn body_ui(
                         let distance_in_au = transform.translation.distance(parent_tr.translation) / 100.0;
                         ui.label(format!("{} km", (distance_in_au * 1.496e+8) as f64));
                         ui.label(format!("{:.3} au", distance_in_au));
+                        
+                        let old_draw_orbit = draw_orbit_lines.0;
                         ui.checkbox(&mut draw_orbit_lines.0, "Draw Orbit lines");
+                        
+                        if old_draw_orbit && !draw_orbit_lines.0 {
+                            orbit_lines.0.clear();
+                        }
+                        
+                        ui.horizontal(|ui| {
+                            ui.label("Orbit Color");    
+                            let mut rgb = [orbit_color.0.r(), orbit_color.0.g(), orbit_color.0.b()];    
+                            ui.color_edit_button_rgb(&mut rgb);
+                            orbit_color.0 = Color::rgb(rgb[0], rgb[1], rgb[2]);
+                        });
+
+                        ui.label("Max Orbit Points");    
+                        ui.add(egui::DragValue::new(&mut max_orbit_points.0).speed(1.0));
+                        
+                        if max_orbit_points.0 < 1 {
+                            max_orbit_points.0 = 1;
+                        }
+                        
                         ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
                             if ui.button("Delete").clicked() {
                                 commands.entity(entity).despawn_recursive()

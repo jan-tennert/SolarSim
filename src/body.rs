@@ -1,7 +1,7 @@
 use bevy::core::Name;
 use bevy::math::{Vec3, DVec3};
 use bevy::pbr::PointLight;
-use bevy::prelude::{Bundle, Component, Reflect, Transform, Entity};
+use bevy::prelude::{Bundle, Component, Reflect, Transform, Entity, Color};
 
 #[derive(Component, Clone, Default, Reflect)]
 pub struct Mass(pub f64);
@@ -25,7 +25,29 @@ pub struct BodyChildren(pub Vec<Entity>);
 pub struct DrawOrbitLines(pub bool);
 
 #[derive(Component, Reflect, Clone, Default)]
-pub struct OrbitLines(pub Vec<(Vec3, Vec3)>);
+pub struct OrbitLines(pub Vec<Vec3>);
+
+#[derive(Component, Reflect, Clone)]
+pub struct OrbitColor(pub Color);
+
+impl Default for OrbitColor {
+    
+    fn default() -> Self {
+        OrbitColor(Color::GREEN)
+    }
+    
+}
+
+#[derive(Component, Reflect, Clone)]
+pub struct MaxOrbitPoints(pub i32);
+
+impl Default for MaxOrbitPoints {
+    
+    fn default() -> Self {
+        MaxOrbitPoints(1000)
+    }
+    
+}
 
 #[derive(Component, Reflect, Clone, Default)]
 pub struct LightSource {
@@ -62,6 +84,8 @@ pub struct BodyBundle {
     pub model_path: ModelPath,
     pub light: LightSource,
     pub draw_orbit_lines: DrawOrbitLines,
-    pub orbit_lines: OrbitLines
-        
+    pub orbit_lines: OrbitLines,
+    pub orbit_color: OrbitColor,
+    pub max_orbit_points: MaxOrbitPoints
+               
 }
