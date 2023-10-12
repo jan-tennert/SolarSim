@@ -44,7 +44,14 @@ pub enum SimState {
 fn main() {
     App::new()
      //   .add_plugins(DefaultPlugins)
-        .add_plugins(DefaultPlugins) 
+        .add_plugins(DefaultPlugins
+            .set(RenderPlugin {
+                wgpu_settings: WgpuSettings {
+                    backends: Some(Backends::BROWSER_WEBGPU),
+                    ..default()
+                },
+            })
+        ) 
         .add_plugins(WorldInspectorPlugin::new())
   //      .add_plugins(DefaultPickingPlugins)
         .add_plugins(PanOrbitCameraPlugin)
