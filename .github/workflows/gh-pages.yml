@@ -42,7 +42,7 @@ jobs:
         run: cargo install wasm-bindgen-cli
 
       - name: Run build
-        run: cargo build --profile wasm-release --target wasm32-unknown-unknown
+        run: RUSTFLAGS=--cfg=web_sys_unstable_apis cargo build --profile wasm-release --target wasm32-unknown-unknown
       - name: WASM
         run: wasm-bindgen --out-dir out/ --target web ./target/wasm32-unknown-unknown/release/Simulation.wasm
       - name: Copy Assets
