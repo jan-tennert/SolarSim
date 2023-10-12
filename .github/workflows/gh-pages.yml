@@ -45,13 +45,9 @@ jobs:
         run: cargo build --profile wasm-release --target wasm32-unknown-unknown
       - name: WASM
         run: wasm-bindgen --out-dir out/ --target web ./target/wasm32-unknown-unknown/release/Simulation.wasm
-    #  - name: Copy Assets
-      #  run: |
-     #     mkdir build
-   #       cp -r pkg build/.
-   #       cp -r assets build/.
-   #       cp index.html build/.
-   #       rm build/pkg/.gitignore
+      - name: Copy Assets
+        run: |
+          cp -r assets out/.
 
       - name: Setup Pages
         uses: actions/configure-pages@v3
