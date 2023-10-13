@@ -15,7 +15,7 @@ use bevy_egui::{egui::{self, Ui, InnerResponse, Response, ComboBox}, EguiContext
 use bevy_inspector_egui::egui::{RichText, TextEdit};
 use chrono::{Days, NaiveDate};
 //use crate::fps::Fps;
-use crate::{input::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, OrbitSettings}, constants::DAY_IN_SECONDS, selection::SelectedEntity, orbit_lines};
+use crate::{input::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, OrbitSettings, SimPosition}, constants::{DAY_IN_SECONDS, KM_TO_AU}, selection::SelectedEntity, orbit_lines};
 use crate::physics::{Pause, update_position};
 use crate::SimState;
 use crate::speed::Speed;
@@ -223,23 +223,23 @@ fn body_tree<R>(
 fn body_ui(
     mut egui_context: EguiContexts,
     mut commands: Commands,
-    mut query: Query<(&Name, Entity, &Transform, &Velocity, &mut OrbitSettings, &mut Mass, Option<&BodyChildren>)>,
+    mut query: Query<(&Name, Entity, &SimPosition, &Velocity, &mut OrbitSettings, &mut Mass, Option<&BodyChildren>)>,
     selected_entity: Res<SelectedEntity>
 ) {
     if let Some(entity) = selected_entity.0 {
-        let mut parent_transform: Option<(&Transform, &Name)> = None;
-        let mut selected: Option<(&Name, Entity, &Transform, &Velocity, Mut<OrbitSettings>, Mut<Mass>)> = None;
-        for (name, b_entity, transform, velocity, orbit, mass, children) in query.iter_mut() {
+        let mut parent_transform: Option<(&SimPosition, &Name)> = None;
+        let mut selected: Option<(&Name, Entity, &SimPosition, &Velocity, Mut<OrbitSettings>, Mut<Mass>)> = None;
+        for (name, b_entity, pos, velocity, orbit, mass, children) in query.iter_mut() {
             if let Some(children) = children {
                 if children.0.contains(&entity) {
-                    parent_transform = Some((transform, name));
+                    parent_transform = Some((pos, name));
                 }
             }
             if b_entity == entity {
-                selected = Some((name, b_entity, transform, velocity, orbit, mass));
+                selected = Some((name, b_entity, pos, velocity, orbit, mass));
             }
         }
-        if let Some((name, entity, transform, velocity, mut orbit, mut mass)) = selected {
+        if let Some((name, entity, pos, velocity, mut orbit, mut mass)) = selected {
             egui::SidePanel::right("body_panel")
                 .max_width(250.0)
                 .resizable(true)
@@ -276,23 +276,23 @@ fn body_ui(
                     });
                     // Position
                     ui.label(
-                        RichText::new("Vector Position (unit)")
+                        RichText::new("Vector Position (km)")
                             .size(16.0)
                             .underline(),
                     );
                     ui.label(format!(
                         "X: {:.2} Y: {:.2} Z: {:.2}",
-                        transform.translation.x, transform.translation.y, transform.translation.z
+                        pos.0.x, pos.0.y, pos.0.z
                     ));
                     // Velocity
                     ui.label(RichText::new("Velocity").size(16.0).underline());
                     ui.label(format!("{:.3} km/s", velocity.0.length() / 1000.0));
                     // Distance from Sun
-                    if let Some((parent_tr, p_name)) = parent_transform {
+                    if let Some((parent_pos, p_name)) = parent_transform {
                         ui.label(RichText::new(format!("Distance to {}", p_name)).size(16.0).underline());
-                        let distance_in_au = transform.translation.distance(parent_tr.translation) / 100.0;
-                        ui.label(format!("{} km", (distance_in_au * 1.496e+8) as f64));
-                        ui.label(format!("{:.3} au", distance_in_au));
+                        let distance_in_m = parent_pos.0.distance(pos.0);
+                        ui.label(format!("{:.3} km", distance_in_m / 100.0));
+                        ui.label(format!("{:.3} au", distance_in_m / 100.0 * KM_TO_AU));
                         
                         let old_draw_orbit = orbit.draw_lines;
                         ui.checkbox(&mut orbit.draw_lines, "Draw Orbit lines");

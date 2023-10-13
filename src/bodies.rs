@@ -87,7 +87,7 @@ impl Bodies {
         }
     }
           
-    pub fn titan() -> BodyBundle {
+    pub fn saturn_titan() -> BodyBundle {
         let sim_pos = DVec3::new(
             1.317062395789841E+09, -6.254109541976979E+08, -4.200566301576936E+07
         ) * 1000.0; //convert it to m
@@ -108,12 +108,33 @@ impl Bodies {
         }
     }
           
+    pub fn saturn_rhea() -> BodyBundle {
+        let sim_pos = DVec3::new(
+            1.317198227126551E+09, -6.263121286545614E+08, -4.155952859529075E+07
+        ) * 1000.0; //convert it to m
+        BodyBundle {
+            mass: Mass(2.3064854e21),
+            sim_position: SimPosition(sim_pos),
+            transform: Transform::from_translation(
+                convert_vec(sim_pos * KM_TO_AU)
+            ),
+            vel: Velocity(DVec3::new(
+                2.806558904291587E+00, 1.270148256713700E+00, 3.694364144037066E+00
+            ) * 1000.0) , //convert it to m/s
+            acc: Default::default(),
+            diameter: Diameter(0.00001),
+            name: Name::new("Rhea"),
+            model_path: ModelPath("models/rhea.glb#Scene0".to_string()),
+            ..default()
+        }
+    }
+          
     pub fn jupiter() -> BodyBundle {
         let sim_pos = DVec3::new(
             5.911164050429280E+08, 4.486127736586710E+08, -1.508610682481316E+07
         ) * 1000.0; //convert it to m
         BodyBundle {
-            mass: Mass(641.71e21),
+            mass: Mass(1.8982e27),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
                 convert_vec(sim_pos * KM_TO_AU)
@@ -125,6 +146,90 @@ impl Bodies {
             diameter: Diameter(0.00007),
             name: Name::new("Jupiter"),
             model_path: ModelPath("models/jupiter.glb#Scene0".to_string()),
+            ..default()
+        }
+    }
+          
+    pub fn jupiter_io() -> BodyBundle {
+        let sim_pos = DVec3::new(
+            5.910424467821088E+08, 4.481963687394117E+08, -1.510185010929203E+07
+        ) * 1000.0; //convert it to m
+        BodyBundle {
+            mass: Mass(8.931938e22),
+            sim_position: SimPosition(sim_pos),
+            transform: Transform::from_translation(
+                convert_vec(sim_pos * KM_TO_AU)
+            ),
+            vel: Velocity(DVec3::new(
+                8.957736595686779E+00, 7.959026250920237E+00, 2.787009746093063E-01
+            ) * 1000.0) , //convert it to m/s
+            acc: Default::default(),
+            diameter: Diameter(0.00001),
+            name: Name::new("Io"),
+            model_path: ModelPath("models/io.glb#Scene0".to_string()),
+            ..default()
+        }
+    }
+          
+    pub fn jupiter_europa() -> BodyBundle {
+        let sim_pos = DVec3::new(
+            5.917799042824603E+08, 4.486983281930672E+08, -1.506823606685701E+07
+        ) * 1000.0; //convert it to m
+        BodyBundle {
+            mass: Mass(4.799844e22),
+            sim_position: SimPosition(sim_pos),
+            transform: Transform::from_translation(
+                convert_vec(sim_pos * KM_TO_AU)
+            ),
+            vel: Velocity(DVec3::new(
+                -9.693151465294227E+00, 2.469741639214316E+01, 5.694296800460830E-01
+            ) * 1000.0) , //convert it to m/s
+            acc: Default::default(),
+            diameter: Diameter(0.000008),
+            name: Name::new("Europa"),
+            model_path: ModelPath("models/europa.glb#Scene0".to_string()),
+            ..default()
+        }
+    }
+          
+    pub fn jupiter_ganymede() -> BodyBundle {
+        let sim_pos = DVec3::new(
+            5.920393829735433E+08, 4.480741128331422E+08, -1.509370908536822E+07
+        ) * 1000.0; //convert it to m
+        BodyBundle {
+            mass: Mass(1.4819e23),
+            sim_position: SimPosition(sim_pos),
+            transform: Transform::from_translation(
+                convert_vec(sim_pos * KM_TO_AU)
+            ),
+            vel: Velocity(DVec3::new(
+                -2.558462326557859E+00, 2.043120719962253E+01, 5.697972593813327E-01
+            ) * 1000.0) , //convert it to m/s
+            acc: Default::default(),
+            diameter: Diameter(0.00001),
+            name: Name::new("Ganymede"),
+            model_path: ModelPath("models/ganymede.glb#Scene0".to_string()),
+            ..default()
+        }
+    }
+          
+    pub fn jupiter_callisto() -> BodyBundle {
+        let sim_pos = DVec3::new(
+            5.928184462926141E+08, 4.478344900349652E+08, -1.508781974881226E+07
+        ) * 1000.0; //convert it to m
+        BodyBundle {
+            mass: Mass(1.075938e23),
+            sim_position: SimPosition(sim_pos),
+            transform: Transform::from_translation(
+                convert_vec(sim_pos * KM_TO_AU)
+            ),
+            vel: Velocity(DVec3::new(
+                -4.643871215581399E+00, 1.853965996642426E+01, 4.153266498041814E-01
+            ) * 1000.0) , //convert it to m/s
+            acc: Default::default(),
+            diameter: Diameter(0.00001),
+            name: Name::new("Callisto"),
+            model_path: ModelPath("models/callisto.glb#Scene0".to_string()),
             ..default()
         }
     }
@@ -209,6 +314,27 @@ impl Bodies {
             diameter: Diameter(0.00005),
             name: Name::new("Neptune"),
             model_path: ModelPath("models/neptune.glb#Scene0".to_string()),
+            ..default()
+        }
+    }
+          
+    pub fn neptune_triton() -> BodyBundle {
+        let sim_pos = DVec3::new(
+            4.460435655534760E+09, -3.118210796191955E+08, -9.622740008927625E+07
+        ) * 1000.0; //convert it to m
+        BodyBundle {
+            mass: Mass(2.1390e22),
+            sim_position: SimPosition(sim_pos),
+            transform: Transform::from_translation(
+                convert_vec(sim_pos * KM_TO_AU)
+            ),
+            vel: Velocity(DVec3::new(
+                6.549830743821887E-01, 8.816651890055235E+00, 2.683376921837763E+00
+            ) * 1000.0) , //convert it to m/s
+            acc: Default::default(),
+            diameter: Diameter(0.000005),
+            name: Name::new("Triton"),
+            model_path: ModelPath("models/triton.glb#Scene0".to_string()),
             ..default()
         }
     }
@@ -338,6 +464,48 @@ impl Bodies {
             ..default()
         }
     }
+    
+    pub fn ceres() -> BodyBundle { //timestap doesn't work with
+        let sim_pos = DVec3::new(
+            -2.762371221893816E+08, -2.903518150199021E+08, 4.151164079416633E+07
+        ) * 1000.0; //convert it to m
+        BodyBundle {
+            mass: Mass(9.38392e20),
+            sim_position: SimPosition(sim_pos),
+            transform: Transform::from_translation(
+                convert_vec(sim_pos * KM_TO_AU)
+            ),
+            vel: Velocity(DVec3::new(
+                1.207056566717051E+01, -1.370357563530193E+01, -2.655445328553542E+00
+            ) * 1000.0) , //convert it to m/s
+            acc: Default::default(),
+            diameter: Diameter(0.000003),
+            name: Name::new("Ceres"),
+            model_path: ModelPath("models/ceres.glb#Scene0".to_string()),
+            ..default()
+        }
+    }
+    
+    pub fn eris() -> BodyBundle { //timestap doesn't work with
+        let sim_pos = DVec3::new(
+            1.280400740948511E+10, 5.796599006941406E+09, -2.733004417387743E+09
+        ) * 1000.0; //convert it to m
+        BodyBundle {
+            mass: Mass(1.6466e22),
+            sim_position: SimPosition(sim_pos),
+            transform: Transform::from_translation(
+                convert_vec(sim_pos * KM_TO_AU)
+            ),
+            vel: Velocity(DVec3::new(
+                -7.745567938606255E-01, 1.503854709856890E+00, 1.614258646777714E+00
+            ) * 1000.0) , //convert it to m/s
+            acc: Default::default(),
+            diameter: Diameter(0.000003),
+            name: Name::new("Eris"),
+            model_path: ModelPath("models/eris.glb#Scene0".to_string()),
+            ..default()
+        }
+    }
 
     pub fn all() -> Vec<BodyEntry> { //this probably has to get improved but no idea how
         return vec![
@@ -366,14 +534,35 @@ impl Bodies {
                         bundle: Bodies::saturn(),
                         children: vec![
                             BodyEntry {
-                                bundle: Bodies::titan(),
+                                bundle: Bodies::saturn_titan(),
+                                children: vec![]
+                            },
+                            BodyEntry {
+                                bundle: Bodies::saturn_rhea(),
                                 children: vec![]
                             }
                         ]
                     },
                     BodyEntry {
                         bundle: Bodies::jupiter(),
-                        children: vec![]
+                        children: vec![
+                            BodyEntry {
+                                bundle: Bodies::jupiter_io(),
+                                children: vec![]
+                            },
+                            BodyEntry {
+                                bundle: Bodies::jupiter_europa(),
+                                children: vec![]
+                            },
+                            BodyEntry {
+                                bundle: Bodies::jupiter_callisto(),
+                                children: vec![]
+                            },
+                            BodyEntry {
+                                bundle: Bodies::jupiter_ganymede(),
+                                children: vec![]
+                            }
+                        ]
                     },
                     BodyEntry {
                         bundle: Bodies::venus(),
@@ -389,10 +578,23 @@ impl Bodies {
                     },
                     BodyEntry {
                         bundle: Bodies::neptune(),
-                        children: vec![]
+                        children: vec![
+                            BodyEntry {
+                                bundle: Bodies::neptune_triton(),
+                                children: vec![]
+                            }
+                        ]
                     },
                     BodyEntry {
                         bundle: Bodies::pluto(),
+                        children: vec![]
+                    },
+                    BodyEntry {
+                        bundle: Bodies::ceres(),
+                        children: vec![]
+                    },
+                    BodyEntry {
+                        bundle: Bodies::eris(),
                         children: vec![]
                     },
                 ]
