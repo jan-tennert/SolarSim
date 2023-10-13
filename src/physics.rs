@@ -31,7 +31,11 @@ pub struct Pause(pub bool);
 
 fn update_acceleration(
     mut query: Query<(&Mass, &mut Acceleration, &SimPosition)>,
+    pause: Res<Pause>
 ) {
+    if pause.0 {
+        return;
+    }
     let mut other_bodies: Vec<(&Mass, Mut<Acceleration>, &SimPosition)> = Vec::new();
     for (mass, mut acc, sim_pos) in query.iter_mut() {
         acc.0 = DVec3::ZERO;
@@ -56,8 +60,12 @@ fn update_acceleration(
 fn update_velocity(
     mut query: Query<(&mut Velocity, &Acceleration)>,
     time: Res<Time>,
-    speed: Res<Speed>
+    speed: Res<Speed>,
+    pause: Res<Pause>
 ) {
+    if pause.0 {
+        return;
+    }
     for (mut vel, acc) in query.iter_mut() {
         vel.0 += acc.0 * time.delta_seconds() as f64 * speed.0;
     }
@@ -68,8 +76,12 @@ pub fn update_position(
     time: Res<Time>,
     speed: Res<Speed>,
     selected_entity: Res<SelectedEntity>,
-    mut gizmos: Gizmos
+    mut gizmos: Gizmos,
+    pause: Res<Pause>
 ) {
+    if pause.0 {
+        return;
+    }
     let delta_time = time.delta_seconds() as f64;
     // Calculate the offset based on the selected entity's position
     let offset = match selected_entity.0 {

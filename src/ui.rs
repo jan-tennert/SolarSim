@@ -79,7 +79,7 @@ pub fn time_ui(
                         date.format("%d.%m.%Y"),
                         speed.format()
                     ));
-                    let time_text = if pause.0 { "Pause" } else { "Resume" };
+                    let time_text = if !pause.0 { "Pause" } else { "Resume" };
                     if ui.button(time_text).clicked() || keys.just_pressed(KeyCode::Space) {
                         pause.0 = !pause.0;
                     }
