@@ -14,37 +14,53 @@ impl Plugin for SpeedPlugin {
 
 }
 
-    #[derive(Resource, Debug)]
-    pub struct Speed(pub f64); //speed in seconds
+#[derive(Resource, Debug)]
+pub struct Speed(pub f64); //speed in seconds
     
-    impl Speed {
+impl Speed {
         
-        pub fn format(&self) -> String {
-            let speed_in_seconds = self.0;
+    pub fn format(&self) -> String {
+        let speed_in_seconds = self.0;
             
-            if speed_in_seconds < 1.0 {
-                return format!("{:.2} s/s", speed_in_seconds);
-            } else if speed_in_seconds < 60.0 {
-                return format!("{:.2} s/s", speed_in_seconds);
-            } else if speed_in_seconds < 3600.0 {
-                let minutes = speed_in_seconds / 60.0;
-                return format!("{:.2} min/s", minutes);
-            } else if speed_in_seconds < 86400.0 {
-                let hours = speed_in_seconds / 3600.0;
-                return format!("{:.2} hours/s", hours);
-            } else if speed_in_seconds < 2592000.0 {
-                let days = speed_in_seconds / 86400.0;
-                return format!("{:.2} days", days);
-            } else if speed_in_seconds < 31536000.0 {
-                let months = speed_in_seconds / 2592000.0;
-                return format!("{:.2} months", months);
-            } else {
-                let years = speed_in_seconds / 31536000.0;
-                return format!("{:.2} years", years);
-            }
+        if speed_in_seconds < 1.0 {
+            return format!("{:.2} s/s", speed_in_seconds);
+        } else if speed_in_seconds < 60.0 {
+            return format!("{:.2} s/s", speed_in_seconds);
+        } else if speed_in_seconds < 3600.0 {
+            let minutes = speed_in_seconds / 60.0;
+            return format!("{:.2} min/s", minutes);
+        } else if speed_in_seconds < 86400.0 {
+            let hours = speed_in_seconds / 3600.0;
+            return format!("{:.2} hours/s", hours);
+        } else if speed_in_seconds < 2592000.0 {
+            let days = speed_in_seconds / 86400.0;
+            return format!("{:.2} days", days);
+        } else if speed_in_seconds < 31536000.0 {
+            let months = speed_in_seconds / 2592000.0;
+            return format!("{:.2} months", months);
+        } else {
+            let years = speed_in_seconds / 31536000.0;
+            return format!("{:.2} years", years);
         }
-        
     }
+        
+    pub fn small_step_up(&mut self) {
+        self.0 *= 2.0; 
+    }
+        
+    pub fn big_step_up(&mut self) {
+        self.0 *= 10.0;
+    }
+        
+    pub fn small_step_down(&mut self) {
+        self.0 /= 2.0;
+    }
+        
+    pub fn big_step_down(&mut self) {
+        self.0 /= 10.0;
+    }
+        
+}
 
 impl Default for Speed {
 

@@ -1,6 +1,5 @@
 use bevy::core::Name;
 use bevy::math::{Vec3, DVec3};
-use bevy::pbr::PointLight;
 use bevy::prelude::{Bundle, Component, Reflect, Transform, Entity, Color};
 
 #[derive(Component, Clone, Default, Reflect)]
@@ -21,30 +20,20 @@ pub struct ModelPath(pub String);
 #[derive(Component, Reflect, Clone, Default)]
 pub struct BodyChildren(pub Vec<Entity>);
 
-#[derive(Component, Reflect, Clone, Default)]
-pub struct DrawOrbitLines(pub bool);
-
-#[derive(Component, Reflect, Clone, Default)]
-pub struct OrbitLines(pub Vec<Vec3>);
-
 #[derive(Component, Reflect, Clone)]
-pub struct OrbitColor(pub Color);
-
-impl Default for OrbitColor {
+pub struct OrbitSettings {
     
-    fn default() -> Self {
-        OrbitColor(Color::GREEN)
-    }
-    
+    pub color: Color,
+    pub max_points: i32,
+    pub lines: Vec<Vec3>,
+    pub draw_lines: bool
+                         
 }
 
-#[derive(Component, Reflect, Clone)]
-pub struct MaxOrbitPoints(pub i32);
-
-impl Default for MaxOrbitPoints {
+impl Default for OrbitSettings {
     
     fn default() -> Self {
-        MaxOrbitPoints(1000)
+        OrbitSettings { color: Color::GREEN, max_points: 1000, lines: vec![], draw_lines: false }
     }
     
 }
@@ -83,9 +72,6 @@ pub struct BodyBundle {
     pub name: Name,
     pub model_path: ModelPath,
     pub light: LightSource,
-    pub draw_orbit_lines: DrawOrbitLines,
-    pub orbit_lines: OrbitLines,
-    pub orbit_color: OrbitColor,
-    pub max_orbit_points: MaxOrbitPoints
+    pub orbit: OrbitSettings
                
 }

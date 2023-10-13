@@ -22,7 +22,8 @@ pub struct SetupPlugin;
 impl Plugin for SetupPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_systems(OnEnter(SimState::Simulation), (setup_planets, setup_camera));
+            .add_systems(Startup, setup_camera)
+            .add_systems(OnEnter(SimState::Simulation), setup_planets);
     }
 }
 
@@ -113,4 +114,5 @@ pub fn setup_camera(
         is_loaded: false,
         image_handle: skybox_handle,
     });
+    println!("??");
 }

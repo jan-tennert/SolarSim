@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use bevy::{prelude::{Plugin, App, Resource, Res, ResMut, Query, Transform, Update, IntoSystemConfigs, in_state, Mesh, Vec3, Material, Color, Commands, MaterialMeshBundle, default, Assets, Gizmos}, time::{Timer, TimerMode, Time}, render::{render_resource::{PrimitiveTopology, RenderPipelineDescriptor, SpecializedMeshPipelineError, PolygonMode, ShaderRef, AsBindGroup}, mesh::MeshVertexBufferLayout}, pbr::{MaterialPipeline, MaterialPipelineKey}, reflect::{TypePath, TypeUuid}};
 
-use crate::{body::{OrbitLines, DrawOrbitLines, MaxOrbitPoints}, SimState, physics::update_position};
+use crate::{body::OrbitSettings, SimState, physics::update_position};
 
 pub struct OrbitLinePlugin;
 
@@ -26,14 +26,14 @@ impl Default for OrbitTimer {
 }
 
 fn clean_orbit_lines(
-    mut bodies: Query<(&mut OrbitLines, &DrawOrbitLines, &MaxOrbitPoints, &Transform)>,
+    mut bodies: Query<(&mut OrbitSettings, &Transform)>,
 ) {
-    for (mut orbit_lines, draw, max_orbit_points, _) in &mut bodies {
-        if draw.0 {
-            let amount = orbit_lines.0.len() as i32;
-            if amount > max_orbit_points.0 {
-                while orbit_lines.0.len() as i32 >= max_orbit_points.0 {
-                    orbit_lines.0.remove(0);
+    for (mut orbit, _) in &mut bodies {
+        if orbit.draw_lines {
+            let amount = orbit.lines.len() as i32;
+            if amount > orbit.max_points {
+                while orbit.lines.len() as i32 >= orbit.max_points {
+                    orbit.lines.remove(0);
                 }
             }
         }

@@ -18,7 +18,7 @@ impl Plugin for SkyboxPlugin {
 
     fn build(&self, app: &mut bevy::prelude::App) {
         app
-            .add_systems(Update, (asset_loaded.after(setup_camera)).run_if(in_state(SimState::Simulation)));
+            .add_systems(Update, asset_loaded);
     }
 
 }
