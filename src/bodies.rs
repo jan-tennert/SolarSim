@@ -2,7 +2,7 @@ use bevy::core::Name;
 use bevy::math::{Vec3, DVec3};
 use bevy::prelude::{default, Transform};
 use crate::body::{BodyBundle, Mass, ModelPath, Diameter, Velocity, LightSource, SimPosition};
-use crate::constants::KM_TO_AU;
+use crate::constants::M_TO_UNIT;
 
 pub struct Bodies;
 
@@ -18,8 +18,8 @@ Data from https://ssd.jpl.nasa.gov/horizons/app.html#/ on 2023-10-01
 Mass in kg
 Diameter in AU (AU = unit)
 SimPosition in m
-Vel in km/s
-Acc in km/s^2
+Vel in m/s
+Acc in m/s^2
 Transform Position in 0.1 AU (0.1 AU = 1 unit)
  */
 impl Bodies {
@@ -35,7 +35,7 @@ impl Bodies {
             name: Name::new("Sun"),
             model_path: ModelPath("models/sun.glb#Scene0".to_string()),
             light: LightSource {
-                intensity: 10000000.0,
+                intensity: 1500000.0,
                 shadows_enabled: false,
                 range: 300000.0,
                 radius: 10.0,
@@ -53,7 +53,7 @@ impl Bodies {
             mass: Mass(5.97219e24),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
-                convert_vec(sim_pos * KM_TO_AU)
+                convert_vec(sim_pos * M_TO_UNIT)
             ),
             vel: Velocity(DVec3::new(
                 -4.226365231723641E+00, 2.941379349033467E+01, -2.828583292782128E-03   
@@ -74,7 +74,7 @@ impl Bodies {
             mass: Mass(5.6834e26),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
-                convert_vec(sim_pos * KM_TO_AU)
+                convert_vec(sim_pos * M_TO_UNIT)
             ),
             vel: Velocity(DVec3::new(
                 3.608323540191913E+00, 8.705880483493228E+00, -2.953903588682212E-01  
@@ -95,7 +95,7 @@ impl Bodies {
             mass: Mass(1.3452e23),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
-                convert_vec(sim_pos * KM_TO_AU)
+                convert_vec(sim_pos * M_TO_UNIT)
             ),
             vel: Velocity(DVec3::new(
                 -1.060852998165573E+00, 6.402666517530363E+00, 1.357634287951674E+00
@@ -116,7 +116,7 @@ impl Bodies {
             mass: Mass(2.3064854e21),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
-                convert_vec(sim_pos * KM_TO_AU)
+                convert_vec(sim_pos * M_TO_UNIT)
             ),
             vel: Velocity(DVec3::new(
                 2.806558904291587E+00, 1.270148256713700E+00, 3.694364144037066E+00
@@ -137,7 +137,7 @@ impl Bodies {
             mass: Mass(1.8982e27),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
-                convert_vec(sim_pos * KM_TO_AU)
+                convert_vec(sim_pos * M_TO_UNIT)
             ),
             vel: Velocity(DVec3::new(
                 -8.045068878300311E+00, 1.102381638213635E+01, 1.341531152888358E-01  
@@ -158,7 +158,7 @@ impl Bodies {
             mass: Mass(8.931938e22),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
-                convert_vec(sim_pos * KM_TO_AU)
+                convert_vec(sim_pos * M_TO_UNIT)
             ),
             vel: Velocity(DVec3::new(
                 8.957736595686779E+00, 7.959026250920237E+00, 2.787009746093063E-01
@@ -179,7 +179,7 @@ impl Bodies {
             mass: Mass(4.799844e22),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
-                convert_vec(sim_pos * KM_TO_AU)
+                convert_vec(sim_pos * M_TO_UNIT)
             ),
             vel: Velocity(DVec3::new(
                 -9.693151465294227E+00, 2.469741639214316E+01, 5.694296800460830E-01
@@ -200,7 +200,7 @@ impl Bodies {
             mass: Mass(1.4819e23),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
-                convert_vec(sim_pos * KM_TO_AU)
+                convert_vec(sim_pos * M_TO_UNIT)
             ),
             vel: Velocity(DVec3::new(
                 -2.558462326557859E+00, 2.043120719962253E+01, 5.697972593813327E-01
@@ -221,7 +221,7 @@ impl Bodies {
             mass: Mass(1.075938e23),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
-                convert_vec(sim_pos * KM_TO_AU)
+                convert_vec(sim_pos * M_TO_UNIT)
             ),
             vel: Velocity(DVec3::new(
                 -4.643871215581399E+00, 1.853965996642426E+01, 4.153266498041814E-01
@@ -242,7 +242,7 @@ impl Bodies {
             mass: Mass(4.8675e24),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
-                convert_vec(sim_pos * KM_TO_AU)
+                convert_vec(sim_pos * M_TO_UNIT)
             ),
             vel: Velocity(DVec3::new(
                 -2.133838684070412E+01, 2.768230884313838E+01, 1.611943339470342E+00
@@ -263,7 +263,7 @@ impl Bodies {
             mass: Mass(3.3011e23),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
-                convert_vec(sim_pos * KM_TO_AU)
+                convert_vec(sim_pos * M_TO_UNIT)
             ),
             vel: Velocity(DVec3::new(
                 -5.119740738494808E+01, -2.382829179403439E+01, 2.750476586235273E+00
@@ -284,7 +284,7 @@ impl Bodies {
             mass: Mass(8.6810e25),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
-                convert_vec(sim_pos * KM_TO_AU)
+                convert_vec(sim_pos * M_TO_UNIT)
             ),
             vel: Velocity(DVec3::new(
                 -5.285944969180821E+00, 4.037177487005098E+00, 8.328859774515029E-02
@@ -305,7 +305,7 @@ impl Bodies {
             mass: Mass(1.024e26),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
-                convert_vec(sim_pos * KM_TO_AU)
+                convert_vec(sim_pos * M_TO_UNIT)
             ),
             vel: Velocity(DVec3::new(
                 3.424898338191547E-01, 5.454448402599064E+00, -1.196973250551823E-01
@@ -326,7 +326,7 @@ impl Bodies {
             mass: Mass(2.1390e22),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
-                convert_vec(sim_pos * KM_TO_AU)
+                convert_vec(sim_pos * M_TO_UNIT)
             ),
             vel: Velocity(DVec3::new(
                 6.549830743821887E-01, 8.816651890055235E+00, 2.683376921837763E+00
@@ -347,7 +347,7 @@ impl Bodies {
             mass: Mass(7.348e22),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
-                convert_vec(sim_pos * KM_TO_AU)
+                convert_vec(sim_pos * M_TO_UNIT)
             ),
             vel: Velocity(DVec3::new(
                 -4.694794112410923E+00, 3.037390017058626E+01, 9.549595923954257E-02
@@ -368,7 +368,7 @@ impl Bodies {
             mass: Mass(1.303e22),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
-                convert_vec(sim_pos * KM_TO_AU)
+                convert_vec(sim_pos * M_TO_UNIT)
             ),
             vel: Velocity(DVec3::new(
                 4.905505817681830E+00, 1.466573354685091E+00, -1.581250123789350E+00
@@ -389,7 +389,7 @@ impl Bodies {
             mass: Mass(450_000_000.0),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
-                convert_vec(sim_pos * KM_TO_AU)
+                convert_vec(sim_pos * M_TO_UNIT)
             ),
             vel: Velocity(DVec3::new(
                 -1.455626164296770E+00, 2.686558693275802E+01, 6.676360863324918E+00
@@ -410,7 +410,7 @@ impl Bodies {
             mass: Mass(1.586e21),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
-                convert_vec(sim_pos * KM_TO_AU)
+                convert_vec(sim_pos * M_TO_UNIT)
             ),
             vel: Velocity(DVec3::new(
                 4.743470035507049E+00, 1.357540337784795E+00, -1.473381802316020E+00
@@ -431,7 +431,7 @@ impl Bodies {
             mass: Mass(1.0659e16),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
-                convert_vec(sim_pos * KM_TO_AU)
+                convert_vec(sim_pos * M_TO_UNIT)
             ),
             vel: Velocity(DVec3::new(
                 1.317247125277010E+01, -1.655773129437739E+01, -3.519634910822811E-01
@@ -452,7 +452,7 @@ impl Bodies {
             mass: Mass(641.71e21),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
-                convert_vec(sim_pos * KM_TO_AU)
+                convert_vec(sim_pos * M_TO_UNIT)
             ),
             vel: Velocity(DVec3::new(
                 1.357395490411145E+01, -1.860254221026088E+01, -7.224152414868863E-01  
@@ -473,7 +473,7 @@ impl Bodies {
             mass: Mass(9.38392e20),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
-                convert_vec(sim_pos * KM_TO_AU)
+                convert_vec(sim_pos * M_TO_UNIT)
             ),
             vel: Velocity(DVec3::new(
                 1.207056566717051E+01, -1.370357563530193E+01, -2.655445328553542E+00
@@ -494,7 +494,7 @@ impl Bodies {
             mass: Mass(1.6466e22),
             sim_position: SimPosition(sim_pos),
             transform: Transform::from_translation(
-                convert_vec(sim_pos * KM_TO_AU)
+                convert_vec(sim_pos * M_TO_UNIT)
             ),
             vel: Velocity(DVec3::new(
                 -7.745567938606255E-01, 1.503854709856890E+00, 1.614258646777714E+00

@@ -1,8 +1,6 @@
-use std::time::Duration;
+use bevy::{prelude::{Plugin, App, Resource, Res, Entity, Query, Transform, Update, IntoSystemConfigs, in_state, Vec3, Material, Color, Commands, MaterialMeshBundle, default, Assets, Gizmos, With, Without}, time::{Timer, TimerMode, Time}, render::{render_resource::{PrimitiveTopology, RenderPipelineDescriptor, SpecializedMeshPipelineError, PolygonMode, ShaderRef, AsBindGroup}, mesh::MeshVertexBufferLayout}, pbr::{MaterialPipeline, MaterialPipelineKey}, reflect::{TypePath, TypeUuid}};
 
-use bevy::{prelude::{Plugin, App, Resource, Res, Entity, Query, Transform, Update, IntoSystemConfigs, in_state, Mesh, Vec3, Material, Color, Commands, MaterialMeshBundle, default, Assets, Gizmos, With, Without}, time::{Timer, TimerMode, Time}, render::{render_resource::{PrimitiveTopology, RenderPipelineDescriptor, SpecializedMeshPipelineError, PolygonMode, ShaderRef, AsBindGroup}, mesh::MeshVertexBufferLayout}, pbr::{MaterialPipeline, MaterialPipelineKey}, reflect::{TypePath, TypeUuid}};
-
-use crate::{body::{OrbitSettings, Planet, Moon, Star, BodyChildren, SimPosition}, SimState, physics::update_position, selection::SelectedEntity, constants::KM_TO_AU};
+use crate::{body::{OrbitSettings, Planet, Moon, Star, BodyChildren, SimPosition}, SimState, physics::update_position, selection::SelectedEntity, constants::M_TO_UNIT};
 
 pub struct OrbitLinePlugin;
 
@@ -23,7 +21,7 @@ fn update_lines(
 ) {
     for (mut orbit, pos, _, _, _, _) in &mut planet_query {
         if orbit.draw_lines {
-            orbit.lines.push((pos.0 * KM_TO_AU).as_vec3());
+            orbit.lines.push((pos.0 * M_TO_UNIT).as_vec3());
         }
     }
     for (entity, pos, mut orbit, _, _, _) in &mut moon_query {
@@ -31,8 +29,8 @@ fn update_lines(
             if let Some((_, p_pos, _, _, _, _)) = planet_query.iter().find(|(_, _, children, _, _, _)| {
                 children.0.contains(&entity)
             }) {
-                let raw_p_pos = (p_pos.0 * KM_TO_AU).as_vec3();
-                let raw_pos = (pos.0 * KM_TO_AU).as_vec3();
+                let raw_p_pos = (p_pos.0 * M_TO_UNIT).as_vec3();
+                let raw_pos = (pos.0 * M_TO_UNIT).as_vec3();
                 orbit.lines.push(raw_pos - raw_p_pos);
             }
         }
@@ -55,7 +53,7 @@ fn draw_orbit_line(
             if let Some((_, p_pos, _, _, _, _)) = planet_query.iter().find(|(_, _, children, _, _, _)| {
                 children.0.contains(&entity)
             }) {
-                let raw_p_pos = (p_pos.0 * KM_TO_AU).as_vec3();
+                let raw_p_pos = (p_pos.0 * M_TO_UNIT).as_vec3();
                 draw_lines(orbit, offset.0 + raw_p_pos, &mut gizmos)
             }
         }

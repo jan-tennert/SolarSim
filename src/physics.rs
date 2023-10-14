@@ -4,7 +4,7 @@ use bevy::app::{App, Plugin, Update};
 use bevy::math::{Vec3, I64Vec3, Vec3A, DVec3};
 use bevy::prelude::{in_state, IntoSystemConfigs, Mut, Query, Res, Resource, Time, Transform, Entity, GlobalTransform, BVec3, Gizmos, Color, ResMut};
 use crate::body::{Acceleration, Mass, SimPosition, Velocity, OrbitSettings};
-use crate::constants::{G, KM_TO_AU};
+use crate::constants::{G, M_TO_UNIT};
 use crate::SimState;
 use crate::orbit_lines::{OrbitOffset, draw_lines};
 use crate::selection::SelectedEntity;
@@ -88,7 +88,7 @@ pub fn update_position(
         Some(selected) => {
             if let Ok((_, mut sim_pos, mut transform, vel)) = query.get_mut(selected) {
                 sim_pos.0 += vel.0 * delta_time * speed.0; //this is the same step as below, but we are doing this first for the offset
-                let raw_translation = sim_pos.0 * KM_TO_AU;
+                let raw_translation = sim_pos.0 * M_TO_UNIT;
                 transform.translation = Vec3::ZERO; //the selected entity will always be at 0,0,0
                 -raw_translation 
             } else {
@@ -104,7 +104,7 @@ pub fn update_position(
             }
         }
         sim_pos.0 += vel.0 * delta_time * speed.0;
-        let pos_without_offset = sim_pos.0.as_vec3() * KM_TO_AU as f32;
+        let pos_without_offset = sim_pos.0.as_vec3() * M_TO_UNIT as f32;
         transform.translation = pos_without_offset + offset.as_vec3(); //apply offset
     }
     orbit_offset.0 = offset.as_vec3();

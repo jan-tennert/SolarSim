@@ -9,9 +9,6 @@ use bevy::{
         },
 };
 
-use crate::SimState;
-use crate::setup::setup_camera;
-
 pub struct SkyboxPlugin;
 
 impl Plugin for SkyboxPlugin {

@@ -17,8 +17,9 @@ mod reset;
 
 use bevy::app::{App, PluginGroup};
 use bevy::DefaultPlugins;
+use bevy::core_pipeline::fxaa::Fxaa;
 use bevy::diagnostic::{LogDiagnosticsPlugin, FrameTimeDiagnosticsPlugin};
-use bevy::prelude::{default, States};
+use bevy::prelude::{default, States, Msaa};
 use bevy::render::RenderPlugin;
 use bevy::render::settings::{Backends, WgpuSettings};
 use bevy::window::{WindowPlugin, Window, PresentMode};
@@ -54,7 +55,7 @@ fn main() {
                 },
             })
         ) 
-        .add_plugins(WorldInspectorPlugin::new())
+       // .add_plugins(WorldInspectorPlugin::new())
   //      .add_plugins(DefaultPickingPlugins)
         .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(SetupPlugin)

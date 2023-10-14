@@ -7,8 +7,8 @@ use bevy::ecs::system::EntityCommands;
 use bevy::hierarchy::BuildChildren;
 use bevy::math::Vec3;
 use bevy::pbr::{PointLight, PointLightBundle};
-use bevy::prelude::{Camera3dBundle, Commands, default, OnEnter, Res, SceneBundle, SpatialBundle, Transform, Handle, Entity, Bundle, Projection, PerspectiveProjection, Startup, GizmoConfig, ResMut, Color, Msaa};
-use bevy::scene::Scene;
+use bevy::prelude::{Camera3dBundle, Commands, default, OnEnter, Res, SceneBundle, SpatialBundle, Transform, Handle, Entity, Bundle, Projection, PerspectiveProjection, Startup, GizmoConfig, ResMut, Color, Msaa, Camera, StandardMaterial, Mesh, Assets, Material};
+use bevy::scene::{Scene, SceneInstance};
 
 
 use crate::bodies::Bodies;
@@ -30,6 +30,8 @@ impl Plugin for SetupPlugin {
 pub fn setup_planets(
     mut commands: Commands,
     assets: Res<AssetServer>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     let bodies = Bodies::all();
     for entry in bodies {
@@ -71,7 +73,6 @@ fn apply_body(
     entity: &mut EntityCommands 
 ) {
     let asset_handle: Handle<Scene> = assets.load(bundle.model_path.clone().0);      
-                            
     entity.insert(bundle.clone());
     entity.insert(body_type);
     entity.with_children(|child| {
@@ -95,6 +96,10 @@ pub fn setup_camera(
                 near: 0.00001,
                 ..default()
             }),
+            camera: Camera {
+                hdr: true,
+                ..default()
+            },
             ..default()
         },
         PanOrbitCamera {
@@ -105,7 +110,7 @@ pub fn setup_camera(
         },
         Skybox(skybox_handle.clone()),
         BloomSettings {
-            intensity: 0.3, // the default is 0.3
+            intensity: 0.4, // the default is 0.3,
             ..default()
         }
     ));

@@ -33,7 +33,7 @@ pub struct OrbitSettings {
 impl Default for OrbitSettings {
     
     fn default() -> Self {
-        OrbitSettings { color: Color::GREEN, max_points: 1000, lines: vec![], draw_lines: false }
+        OrbitSettings { color: Color::GREEN, max_points: 3000, lines: vec![], draw_lines: false }
     }
     
 }

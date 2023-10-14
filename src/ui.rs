@@ -11,11 +11,11 @@ use bevy::{
 };
 use bevy::app::Update;
 use bevy::prelude::{in_state, Window};
-use bevy_egui::{egui::{self, Ui, InnerResponse, Response, ComboBox}, EguiContexts};
+use bevy_egui::{egui::{self, Ui, InnerResponse, Response, ComboBox}, EguiContexts, EguiPlugin};
 use bevy_inspector_egui::egui::{RichText, TextEdit};
 use chrono::{Days, NaiveDate};
 //use crate::fps::Fps;
-use crate::{input::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, OrbitSettings, SimPosition}, constants::{DAY_IN_SECONDS, KM_TO_AU}, selection::SelectedEntity, orbit_lines};
+use crate::{input::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, OrbitSettings, SimPosition}, constants::{DAY_IN_SECONDS, M_TO_UNIT}, selection::SelectedEntity, orbit_lines};
 use crate::physics::{Pause, update_position};
 use crate::SimState;
 use crate::speed::Speed;
@@ -32,7 +32,7 @@ pub struct UIPlugin;
 impl Plugin for UIPlugin {
     fn build(&self, app: &mut App) {
         app
-         //   .add_plugins(EguiPlugin)
+            .add_plugins(EguiPlugin)
             .register_type::<SimTime>()
             .init_resource::<SimTime>()
             .add_plugins(BlockInputPlugin)
@@ -282,7 +282,7 @@ fn body_ui(
                     );
                     ui.label(format!(
                         "X: {:.2} Y: {:.2} Z: {:.2}",
-                        pos.0.x, pos.0.y, pos.0.z
+                        pos.0.x / 1000.0, pos.0.y / 1000.0, pos.0.z / 1000.0
                     ));
                     // Velocity
                     ui.label(RichText::new("Velocity").size(16.0).underline());
@@ -292,7 +292,7 @@ fn body_ui(
                         ui.label(RichText::new(format!("Distance to {}", p_name)).size(16.0).underline());
                         let distance_in_m = parent_pos.0.distance(pos.0);
                         ui.label(format!("{:.3} km", distance_in_m / 100.0));
-                        ui.label(format!("{:.3} au", distance_in_m / 100.0 * KM_TO_AU));
+                        ui.label(format!("{:.3} au", distance_in_m / 100.0 * M_TO_UNIT));
                         
                         let old_draw_orbit = orbit.draw_lines;
                         ui.checkbox(&mut orbit.draw_lines, "Draw Orbit lines");
