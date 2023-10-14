@@ -2,10 +2,11 @@ use std::ops::Add;
 use std::process::exit;
 use bevy::app::{App, Plugin, Update};
 use bevy::math::{Vec3, I64Vec3, Vec3A, DVec3};
-use bevy::prelude::{in_state, IntoSystemConfigs, Mut, Query, Res, Resource, Time, Transform, Entity, GlobalTransform, BVec3, Gizmos, Color};
+use bevy::prelude::{in_state, IntoSystemConfigs, Mut, Query, Res, Resource, Time, Transform, Entity, GlobalTransform, BVec3, Gizmos, Color, ResMut};
 use crate::body::{Acceleration, Mass, SimPosition, Velocity, OrbitSettings};
 use crate::constants::{G, KM_TO_AU};
 use crate::SimState;
+use crate::orbit_lines::{OrbitOffset, draw_lines};
 use crate::selection::SelectedEntity;
 use crate::speed::Speed;
 use itertools::Itertools;
@@ -71,12 +72,12 @@ fn update_velocity(
 }
 
 pub fn update_position(
-    mut query: Query<(Entity, &mut OrbitSettings, &mut SimPosition, &mut Transform, &Velocity)>,
+    mut query: Query<(Entity, &mut SimPosition, &mut Transform, &Velocity)>,
     time: Res<Time>,
     speed: Res<Speed>,
     selected_entity: Res<SelectedEntity>,
-    mut gizmos: Gizmos,
-    pause: Res<Pause>
+    pause: Res<Pause>,
+    mut orbit_offset: ResMut<OrbitOffset>,
 ) {
     if pause.0 {
         return;
@@ -85,15 +86,10 @@ pub fn update_position(
     // Calculate the offset based on the selected entity's position
     let offset = match selected_entity.0 {
         Some(selected) => {
-            if let Ok((_, mut orbit, mut sim_pos, mut transform, vel)) = query.get_mut(selected) {
+            if let Ok((_, mut sim_pos, mut transform, vel)) = query.get_mut(selected) {
                 sim_pos.0 += vel.0 * delta_time * speed.0; //this is the same step as below, but we are doing this first for the offset
                 let raw_translation = sim_pos.0 * KM_TO_AU;
                 transform.translation = Vec3::ZERO; //the selected entity will always be at 0,0,0
-                if orbit.draw_lines {
-                    let raw_vec3 = Vec3::new(raw_translation.x as f32, raw_translation.y as f32, raw_translation.z as f32);
-                    orbit.lines.push(raw_vec3);
-                    draw_lines(&orbit, raw_vec3, orbit.color, &mut gizmos)
-                }
                 -raw_translation 
             } else {
                 DVec3::ZERO 
@@ -101,31 +97,15 @@ pub fn update_position(
         }
         None => DVec3::ZERO,
     };
-    for (entity, mut orbit, mut sim_pos, mut transform, vel) in query.iter_mut() {
+    for (entity, mut sim_pos, mut transform, vel) in query.iter_mut() {
         if let Some(s_entity) = selected_entity.0 {
             if s_entity == entity {
                 continue;
             }
         }
         sim_pos.0 += vel.0 * delta_time * speed.0;
-        let offset3: Vec3 = Vec3::new(offset.x as f32, offset.y as f32, offset.z as f32);
-        let sim_pos3 = Vec3::new(sim_pos.0.x as f32, sim_pos.0.y as f32, sim_pos.0.z as f32);
-        let pos_without_offset = sim_pos3 * KM_TO_AU as f32;
-        transform.translation = pos_without_offset + offset3; //apply offset
-        if orbit.draw_lines {
-            orbit.lines.push(pos_without_offset);
-            draw_lines(&orbit, -offset3, orbit.color, &mut gizmos)
-        }
+        let pos_without_offset = sim_pos.0.as_vec3() * KM_TO_AU as f32;
+        transform.translation = pos_without_offset + offset.as_vec3(); //apply offset
     }
-}
-
-fn draw_lines(orbit: &OrbitSettings, offset: Vec3, color: Color, gizmos: &mut Gizmos) {
-    let points: Vec<&[Vec3]> = orbit.lines.chunks(2).collect();
-    for outer in points {
-        if let Some(first) = outer.get(0) {
-            if let Some(second) = outer.get(1) {
-                gizmos.line(*first - offset, *second - offset, color);
-            }
-        }
-    }
+    orbit_offset.0 = offset.as_vec3();
 }
