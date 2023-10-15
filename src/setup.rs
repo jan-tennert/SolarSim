@@ -97,7 +97,7 @@ pub fn setup_camera(
                 ..default()
             }),
             camera: Camera {
-                hdr: true,
+                hdr: false,
                 ..default()
             },
             ..default()
@@ -118,6 +118,6 @@ pub fn setup_camera(
     commands.insert_resource(Cubemap {
         is_loaded: false,
         image_handle: skybox_handle,
+        activated: true,
     });
-    println!("??");
 }

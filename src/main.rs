@@ -16,7 +16,7 @@ mod orbit_lines;
 mod reset;
 mod rotation;
 
-use bevy::app::{App, PluginGroup};
+use bevy::app::{App, PluginGroup, AppLabel};
 use bevy::DefaultPlugins;
 use bevy::core_pipeline::fxaa::Fxaa;
 use bevy::diagnostic::{LogDiagnosticsPlugin, FrameTimeDiagnosticsPlugin};
@@ -25,6 +25,7 @@ use bevy::render::RenderPlugin;
 use bevy::render::settings::{Backends, WgpuSettings};
 use bevy::window::{WindowPlugin, Window, PresentMode};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use fps::FpsPlugin;
 use orbit_lines::OrbitLinePlugin;
 use pan_orbit::lib::PanOrbitCameraPlugin;
 use reset::ResetPlugin;
@@ -56,6 +57,14 @@ fn main() {
                     ..default()
                 },
             })
+            .set(WindowPlugin {
+                primary_window: Some(Window {
+                    title: "Solar System Simulation (Jan Tennert)".to_string(),
+                    present_mode: PresentMode::AutoVsync,
+                    ..default()
+                }),
+                ..default()
+            })
         ) 
         .add_plugins(WorldInspectorPlugin::new())
   //      .add_plugins(DefaultPickingPlugins)
@@ -70,6 +79,7 @@ fn main() {
         .add_plugins(ResetPlugin)
         .add_plugins(OrbitLinePlugin)
         .add_plugins(RotationPlugin)
+        .add_plugins(FpsPlugin)
         .add_plugins(LogDiagnosticsPlugin::default())
         .add_plugins(FrameTimeDiagnosticsPlugin::default())
       //  .add_plugins(DiameterPlugin)

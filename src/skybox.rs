@@ -22,6 +22,7 @@ impl Plugin for SkyboxPlugin {
 
 #[derive(Resource)]
 pub struct Cubemap {
+    pub activated: bool,
     pub is_loaded: bool,
     pub image_handle: Handle<Image>,
 }   
@@ -32,7 +33,7 @@ fn asset_loaded(
     mut cubemap: ResMut<Cubemap>,
     mut skyboxes: Query<&mut Skybox>,
 ) {
-    if !cubemap.is_loaded
+    if cubemap.activated && !cubemap.is_loaded
         && asset_server.get_load_state(cubemap.image_handle.clone_weak()) == LoadState::Loaded
     {
         let image = images.get_mut(&cubemap.image_handle).unwrap();

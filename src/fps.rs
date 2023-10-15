@@ -1,7 +1,9 @@
 use bevy::app::{App, Plugin, Update};
-use bevy::diagnostic::{Diagnostic, Diagnostics, FrameTimeDiagnosticsPlugin};
-use bevy::prelude::{Res, ResMut, Resource, Time, Timer, TimerMode};
-/*
+use bevy::diagnostic::{Diagnostic, Diagnostics, FrameTimeDiagnosticsPlugin, DiagnosticsStore};
+use bevy::prelude::{Res, ResMut, Resource, Time, Timer, TimerMode, IntoSystemConfigs, in_state};
+
+use crate::SimState;
+
 pub struct FpsPlugin;
 
 impl Plugin for FpsPlugin {
@@ -10,7 +12,7 @@ impl Plugin for FpsPlugin {
         app
             .init_resource::<Fps>()
             .init_resource::<FpsConfig>()
-            .add_systems(Update, measure_fps);
+            .add_systems(Update, measure_fps.run_if(in_state(SimState::Simulation)));
     }
 
 }
@@ -31,7 +33,8 @@ fn measure_fps(
     mut timer: ResMut<FpsConfig>,
     time: Res<Time>,
     mut fps_res: ResMut<Fps>,
-    diagnostics: Diagnostic
+    //    mut state: ResMut<LogDiagnosticsState>,
+    diagnostics: Res<DiagnosticsStore>,
 ) {
     timer.0.tick(time.delta());
 
@@ -42,4 +45,4 @@ fn measure_fps(
             }
         }
     }
-}*/
+}

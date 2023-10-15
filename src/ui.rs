@@ -3,11 +3,11 @@ use std::collections::HashMap;
 use bevy::{
     prelude::{
         App, Camera, Commands, DespawnRecursiveExt, Entity, Input, KeyCode,
-        Mut, Name, Plugin, PointLight, Query, Res, ResMut, Resource, Transform, Vec3, Visibility, With, Without, NextState, Children, IntoSystemConfigs, GizmoConfig, Color,
+        Mut, Name, Plugin, PointLight, Query, Res, ResMut, Resource, Transform, Vec3, Visibility, With, Without, NextState, Children, IntoSystemConfigs, GizmoConfig, Color, AssetServer,
     },
     reflect::Reflect,
     time::Time,
-    window::PresentMode, render::camera::TemporalJitter, pbr::{ScreenSpaceAmbientOcclusionSettings, ScreenSpaceAmbientOcclusionQualityLevel},
+    window::PresentMode, render::camera::TemporalJitter, pbr::{ScreenSpaceAmbientOcclusionSettings, ScreenSpaceAmbientOcclusionQualityLevel}, core_pipeline::Skybox, transform::commands,
 };
 use bevy::app::Update;
 use bevy::prelude::{in_state, Window};
@@ -15,7 +15,7 @@ use bevy_egui::{egui::{self, Ui, InnerResponse, Response, ComboBox}, EguiContext
 use bevy_inspector_egui::egui::{RichText, TextEdit};
 use chrono::{Days, NaiveDate};
 //use crate::fps::Fps;
-use crate::{input::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, OrbitSettings, SimPosition}, constants::{DAY_IN_SECONDS, M_TO_UNIT}, selection::SelectedEntity, orbit_lines};
+use crate::{input::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, OrbitSettings, SimPosition}, constants::{DAY_IN_SECONDS, M_TO_UNIT}, selection::SelectedEntity, orbit_lines, fps::Fps, skybox::Cubemap};
 use crate::physics::{Pause, update_position};
 use crate::SimState;
 use crate::speed::Speed;
@@ -48,7 +48,7 @@ pub fn time_ui(
     mut sim_time: ResMut<SimTime>,
     mut egui_context: EguiContexts,
     mut speed: ResMut<Speed>,
-   // fps: Res<Fps>,
+    fps: Res<Fps>,
     mut windows: Query<&mut Window>,
    // mut lock_on_sun: ResMut<LockSun>,
     mut pause: ResMut<Pause>,
@@ -106,7 +106,7 @@ pub fn time_ui(
                             window.present_mode = PresentMode::AutoNoVsync;
                         }
                     }
-             //       ui.label(format!("{:.0} FPS", fps.0));
+                    ui.label(format!("{:.0} FPS", fps.0));
                 })
             });
         });
@@ -145,9 +145,12 @@ pub fn system_ui(
     mut state: ResMut<NextState<SimState>>,
     mut selected_entity: ResMut<SelectedEntity>,
     mut config: ResMut<GizmoConfig>,
-    mut camera: Query<&mut Camera>,    
+    mut camera: Query<(Entity, &mut Camera, Option<&Skybox>)>,    
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut cubemap: ResMut<Cubemap>
 ) {
-    if let Ok(mut camera) = camera.get_single_mut() {
+    if let Ok((entity, mut camera, skybox)) = camera.get_single_mut() {
         egui::SidePanel::left("system_panel")
                 .default_width(400.0)
                 .resizable(true)
@@ -190,6 +193,18 @@ pub fn system_ui(
                     if let Ok(mut light) = light.get_single_mut() {
                         ui.checkbox(&mut light.shadows_enabled, "Shadows");
                     }
+                    let skybox_enabled = skybox.is_some();
+                    let mut skybox_setting = skybox_enabled;
+                    ui.checkbox(&mut skybox_setting, "Milky Way Skybox");
+                    
+                    if skybox_enabled && !skybox_setting {
+                        commands.entity(entity).remove::<Skybox>();
+                        cubemap.activated = false;
+                    } else if !skybox_enabled && skybox_setting {
+                        commands.entity(entity).insert(Skybox(asset_server.load("textures/skybox.png")));
+                        cubemap.activated = true;
+                    }
+                    
                     ui.checkbox(&mut config.aabb.draw_all, "Draw Outlines");
                     
                     ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
