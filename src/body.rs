@@ -1,6 +1,6 @@
 use bevy::core::Name;
 use bevy::math::{Vec3, DVec3};
-use bevy::prelude::{Bundle, Component, Reflect, Transform, Entity, Color};
+use bevy::prelude::{Bundle, Component, Reflect, Transform, Entity, Color, Quat};
 
 #[derive(Component, Clone, Default, Reflect)]
 pub struct Mass(pub f64);
@@ -12,7 +12,13 @@ pub struct Velocity(pub DVec3);
 pub struct Acceleration(pub DVec3);
 
 #[derive(Component, Reflect, Clone, Default)]
-pub struct Diameter(pub f32);
+pub struct Scale(pub f32);
+
+#[derive(Component, Reflect, Clone, Default)]
+pub struct RotationSpeed(pub f32);
+
+#[derive(Component, Reflect, Clone, Default)]
+pub struct StartingRotation(pub Quat);
 
 #[derive(Component, Reflect, Clone, Default)]
 pub struct ModelPath(pub String);
@@ -50,6 +56,9 @@ pub struct LightSource {
 #[derive(Component, Reflect, Clone, Default)]
 pub struct SimPosition(pub DVec3);
 
+#[derive(Component, Reflect, Clone, Default)]
+pub struct Radius(pub f32);
+
 //Types:
 #[derive(Component, Reflect, Clone, Default)]
 pub struct Star;
@@ -68,10 +77,13 @@ pub struct BodyBundle {
     pub sim_position: SimPosition,
     pub vel: Velocity,
     pub acc: Acceleration,
-    pub diameter: Diameter,
+    pub scale: Scale,
     pub name: Name,
     pub model_path: ModelPath,
     pub light: LightSource,
-    pub orbit: OrbitSettings
+    pub orbit: OrbitSettings,
+    pub rotation_speed: RotationSpeed,
+    pub starting_rotation: StartingRotation,   
+    pub radius: Radius,
                
 }

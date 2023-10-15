@@ -14,6 +14,7 @@ mod pan_orbit;
 mod ui;
 mod orbit_lines;
 mod reset;
+mod rotation;
 
 use bevy::app::{App, PluginGroup};
 use bevy::DefaultPlugins;
@@ -27,6 +28,7 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use orbit_lines::OrbitLinePlugin;
 use pan_orbit::lib::PanOrbitCameraPlugin;
 use reset::ResetPlugin;
+use rotation::RotationPlugin;
 use skybox::SkyboxPlugin;
 use speed::SpeedPlugin;
 use ui::UIPlugin;
@@ -55,7 +57,7 @@ fn main() {
                 },
             })
         ) 
-       // .add_plugins(WorldInspectorPlugin::new())
+        .add_plugins(WorldInspectorPlugin::new())
   //      .add_plugins(DefaultPickingPlugins)
         .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(SetupPlugin)
@@ -67,6 +69,7 @@ fn main() {
         .add_plugins(SpeedPlugin)
         .add_plugins(ResetPlugin)
         .add_plugins(OrbitLinePlugin)
+        .add_plugins(RotationPlugin)
         .add_plugins(LogDiagnosticsPlugin::default())
         .add_plugins(FrameTimeDiagnosticsPlugin::default())
       //  .add_plugins(DiameterPlugin)

@@ -1,6 +1,6 @@
 use bevy::{app::{App, Plugin}, prelude::{Query, Transform, OnEnter, Res,     Entity, IntoSystemConfigs, PreUpdate, in_state, Local, GizmoConfig, ResMut, AabbGizmo, GlobalTransform, PostUpdate, Update, With, Handle, Mesh, Vec3, Name}, render::primitives::{Aabb, Sphere}, math::Vec3A, scene::{SceneSpawner, SceneInstance}};
 
-use crate::{body::Diameter, SimState, setup::setup_planets};
+use crate::{body::Scale, SimState, setup::setup_planets};
 pub struct DiameterPlugin;
 
 impl Plugin for DiameterPlugin {
@@ -14,7 +14,7 @@ impl Plugin for DiameterPlugin {
 
 fn apply_real_diameter(
     mut setup: Local<bool>,
-    mut bodies: Query<(&SceneInstance, &Diameter, &mut Transform)>,
+    mut bodies: Query<(&SceneInstance, &Scale, &mut Transform)>,
     meshes: Query<( &GlobalTransform, Option<&Aabb>), With<Handle<Mesh>>>,
     spawner: Res<SceneSpawner>
 ) {

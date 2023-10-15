@@ -32,7 +32,7 @@ pub struct UIPlugin;
 impl Plugin for UIPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_plugins(EguiPlugin)
+        //    .add_plugins(EguiPlugin)
             .register_type::<SimTime>()
             .init_resource::<SimTime>()
             .add_plugins(BlockInputPlugin)
@@ -300,7 +300,7 @@ fn body_ui(
                         if old_draw_orbit && !orbit.draw_lines {
                             orbit.lines.clear();
                         }
-                        
+                                                
                         ui.horizontal(|ui| {
                             ui.label("Orbit Color");    
                             let mut rgb = [orbit.color.r(), orbit.color.g(), orbit.color.b()];    

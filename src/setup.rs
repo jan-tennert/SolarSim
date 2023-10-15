@@ -78,7 +78,7 @@ fn apply_body(
     entity.with_children(|child| {
         child.spawn(SceneBundle {
             scene: asset_handle,
-            transform: Transform::from_scale(Vec3::splat(bundle.diameter.0)),
+            transform: Transform::from_scale(Vec3::splat(bundle.scale.0)).with_rotation(bundle.starting_rotation.0),
             ..Default::default()
         });
     }); 
