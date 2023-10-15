@@ -15,6 +15,7 @@ mod ui;
 mod orbit_lines;
 mod reset;
 mod rotation;
+mod serialization;
 
 use bevy::app::{App, PluginGroup, AppLabel};
 use bevy::DefaultPlugins;

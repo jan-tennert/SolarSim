@@ -30,8 +30,6 @@ impl Plugin for SetupPlugin {
 pub fn setup_planets(
     mut commands: Commands,
     assets: Res<AssetServer>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     let bodies = Bodies::all();
     for entry in bodies {
