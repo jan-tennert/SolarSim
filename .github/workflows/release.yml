@@ -37,8 +37,8 @@ jobs:
         run: cargo build -r
       - name: Copy essential files
         run: |
-          cp target/release/Simulation.exe out/
-          cp assets out/
+          copy target\release\Simulation.exe out\
+          copy assets out\
       - name: Upload Files
         uses: actions/upload-artifact@v1
         with:
