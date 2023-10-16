@@ -9,8 +9,7 @@ on:
         default: prerelease
   push:
     branches:
-      - master
-      - dev
+      - main
     tags:
       - 'v*'
   pull_request:
