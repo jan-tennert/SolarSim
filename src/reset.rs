@@ -1,6 +1,6 @@
 use bevy::prelude::{SystemSet, App, Plugin, OnExit, Entity, Name, With, ResMut, Commands, Query, NextState, Update, IntoSystemConfigs, in_state, OnEnter, Camera, Without, DespawnRecursiveExt};
 
-use crate::{SimState, speed::Speed, ui::SimTime, body::Mass, physics::Pause, selection::SelectedEntity, constants::HOUR_IN_SECONDS};
+use crate::{SimState, speed::Speed, ui::SimTime, body::Mass, physics::Pause, selection::SelectedEntity, constants::HOUR_IN_SECONDS, setup::BodiesHandle};
 
 pub struct ResetPlugin;
 
@@ -21,6 +21,7 @@ fn clean_up(
     mut pause: ResMut<Pause>,
     mut sim_time: ResMut<SimTime>,
     mut selected_entity: ResMut<SelectedEntity>,
+    mut bodies: ResMut<BodiesHandle>,
     mut commands: Commands
 ) {
     for (entity, _, _) in entities.iter() {
@@ -30,6 +31,7 @@ fn clean_up(
     pause.0 = false;
     sim_time.0 = 0.0;
     selected_entity.0 = None;
+    bodies.spawned = false;
 }
 
 fn switch_to_menu(

@@ -1,5 +1,5 @@
 use bevy::app::{App, Plugin};
-use bevy::asset::AssetServer;
+use bevy::asset::{AssetServer, LoadState};
 use bevy::core_pipeline::Skybox;
 use bevy::core_pipeline::bloom::BloomSettings;
 use bevy::core_pipeline::experimental::taa::TemporalAntiAliasPlugin;
@@ -7,7 +7,7 @@ use bevy::ecs::system::EntityCommands;
 use bevy::hierarchy::BuildChildren;
 use bevy::math::Vec3;
 use bevy::pbr::{PointLight, PointLightBundle};
-use bevy::prelude::{Camera3dBundle, Commands, default, OnEnter, Res, SceneBundle, SpatialBundle, Transform, Handle, Entity, Bundle, Projection, PerspectiveProjection, Startup, GizmoConfig, ResMut, Color, Msaa, Camera, StandardMaterial, Mesh, Assets, Material};
+use bevy::prelude::{Camera3dBundle, Commands, default, OnEnter, Res, SceneBundle, SpatialBundle, Transform, Handle, Entity, Bundle, Projection, PerspectiveProjection, Startup, GizmoConfig, ResMut, Color, Msaa, Camera, StandardMaterial, Mesh, Assets, Material, Resource, Update, IntoSystemConfigs, in_state};
 use bevy::scene::{Scene, SceneInstance};
 
 
@@ -15,6 +15,7 @@ use crate::bodies::Bodies;
 use crate::SimState;
 use crate::body::{BodyBundle, Star, Planet, Moon, BodyChildren};
 use crate::pan_orbit::lib::PanOrbitCamera;
+use crate::serialization::SimulationData;
 use crate::skybox::Cubemap;
 
 pub struct SetupPlugin;
@@ -22,46 +23,80 @@ pub struct SetupPlugin;
 impl Plugin for SetupPlugin {
     fn build(&self, app: &mut App) {
         app
+            .init_resource::<BodiesHandle>()
+            .init_resource::<StartingTime>()
             .add_systems(Startup, setup_camera)
-            .add_systems(OnEnter(SimState::Simulation), setup_planets);
+            .add_systems(OnEnter(SimState::Simulation), load_bodies)
+            .add_systems(Update, setup_planets.run_if(in_state(SimState::Simulation)));
     }
+}
+
+#[derive(Resource, Default)]
+pub struct BodiesHandle {
+    
+    handle: Handle<SimulationData>,
+    pub spawned: bool
+    
+}
+
+#[derive(Resource, Default)]
+pub struct StartingTime(pub i64);
+
+pub fn load_bodies(
+    assets: Res<AssetServer>,
+    mut bodies_handle: ResMut<BodiesHandle>
+) {
+  //  let bodies = Bodies::all();
+    bodies_handle.handle = assets.load("bodies.sim");
 }
 
 pub fn setup_planets(
     mut commands: Commands,
     assets: Res<AssetServer>,
+    mut bodies_handle: ResMut<BodiesHandle>,
+    bodies_asset: ResMut<Assets<SimulationData>>,
+    mut starting_time: ResMut<StartingTime>
 ) {
-    let bodies = Bodies::all();
-    for entry in bodies {
+    if bodies_handle.spawned {
+        return;
+    }
+    let bodies = bodies_asset.get(&bodies_handle.handle);
+    if bodies.cloned().is_none() {
+        return;
+    }
+    let data = bodies.unwrap();
+    starting_time.0 = data.starting_time_millis;
+    for entry in &data.bodies {
         let mut star = commands.spawn(SpatialBundle::default());
         let mut planets: Vec<Entity> = vec![];
         star.insert(PointLightBundle {
             point_light: PointLight {
                 color: Color::rgba(1.0, 1.0, 1.0, 1.0),
-                intensity: entry.bundle.light.intensity,
+                intensity: 1500000.0,
                 shadows_enabled: false,
-                range: entry.bundle.light.range,
-                radius: entry.bundle.light.radius,
+                range: 300000.0,
+                radius: 10.0,
                 ..default()
             },
             ..default()
         });
-        apply_body(entry.bundle, Star, &assets, &mut star);
-        for planet_entry in entry.children {
+        apply_body(BodyBundle::from(entry.clone()), Star, &assets, &mut star);
+        for planet_entry in &entry.children {
             let mut planet = star.commands().spawn(SpatialBundle::default());
             let mut moons: Vec<Entity> = vec![];            
-            apply_body(planet_entry.bundle, Planet, &assets, &mut planet);
+            apply_body(BodyBundle::from(planet_entry.clone()), Planet, &assets, &mut planet);
             planets.push(planet.id());
-            for moon_entry in planet_entry.children {
+            for moon_entry in &planet_entry.children {
                 let mut moon = planet.commands().spawn(SpatialBundle::default());
                 moons.push(moon.id());
-                apply_body(moon_entry.bundle, Moon, &assets, &mut moon);
+                apply_body(BodyBundle::from(moon_entry.clone()), Moon, &assets, &mut moon);
             } 
             planet.insert(BodyChildren(moons));
         }  
         star.insert(BodyChildren(planets));
   
     }
+    bodies_handle.spawned = true;
 }
 
 fn apply_body(
@@ -96,7 +131,7 @@ pub fn setup_camera(
         Camera3dBundle {
             transform: Transform::from_translation(Vec3::new(0.0, 1.5, 5.0)),
             projection: Projection::Perspective(PerspectiveProjection {
-                near: 0.000001,
+                near: 0.00000001,
                 ..default()
             }),
             camera: Camera {

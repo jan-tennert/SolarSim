@@ -13,12 +13,13 @@ use bevy::app::Update;
 use bevy::prelude::{in_state, Window};
 use bevy_egui::{egui::{self, Ui, InnerResponse, Response, ComboBox}, EguiContexts, EguiPlugin};
 use bevy_inspector_egui::egui::{RichText, TextEdit};
-use chrono::{Days, NaiveDate};
+use chrono::{Days, NaiveDate, Utc, DateTime, NaiveDateTime};
 //use crate::fps::Fps;
-use crate::{input::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, OrbitSettings, SimPosition}, constants::{DAY_IN_SECONDS, M_TO_UNIT}, selection::SelectedEntity, orbit_lines, fps::Fps, skybox::Cubemap};
+use crate::{input::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, OrbitSettings, SimPosition}, constants::{DAY_IN_SECONDS, M_TO_UNIT}, selection::SelectedEntity, orbit_lines, fps::Fps, skybox::Cubemap, setup::StartingTime};
 use crate::physics::{Pause, update_position};
 use crate::SimState;
 use crate::speed::Speed;
+
 #[derive(Resource, Reflect, Default)]
 pub struct SimTime(pub f32);
 
@@ -54,12 +55,13 @@ pub fn time_ui(
     mut pause: ResMut<Pause>,
     keys: Res<Input<KeyCode>>,
     mut state: ResMut<NextState<SimState>>,
+    starting_time: Res<StartingTime>
 ) {
     let mut window = windows.single_mut();
     if !pause.0 {
         sim_time.0 += time.delta_seconds() * ((speed.0 / (DAY_IN_SECONDS as f64)) as f32);
     }
-    let date = NaiveDate::from_ymd_opt(2023, 10, 1)
+    let date = NaiveDateTime::from_timestamp_millis(starting_time.0)
         .unwrap()
         .checked_add_days(Days::new((((sim_time.0 * 100.0).round()) / 100.0) as u64))
         .unwrap();

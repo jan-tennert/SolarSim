@@ -1,6 +1,8 @@
 use bevy::core::Name;
 use bevy::math::{Vec3, DVec3};
-use bevy::prelude::{Bundle, Component, Reflect, Transform, Entity, Color, Quat};
+use bevy::prelude::{Bundle, Component, Reflect, Transform, Entity, Color, Quat, default};
+
+use crate::serialization::SerializedBody;
 
 #[derive(Component, Clone, Default, Reflect)]
 pub struct Mass(pub f64);
@@ -91,4 +93,23 @@ pub struct BodyBundle {
     pub starting_rotation: StartingRotation,   
     pub diameter: Diameter,
                
+}
+
+impl From<SerializedBody> for BodyBundle {
+    
+    fn from(value: SerializedBody) -> Self {
+        BodyBundle {
+            mass: Mass(value.data.mass),
+            sim_position: SimPosition(DVec3::from(value.data.starting_position) * 1000.0),
+            vel: Velocity(DVec3::from(value.data.starting_velocity) * 1000.0),
+            name: Name::new(value.data.name),
+            model_path: ModelPath(format!("models/{}#Scene0", value.data.model_path)),
+            diameter: Diameter {
+                num: value.data.diameter * 1000.0,
+                ..default()
+            },
+           ..default()
+        }
+    }
+    
 }
