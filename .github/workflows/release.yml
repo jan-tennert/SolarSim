@@ -34,7 +34,7 @@ jobs:
             cache-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
             cache-${{ runner.os }}-cargo
       - name: Build
-        run: cargo build
+        run: cargo build -r
       - name: Copy essential files
         run: |
           cp target/release/Simulation.exe out/
