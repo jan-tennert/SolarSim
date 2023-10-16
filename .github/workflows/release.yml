@@ -1,0 +1,79 @@
+name: Build Simulation
+
+on:
+  workflow_dispatch: 
+    inputs: 
+      tag_name: 
+        description: 'Tag name for release' 
+        required: false 
+        default: prerelease
+  push:
+    branches:
+      - master
+      - dev
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build_simulation:
+    name: Build Simulation
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cache-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cache-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+            cache-${{ runner.os }}-cargo
+      - name: Build
+        run: cargo build
+      - name: Copy essential files
+        run: |
+          cp target/release/Simulation.exe out/
+          cp assets out/
+      - name: Upload Files
+        uses: actions/upload-artifact@v1
+        with:
+          name: Simulation
+          path: out
+          
+  release:
+    name: Release
+    needs: build_simulation
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    env: 
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+    permissions: 
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download Files from build
+        uses: actions/download-artifact@v1
+        with:
+          name: Simulation  
+      - if: github.event_name == 'workflow_dispatch' 
+        run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
+      - if: github.event_name == 'push'
+        run: echo 'TAG_NAME=prerelease' >> $GITHUB_ENV 
+      - if: env.TAG_NAME == 'prerelease' 
+        run: | 
+          (echo 'SUBJECT=Simulation prerelease'; 
+           echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV 
+          gh release delete prerelease --yes || true 
+          git push origin :prerelease || true
+      - name: Upload Files
+        id: upload_files
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: | 
+         gh release create $TAG_NAME $PRERELEASE --title "$TAG_NAME" --target $GITHUB_SHA Simulation
