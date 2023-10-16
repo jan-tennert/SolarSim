@@ -73,13 +73,18 @@ fn apply_body(
     let asset_handle: Handle<Scene> = assets.load(bundle.model_path.clone().0);      
     entity.insert(bundle.clone());
     entity.insert(body_type);
-    entity.with_children(|child| {
+    /*entity.with_children(|child| {
         child.spawn(SceneBundle {
             scene: asset_handle,
             transform: Transform::from_scale(Vec3::splat(bundle.scale.0)).with_rotation(bundle.starting_rotation.0),
             ..Default::default()
         });
-    }); 
+    });*/
+    entity.insert(SceneBundle {
+            scene: asset_handle,
+            transform: Transform::default(),
+            ..Default::default()
+    });
 }    
 
 pub fn setup_camera(    
@@ -91,7 +96,7 @@ pub fn setup_camera(
         Camera3dBundle {
             transform: Transform::from_translation(Vec3::new(0.0, 1.5, 5.0)),
             projection: Projection::Perspective(PerspectiveProjection {
-                near: 0.00001,
+                near: 0.000001,
                 ..default()
             }),
             camera: Camera {

@@ -1,6 +1,6 @@
-use bevy::{prelude::{Plugin, App, Resource, Res, Entity, Query, Transform, Update, IntoSystemConfigs, in_state, Vec3, Material, Color, Commands, MaterialMeshBundle, default, Assets, Gizmos, With, Without, ResMut}, time::{Timer, TimerMode, Time}, render::{render_resource::{PrimitiveTopology, RenderPipelineDescriptor, SpecializedMeshPipelineError, PolygonMode, ShaderRef, AsBindGroup}, mesh::MeshVertexBufferLayout}, pbr::{MaterialPipeline, MaterialPipelineKey}, reflect::{TypePath, TypeUuid}};
+use bevy::{prelude::{Plugin, App, Resource, Res, Entity, Query, Transform, Update, IntoSystemConfigs, in_state, Vec3, Gizmos, With, Without, ResMut}, time::{Timer, TimerMode, Time}, render::{render_resource::{PrimitiveTopology, RenderPipelineDescriptor, SpecializedMeshPipelineError, PolygonMode, ShaderRef, AsBindGroup}, mesh::MeshVertexBufferLayout}, pbr::{MaterialPipeline, MaterialPipelineKey}, reflect::{TypePath, TypeUuid}};
 
-use crate::{body::{OrbitSettings, Planet, Moon, Star, BodyChildren, SimPosition}, SimState, physics::update_position, selection::SelectedEntity, constants::M_TO_UNIT};
+use crate::{body::{OrbitSettings, Planet, Moon, Star, BodyChildren, SimPosition}, SimState, physics::update_position, constants::M_TO_UNIT};
 
 pub struct OrbitLinePlugin;
 

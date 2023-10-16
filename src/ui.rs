@@ -147,7 +147,6 @@ pub fn system_ui(
     mut config: ResMut<GizmoConfig>,
     mut camera: Query<(Entity, &mut Camera, Option<&Skybox>)>,    
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
     mut cubemap: ResMut<Cubemap>
 ) {
     if let Ok((entity, mut camera, skybox)) = camera.get_single_mut() {
@@ -201,7 +200,7 @@ pub fn system_ui(
                         commands.entity(entity).remove::<Skybox>();
                         cubemap.activated = false;
                     } else if !skybox_enabled && skybox_setting {
-                        commands.entity(entity).insert(Skybox(asset_server.load("textures/skybox.png")));
+                        commands.entity(entity).insert(Skybox(cubemap.image_handle.clone()));
                         cubemap.activated = true;
                     }
                     

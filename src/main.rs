@@ -26,11 +26,13 @@ use bevy::render::RenderPlugin;
 use bevy::render::settings::{Backends, WgpuSettings};
 use bevy::window::{WindowPlugin, Window, PresentMode};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use diameter::DiameterPlugin;
 use fps::FpsPlugin;
 use orbit_lines::OrbitLinePlugin;
 use pan_orbit::lib::PanOrbitCameraPlugin;
 use reset::ResetPlugin;
 use rotation::RotationPlugin;
+use serialization::SerializationPlugin;
 use skybox::SkyboxPlugin;
 use speed::SpeedPlugin;
 use ui::UIPlugin;
@@ -69,6 +71,7 @@ fn main() {
         ) 
         .add_plugins(WorldInspectorPlugin::new())
   //      .add_plugins(DefaultPickingPlugins)
+        .add_plugins(SerializationPlugin)
         .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(SetupPlugin)
         .add_plugins(PhysicsPlugin)
@@ -83,7 +86,7 @@ fn main() {
         .add_plugins(FpsPlugin)
         .add_plugins(LogDiagnosticsPlugin::default())
         .add_plugins(FrameTimeDiagnosticsPlugin::default())
-      //  .add_plugins(DiameterPlugin)
+        .add_plugins(DiameterPlugin)
     //    .add_plugins(ScreenDiagnosticsPlugin::default())
   //      .add_plugins(ScreenFrameDiagnosticsPlugin)
         .add_state::<SimState>()

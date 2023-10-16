@@ -57,7 +57,12 @@ pub struct LightSource {
 pub struct SimPosition(pub DVec3);
 
 #[derive(Component, Reflect, Clone, Default)]
-pub struct Radius(pub f32);
+pub struct Diameter {
+    
+    pub num: f64,
+    pub applied: bool
+    
+}
 
 //Types:
 #[derive(Component, Reflect, Clone, Default)]
@@ -84,6 +89,6 @@ pub struct BodyBundle {
     pub orbit: OrbitSettings,
     pub rotation_speed: RotationSpeed,
     pub starting_rotation: StartingRotation,   
-    pub radius: Radius,
+    pub diameter: Diameter,
                
 }

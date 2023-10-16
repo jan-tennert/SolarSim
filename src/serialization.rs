@@ -1,7 +1,7 @@
 use bevy::{
     asset::{AssetLoader, LoadContext, LoadedAsset},
     reflect::{TypePath, TypeUuid},
-    utils::BoxedFuture, prelude::Vec3,
+    utils::BoxedFuture, prelude::{Vec3, AddAsset, Plugin},
 };
 use serde::Deserialize;
 
@@ -47,4 +47,15 @@ impl AssetLoader for BodyAssetLoader {
     fn extensions(&self) -> &[&str] {
         &["sim"]
     }
+}
+
+pub struct SerializationPlugin;
+
+impl Plugin for SerializationPlugin {
+
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app
+            .init_asset_loader::<BodyAssetLoader>();
+    }
+
 }

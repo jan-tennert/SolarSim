@@ -1,7 +1,7 @@
 use bevy::core::Name;
 use bevy::math::{Vec3, DVec3};
 use bevy::prelude::{default, Transform, Quat, EulerRot};
-use crate::body::{BodyBundle, Mass, ModelPath, Scale, Velocity, LightSource, SimPosition, RotationSpeed, StartingRotation, Radius};
+use crate::body::{BodyBundle, Mass, ModelPath, Scale, Velocity, LightSource, SimPosition, RotationSpeed, StartingRotation, Diameter};
 use crate::constants::M_TO_UNIT;
 
 pub struct Bodies;
@@ -35,6 +35,10 @@ impl Bodies {
             acc: Default::default(),
             scale: Scale(0.01),
             name: Name::new("Sun"),
+            diameter: Diameter {
+                num: 696_000.0 * 2.0 * 1000.0,
+                ..default()
+            },
             model_path: ModelPath("models/sun.glb#Scene0".to_string()),
             light: LightSource {
                 intensity: 1500000.0,
@@ -61,7 +65,10 @@ impl Bodies {
                 -4.226365231723641E+00, 2.941379349033467E+01, -2.828583292782128E-03   
             ) * 1000.0) , //convert it to m/s
             acc: Default::default(),
-            radius: Radius(6.378 * 1000.0),
+            diameter: Diameter {
+                num: 12_742.0 * 1000.0,
+                ..default()
+            },
             scale: Scale(0.00002),
             name: Name::new("Earth"),
             model_path: ModelPath("models/earth.glb#Scene0".to_string()),
@@ -359,6 +366,10 @@ impl Bodies {
             ) * 1000.0) , //convert it to m/s
             acc: Default::default(),
             scale: Scale(0.000009),
+            diameter: Diameter {
+                num: 1738.1 * 1000.0,
+                ..default()
+            },
             name: Name::new("Luna"),
             model_path: ModelPath("models/moon.glb#Scene0".to_string()),
             ..default()
@@ -526,7 +537,7 @@ impl Bodies {
                             }
                         ]
                     },
-                    BodyEntry {
+ /*                   BodyEntry {
                         bundle: Bodies::mars(),
                         children: vec![
                             BodyEntry {
@@ -601,7 +612,7 @@ impl Bodies {
                     BodyEntry {
                         bundle: Bodies::eris(),
                         children: vec![]
-                    },
+                    },*/
                 ]
             }
         ]
