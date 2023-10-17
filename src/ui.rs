@@ -243,12 +243,12 @@ fn body_ui(
     selected_entity: Res<SelectedEntity>
 ) {
     if let Some(entity) = selected_entity.0 {
-        let mut parent_transform: Option<(&SimPosition, &Name)> = None;
+        let mut parent: Option<(&SimPosition, &Velocity, &Name)> = None;
         let mut selected: Option<(&Name, Entity, &SimPosition, &Velocity, Mut<OrbitSettings>, Mut<Mass>)> = None;
         for (name, b_entity, pos, velocity, orbit, mass, children) in query.iter_mut() {
             if let Some(children) = children {
                 if children.0.contains(&entity) {
-                    parent_transform = Some((pos, name));
+                    parent = Some((pos, velocity, name));
                 }
             }
             if b_entity == entity {
@@ -300,15 +300,19 @@ fn body_ui(
                         "X: {:.2} Y: {:.2} Z: {:.2}",
                         pos.0.x / 1000.0, pos.0.y / 1000.0, pos.0.z / 1000.0
                     ));
-                    // Velocity
-                    ui.label(RichText::new("Velocity").size(16.0).underline());
-                    ui.label(format!("{:.3} km/s", velocity.0.length() / 1000.0));
-                    // Distance from Sun
-                    if let Some((parent_pos, p_name)) = parent_transform {
+                    // Velocity Orbit Velocity around parent
+                    let actual_velocity = match parent {
+                        Some((_, vel, _)) => (vel.0 - velocity.0).length() / 1000.0,
+                        None => velocity.0.length() / 1000.0,
+                    };
+                    ui.label(RichText::new("Orbital Velocity").size(16.0).underline());
+                    ui.label(format!("{:.3} km/s", actual_velocity));
+                    // Distance to parent
+                    if let Some((parent_pos, _, p_name)) = parent {
                         ui.label(RichText::new(format!("Distance to {}", p_name)).size(16.0).underline());
-                        let distance_in_m = parent_pos.0.distance(pos.0);
-                        ui.label(format!("{:.3} km", distance_in_m / 100.0));
-                        ui.label(format!("{:.3} au", distance_in_m / 100.0 * M_TO_UNIT));
+                        let distance_in_km = parent_pos.0.distance(pos.0) / 1000.0;
+                        ui.label(format!("{:.3} km", distance_in_km));
+                        ui.label(format!("{:.3} au", distance_in_km * M_TO_UNIT));
                         
                         let old_draw_orbit = orbit.draw_lines;
                         ui.checkbox(&mut orbit.draw_lines, "Draw Orbit lines");

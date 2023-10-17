@@ -35,7 +35,6 @@ use fps::FpsPlugin;
 use orbit_lines::OrbitLinePlugin;
 use pan_orbit::lib::PanOrbitCameraPlugin;
 use reset::ResetPlugin;
-use ron::error::SpannedError;
 use rotation::RotationPlugin;
 use serialization::{SerializationPlugin, SimulationData};
 use skybox::SkyboxPlugin;

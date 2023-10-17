@@ -1,6 +1,6 @@
 use bevy::core::Name;
 use bevy::math::{Vec3, DVec3};
-use bevy::prelude::{Bundle, Component, Reflect, Transform, Entity, Color, Quat, default};
+use bevy::prelude::{Bundle, Component, Reflect, Transform, Entity, Color, Quat, default, Visibility};
 
 use crate::serialization::SerializedBody;
 
@@ -92,7 +92,7 @@ pub struct BodyBundle {
     pub rotation_speed: RotationSpeed,
     pub starting_rotation: StartingRotation,   
     pub diameter: Diameter,
-               
+                   
 }
 
 impl From<SerializedBody> for BodyBundle {

@@ -9,7 +9,6 @@ use crate::SimState;
 use crate::orbit_lines::{OrbitOffset, draw_lines};
 use crate::selection::SelectedEntity;
 use crate::speed::Speed;
-use itertools::Itertools;
 
 pub struct PhysicsPlugin;
 

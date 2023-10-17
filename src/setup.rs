@@ -7,7 +7,7 @@ use bevy::ecs::system::EntityCommands;
 use bevy::hierarchy::BuildChildren;
 use bevy::math::Vec3;
 use bevy::pbr::{PointLight, PointLightBundle};
-use bevy::prelude::{Camera3dBundle, Commands, default, OnEnter, Res, SceneBundle, SpatialBundle, Transform, Handle, Entity, Bundle, Projection, PerspectiveProjection, Startup, GizmoConfig, ResMut, Color, Msaa, Camera, StandardMaterial, Mesh, Assets, Material, Resource, Update, IntoSystemConfigs, in_state};
+use bevy::prelude::{Camera3dBundle, Commands, default, OnEnter, Res, SceneBundle, SpatialBundle, Transform, Handle, Entity, Bundle, Projection, PerspectiveProjection, Startup, GizmoConfig, ResMut, Color, Msaa, Camera, StandardMaterial, Mesh, Assets, Material, Resource, Update, IntoSystemConfigs, in_state, Visibility};
 use bevy::scene::{Scene, SceneInstance};
 
 
@@ -67,27 +67,36 @@ pub fn setup_planets(
     let data = bodies.unwrap();
     starting_time.0 = data.starting_time_millis;
     for entry in &data.bodies {
-        let mut star = commands.spawn(SpatialBundle::default());
+        let mut star = commands.spawn(SpatialBundle {
+            visibility: Visibility::Hidden,
+            ..default()
+        });
         let mut planets: Vec<Entity> = vec![];
         star.insert(PointLightBundle {
             point_light: PointLight {
                 color: Color::rgba(1.0, 1.0, 1.0, 1.0),
-                intensity: 1500000.0,
+                intensity: 150000000.0,
                 shadows_enabled: false,
-                range: 300000.0,
-                radius: 10.0,
+                range: 3000000000.0,
+                radius: 100.0,
                 ..default()
             },
             ..default()
         });
         apply_body(BodyBundle::from(entry.clone()), Star, &assets, &mut star);
         for planet_entry in &entry.children {
-            let mut planet = star.commands().spawn(SpatialBundle::default());
+            let mut planet = star.commands().spawn(SpatialBundle {
+                visibility: Visibility::Hidden,
+                ..default()
+            });
             let mut moons: Vec<Entity> = vec![];            
             apply_body(BodyBundle::from(planet_entry.clone()), Planet, &assets, &mut planet);
             planets.push(planet.id());
             for moon_entry in &planet_entry.children {
-                let mut moon = planet.commands().spawn(SpatialBundle::default());
+                let mut moon = planet.commands().spawn(SpatialBundle {
+                    visibility: Visibility::Hidden,
+                    ..default()
+                });
                 moons.push(moon.id());
                 apply_body(BodyBundle::from(moon_entry.clone()), Moon, &assets, &mut moon);
             } 
