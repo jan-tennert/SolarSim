@@ -33,7 +33,7 @@ pub struct UIPlugin;
 impl Plugin for UIPlugin {
     fn build(&self, app: &mut App) {
         app
-        //    .add_plugins(EguiPlugin)
+            .add_plugins(EguiPlugin)
             .register_type::<SimTime>()
             .init_resource::<SimTime>()
             .add_plugins(BlockInputPlugin)
