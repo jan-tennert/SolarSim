@@ -15,7 +15,7 @@ use bevy_egui::{egui::{self, Ui, InnerResponse, Response, ComboBox}, EguiContext
 use bevy_inspector_egui::egui::{RichText, TextEdit};
 use chrono::{Days, NaiveDate, Utc, DateTime, NaiveDateTime};
 //use crate::fps::Fps;
-use crate::{input::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, OrbitSettings, SimPosition}, constants::{DAY_IN_SECONDS, M_TO_UNIT}, selection::SelectedEntity, orbit_lines, fps::Fps, skybox::Cubemap, setup::StartingTime};
+use crate::{input::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, OrbitSettings, SimPosition}, constants::{DAY_IN_SECONDS, M_TO_UNIT}, selection::SelectedEntity, orbit_lines, fps::Fps, skybox::Cubemap, setup::StartingTime, lock_on::LockOn};
 use crate::physics::{Pause, update_position};
 use crate::SimState;
 use crate::speed::Speed;
@@ -51,7 +51,7 @@ pub fn time_ui(
     mut speed: ResMut<Speed>,
     fps: Res<Fps>,
     mut windows: Query<&mut Window>,
-   // mut lock_on_sun: ResMut<LockSun>,
+    mut lock_on_parent: ResMut<LockOn>,
     mut pause: ResMut<Pause>,
     keys: Res<Input<KeyCode>>,
     mut state: ResMut<NextState<SimState>>,
@@ -97,7 +97,7 @@ pub fn time_ui(
                     if ui.button("Reset").clicked() {
                         let _ = state.set(SimState::Reset);
                     }
-                //    ui.checkbox(&mut lock_on_sun.0, "Lock on Sun");
+                    ui.checkbox(&mut lock_on_parent.0, "Lock on Parent");
                     let mut vsync = window.present_mode == PresentMode::AutoVsync;
                     let old_option = vsync;
                     ui.checkbox(&mut vsync, "VSync");
@@ -310,7 +310,7 @@ fn body_ui(
                     // Distance to parent
                     if let Some((parent_pos, _, p_name)) = parent {
                         ui.label(RichText::new(format!("Distance to {}", p_name)).size(16.0).underline());
-                        let distance_in_km = parent_pos.0.distance(pos.0) / 1000.0;
+                        let distance_in_km = parent_pos.0.distance(pos.0) / 10000.0;
                         ui.label(format!("{:.3} km", distance_in_km));
                         ui.label(format!("{:.3} au", distance_in_km * M_TO_UNIT));
                         

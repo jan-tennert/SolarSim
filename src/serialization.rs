@@ -43,7 +43,9 @@ pub struct SerializedBodyData {
     pub starting_velocity: SerializedVec,
     pub name: String,
     pub model_path: String,
-    pub diameter: f64
+    pub diameter: f64,
+    pub rotation_speed: f64,
+    pub axial_tilt: f32,
 }
 
 #[derive(Default)]

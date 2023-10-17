@@ -75,9 +75,9 @@ pub fn setup_planets(
         star.insert(PointLightBundle {
             point_light: PointLight {
                 color: Color::rgba(1.0, 1.0, 1.0, 1.0),
-                intensity: 150000000.0,
+                intensity: 15000000000.0,
                 shadows_enabled: false,
-                range: 3000000000.0,
+                range: 300000000000.0,
                 radius: 100.0,
                 ..default()
             },

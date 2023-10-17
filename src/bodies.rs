@@ -1,7 +1,7 @@
 use bevy::core::Name;
 use bevy::math::{Vec3, DVec3};
 use bevy::prelude::{default, Transform, Quat, EulerRot};
-use crate::body::{BodyBundle, Mass, ModelPath, Scale, Velocity, LightSource, SimPosition, RotationSpeed, StartingRotation, Diameter};
+use crate::body::{BodyBundle, Mass, ModelPath, Scale, Velocity, LightSource, SimPosition, RotationSpeed, Diameter};
 use crate::constants::M_TO_UNIT;
 
 pub struct Bodies;

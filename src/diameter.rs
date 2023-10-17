@@ -1,6 +1,7 @@
 use bevy::{app::{App, Plugin}, prelude::{Query, Transform, Res, Entity, PreUpdate, Local, GizmoConfig, ResMut, AabbGizmo, GlobalTransform, PostUpdate, Update, With, Handle, Mesh, Vec3, Name, Children, in_state, IntoSystemConfigs, Visibility}, render::primitives::{Aabb, Sphere}, math::Vec3A, scene::{SceneSpawner, SceneInstance}};
 
 use crate::{body::Diameter, SimState, constants::M_TO_UNIT};
+
 pub struct DiameterPlugin;
 
 impl Plugin for DiameterPlugin {

@@ -17,6 +17,7 @@ mod orbit_lines;
 mod reset;
 mod rotation;
 mod serialization;
+mod lock_on;
 
 use std::fs::File;
 use std::io::{BufReader, Read};
@@ -32,6 +33,7 @@ use bevy::window::{WindowPlugin, Window, PresentMode};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use diameter::DiameterPlugin;
 use fps::FpsPlugin;
+use lock_on::LockOnPlugin;
 use orbit_lines::OrbitLinePlugin;
 use pan_orbit::lib::PanOrbitCameraPlugin;
 use reset::ResetPlugin;
@@ -75,6 +77,7 @@ fn main() {
         ) 
         .add_plugins(WorldInspectorPlugin::new())
   //      .add_plugins(DefaultPickingPlugins)
+        .add_plugins(LockOnPlugin)
         .add_plugins(SerializationPlugin)
         .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(SetupPlugin)

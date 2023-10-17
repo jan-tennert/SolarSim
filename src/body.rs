@@ -17,10 +17,13 @@ pub struct Acceleration(pub DVec3);
 pub struct Scale(pub f32);
 
 #[derive(Component, Reflect, Clone, Default)]
-pub struct RotationSpeed(pub f32);
+pub struct RotationSpeed(pub f64);
 
 #[derive(Component, Reflect, Clone, Default)]
-pub struct StartingRotation(pub Quat);
+pub struct AxialTilt {
+    pub num: f32,
+    pub applied: bool
+}
 
 #[derive(Component, Reflect, Clone, Default)]
 pub struct ModelPath(pub String);
@@ -90,7 +93,7 @@ pub struct BodyBundle {
     pub light: LightSource,
     pub orbit: OrbitSettings,
     pub rotation_speed: RotationSpeed,
-    pub starting_rotation: StartingRotation,   
+    pub axial_tilt: AxialTilt,   
     pub diameter: Diameter,
                    
 }
@@ -108,6 +111,11 @@ impl From<SerializedBody> for BodyBundle {
                 num: value.data.diameter * 1000.0,
                 ..default()
             },
+            axial_tilt: AxialTilt {
+                num: value.data.axial_tilt,
+                ..default()
+            },
+            rotation_speed: RotationSpeed(value.data.rotation_speed),
            ..default()
         }
     }
