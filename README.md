@@ -42,7 +42,7 @@ You can get vector positions and velocity on the [Horizons System](https://ssd.j
   
   - There should be the date all bodies should be from
   
-  So if you have the starting date, click on Time Specification and change the starting date depending on what you read.
+  So if you have the date, click on Time Specification and change the starting date depending on what you got from horizon-ui
 
 - The coordinate center & table settings should remain as is.
 
