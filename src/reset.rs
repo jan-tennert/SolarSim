@@ -1,6 +1,6 @@
 use bevy::prelude::{SystemSet, App, Plugin, OnExit, Entity, Name, With, ResMut, Commands, Query, NextState, Update, IntoSystemConfigs, in_state, OnEnter, Camera, Without, DespawnRecursiveExt};
 
-use crate::{SimState, speed::Speed, ui::SimTime, body::Mass, physics::Pause, selection::SelectedEntity, constants::HOUR_IN_SECONDS, setup::BodiesHandle};
+use crate::{SimState, speed::Speed, ui::SimTime, body::Mass, physics::{Pause, SubSteps}, selection::SelectedEntity, constants::{HOUR_IN_SECONDS, DEFAULT_SUB_STEPS, DEFAULT_TIMESTEP}, setup::BodiesHandle};
 
 pub struct ResetPlugin;
 
@@ -22,15 +22,17 @@ fn clean_up(
     mut sim_time: ResMut<SimTime>,
     mut selected_entity: ResMut<SelectedEntity>,
     mut bodies: ResMut<BodiesHandle>,
+    mut sub_steps: ResMut<SubSteps>,
     mut commands: Commands
 ) {
     for (entity, _, _) in entities.iter() {
         commands.entity(entity).despawn_recursive()
     }
-    speed.0 = HOUR_IN_SECONDS as f64;
+    speed.0 = DEFAULT_TIMESTEP;
     pause.0 = false;
     sim_time.0 = 0.0;
     selected_entity.0 = None;
+    sub_steps.0 = DEFAULT_SUB_STEPS;
     bodies.spawned = false;
 }
 

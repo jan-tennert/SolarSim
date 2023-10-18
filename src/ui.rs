@@ -28,12 +28,24 @@ pub struct Light {
     pub shadows_enabled: bool,
 }
 
+#[derive(Resource, Reflect)]
+pub struct UiState {
+    pub visible: bool,
+}
+
+impl Default for UiState {
+    fn default() -> Self {
+        UiState { visible: true }
+    }
+}
+
 pub struct UIPlugin;
 
 impl Plugin for UIPlugin {
     fn build(&self, app: &mut App) {
         app
             //.add_plugins(EguiPlugin)
+            .init_resource::<UiState>()
             .register_type::<SimTime>()
             .init_resource::<SimTime>()
             .add_plugins(BlockInputPlugin)
@@ -56,11 +68,15 @@ pub fn time_ui(
     keys: Res<Input<KeyCode>>,
     mut state: ResMut<NextState<SimState>>,
     starting_time: Res<StartingTime>,
-    mut sub_steps: ResMut<SubSteps>
+    mut sub_steps: ResMut<SubSteps>,
+    ui_state: Res<UiState>
 ) {
+    if !ui_state.visible {
+        return;
+    }
     let mut window = windows.single_mut();
     if !pause.0 {
-        sim_time.0 += time.delta_seconds() * ((speed.0 / (DAY_IN_SECONDS as f64)) as f32);
+        sim_time.0 += time.delta_seconds() * (((speed.0 * (sub_steps.0 as f64)) / (DAY_IN_SECONDS as f64)) as f32);
     }
     let date = NaiveDateTime::from_timestamp_millis(starting_time.0)
         .unwrap()
@@ -174,8 +190,12 @@ pub fn system_ui(
     mut config: ResMut<GizmoConfig>,
     mut camera: Query<(Entity, &mut Camera, Option<&Skybox>)>,    
     mut commands: Commands,
-    mut cubemap: ResMut<Cubemap>
+    mut cubemap: ResMut<Cubemap>,
+    ui_state: Res<UiState>
 ) {
+    if !ui_state.visible {
+        return;
+    }
     if let Ok((entity, mut camera, skybox)) = camera.get_single_mut() {
         egui::SidePanel::left("system_panel")
                 .default_width(400.0)
@@ -232,6 +252,11 @@ pub fn system_ui(
                     }
                     
                     ui.checkbox(&mut config.aabb.draw_all, "Draw Outlines");
+                    ui.add_space(10.0);
+                    ui.label("F10 - Hide Ui");
+                    ui.label("Space - Pause");
+                    ui.label("Left Arrow - 2x Speed");
+                    ui.label("Right Arrow - 1/2 Speed");
                     
                     ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
                         if ui.button("Back to Menu").clicked() {
@@ -265,8 +290,12 @@ fn body_ui(
     mut egui_context: EguiContexts,
     mut commands: Commands,
     mut query: Query<(&Name, Entity, &SimPosition, &Velocity, &mut OrbitSettings, &mut Mass, Option<&BodyChildren>)>,
-    selected_entity: Res<SelectedEntity>
+    selected_entity: Res<SelectedEntity>,   
+    ui_state: Res<UiState>
 ) {
+    if !ui_state.visible {
+        return;
+    }
     if let Some(entity) = selected_entity.0 {
         let mut parent: Option<(&SimPosition, &Velocity, &Name)> = None;
         let mut selected: Option<(&Name, Entity, &SimPosition, &Velocity, Mut<OrbitSettings>, Mut<Mass>)> = None;

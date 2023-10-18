@@ -1,7 +1,7 @@
 use std::f32::consts::PI;
 
 use bevy::app::{App, Plugin};
-use bevy::prelude::{Resource, Query, Transform, Res, Quat, IntoSystemConfigs, Entity, in_state, Update, Without, With, Vec3};
+use bevy::prelude::{Resource, Query, Transform, Res, Quat, IntoSystemConfigs, Entity, in_state, Update, Without, With, Vec3, Gizmos, Color};
 use bevy::time::Time;
 
 use crate::SimState;
@@ -35,14 +35,16 @@ fn axial_tilt_planets(
             children.0.contains(&entity)
         });
         if let Some((p_transform, _, _, _, _)) = parent {
-            let (u, w) = (p_transform.translation - transform.translation)
+            let (u, w) = (transform.translation - p_transform.translation)
                 .normalize()
                 .any_orthonormal_pair();
             let u_p = Quat::from_axis_angle(w, tilt.num.to_radians()).mul_vec3(u);
+            let tilted = Quat::from_axis_angle(Vec3::X, tilt.num.to_radians()) * Vec3::Z;
     //        transform.rotate_axis(u_p, 0.0);
             transform.rotate_x((90.0 as f32).to_radians());
+          //  transform.rotate_x(tilt.num.to_radians());
             tilt.applied = true;
-            tilt.axis = Some(u_p);
+            tilt.axis = Some(tilted);
         }
     }
 }
@@ -52,7 +54,7 @@ fn rotate_bodies(
     time: Res<Time>,
     speed: Res<Speed>,
     sub_steps: Res<SubSteps>,
-    pause: Res<Pause>
+    pause: Res<Pause>,
 ) {     
     if !pause.0 {
         for (rotation_speed, axis, mut transform, diameter, _, _, _) in &mut planet_query {
@@ -64,8 +66,9 @@ fn rotate_bodies(
             let rotation_duration = rotation_speed.0 * 60.0;
             let rotations_per_day = DAY_IN_SECONDS / (rotation_duration as f32);
             
-            //transform.rotate_axis(axis.axis.unwrap(), 2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
-            transform.rotate_z(2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
+            transform.rotate_axis(axis.axis.unwrap(), 2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
+           // transform.rotate_z(2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
+            
         }
     }
 }
