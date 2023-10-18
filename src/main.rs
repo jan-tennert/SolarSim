@@ -4,7 +4,7 @@ mod constants;
 mod setup;
 mod bodies;
 mod physics;
-mod input;
+mod egui_input_block;
 mod speed;
 mod fps;
 mod selection;
@@ -75,7 +75,7 @@ fn main() {
                 ..default()
             })
         ) 
-      //  .add_plugins(WorldInspectorPlugin::new())
+        .add_plugins(WorldInspectorPlugin::new())
   //      .add_plugins(DefaultPickingPlugins)
         .add_plugins(LockOnPlugin)
         .add_plugins(SerializationPlugin)
@@ -91,7 +91,6 @@ fn main() {
         .add_plugins(OrbitLinePlugin)
         .add_plugins(RotationPlugin)
         .add_plugins(FpsPlugin)
-        .add_plugins(LogDiagnosticsPlugin::default())
         .add_plugins(FrameTimeDiagnosticsPlugin::default())
         .add_plugins(DiameterPlugin)
     //    .add_plugins(ScreenDiagnosticsPlugin::default())

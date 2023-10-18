@@ -22,6 +22,7 @@ pub struct RotationSpeed(pub f64);
 #[derive(Component, Reflect, Clone, Default)]
 pub struct AxialTilt {
     pub num: f32,
+    pub axis: Option<Vec3>,
     pub applied: bool
 }
 

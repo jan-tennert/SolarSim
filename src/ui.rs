@@ -15,7 +15,7 @@ use bevy_egui::{egui::{self, Ui, InnerResponse, Response, ComboBox}, EguiContext
 use bevy_inspector_egui::egui::{RichText, TextEdit};
 use chrono::{Days, NaiveDate, Utc, DateTime, NaiveDateTime};
 //use crate::fps::Fps;
-use crate::{input::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, OrbitSettings, SimPosition}, constants::{DAY_IN_SECONDS, M_TO_UNIT}, selection::SelectedEntity, orbit_lines, fps::Fps, skybox::Cubemap, setup::StartingTime, lock_on::LockOn, physics::{apply_physics, SubSteps}};
+use crate::{egui_input_block::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, OrbitSettings, SimPosition}, constants::{DAY_IN_SECONDS, M_TO_UNIT}, selection::SelectedEntity, orbit_lines, fps::Fps, skybox::Cubemap, setup::StartingTime, lock_on::LockOn, physics::{apply_physics, SubSteps}};
 use crate::physics::{Pause, update_position};
 use crate::SimState;
 use crate::speed::Speed;
@@ -33,7 +33,7 @@ pub struct UIPlugin;
 impl Plugin for UIPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_plugins(EguiPlugin)
+            //.add_plugins(EguiPlugin)
             .register_type::<SimTime>()
             .init_resource::<SimTime>()
             .add_plugins(BlockInputPlugin)
@@ -335,7 +335,7 @@ fn body_ui(
                     // Distance to parent
                     if let Some((parent_pos, _, p_name)) = parent {
                         ui.label(RichText::new(format!("Distance to {}", p_name)).size(16.0).underline());
-                        let distance_in_km = parent_pos.0.distance(pos.0) / 1000.0;
+                        let distance_in_km = parent_pos.0.distance(pos.0) / 10000.0;
                         ui.label(format!("{:.3} km", distance_in_km));
                         ui.label(format!("{:.3} au", distance_in_km * M_TO_UNIT));
                         
