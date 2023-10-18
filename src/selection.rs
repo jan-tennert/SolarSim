@@ -27,7 +27,6 @@ pub fn apply_camera_to_selection(
              selected_entity.0 = None;
         }
     } else {
-        println!("hi??");
         if let Some((entity, _, _, _)) = bodies.iter().find(|(_, _, _, maybe_star)| {
             maybe_star.is_some()
         }) {

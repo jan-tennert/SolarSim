@@ -133,7 +133,9 @@ jobs:
           
       - name: Build Horizon Ui
         run: |
-          .\horizon-ui\gradlew obfuscate
+          cd .\horizon-ui
+          ./gradlew obfuscate
+          cd ..
 
       - name: Prepare package
         run: |
