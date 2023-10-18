@@ -66,8 +66,8 @@ fn rotate_bodies(
             let rotation_duration = rotation_speed.0 * 60.0;
             let rotations_per_day = DAY_IN_SECONDS / (rotation_duration as f32);
             
-            transform.rotate_axis(axis.axis.unwrap(), 2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
-           // transform.rotate_z(2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
+         //   transform.rotate_axis(axis.axis.unwrap(), 2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
+            transform.rotate_z(2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
             
         }
     }

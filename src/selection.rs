@@ -1,9 +1,7 @@
 use bevy::app::{App, Plugin, Update};
-use bevy::prelude::{in_state, Query, Transform, Resource, Entity, With, ResMut, IntoSystemConfigs, Vec3};
+use bevy::prelude::{in_state, Query, Transform, Resource, Entity, With, ResMut, IntoSystemConfigs};
 use crate::SimState;
-use crate::body::Mass;
-use crate::pan_orbit::lib::PanOrbitCamera;
-use crate::physics::update_position;
+use crate::body::{Mass, Star};
 
 pub struct SelectionPlugin;
 
@@ -11,8 +9,8 @@ impl Plugin for SelectionPlugin {
 
     fn build(&self, app: &mut App) {
         app
-            .init_resource::<SelectedEntity>();
-      //      .add_systems(Update, (apply_camera_to_selection.after(update_position)).run_if(in_state(SimState::Simulation)));
+            .init_resource::<SelectedEntity>()
+            .add_systems(Update, (apply_camera_to_selection).run_if(in_state(SimState::Simulation)));
     }
 
 }
@@ -21,17 +19,19 @@ impl Plugin for SelectionPlugin {
 pub struct SelectedEntity(pub Option<Entity>);
 
 pub fn apply_camera_to_selection(
-    mut camera: Query<&mut PanOrbitCamera>,
-    bodies: Query<(&Transform, With<Mass>)>,
+    bodies: Query<(Entity, &Transform, With<Mass>, Option<&Star>)>,
     mut selected_entity: ResMut<SelectedEntity>
 ) {
-    let mut camera = camera.single_mut();
     if let Some(entity) = selected_entity.0 {
-        if let Ok((transform, _)) = bodies.get(entity) {
-     //       camera.target_focus = Vec3::ZERO;
-     //       camera.force_update = true;  
-        } else {
-            selected_entity.0 = None;
+        if let Err(_) = bodies.get(entity) {
+             selected_entity.0 = None;
+        }
+    } else {
+        println!("hi??");
+        if let Some((entity, _, _, _)) = bodies.iter().find(|(_, _, _, maybe_star)| {
+            maybe_star.is_some()
+        }) {
+            selected_entity.0 = Some(entity);
         }
     }
 }
