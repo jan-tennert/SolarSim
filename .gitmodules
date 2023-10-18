@@ -1,0 +1,3 @@
+[submodule "horizon-ui"]
+	path = horizon-ui
+	url = https://github.com/jan-tennert/HorizonUi
