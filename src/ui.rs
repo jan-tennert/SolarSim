@@ -95,7 +95,7 @@ pub fn time_ui(
                         sub_steps.small_step_down();
                     }
                     ui.label(format!(
-                        "{} ({})",
+                        "{} ({}/s)",
                         date.format("%d.%m.%Y"),
                         speed.format(sub_steps.0)
                     ));
