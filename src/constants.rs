@@ -6,4 +6,5 @@ pub const DAY_IN_SECONDS: f32 = HOUR_IN_SECONDS * 24.0;
 pub const MONTH_IN_SECONDS: f32 = DAY_IN_SECONDS * 30.0; //just approx.
 pub const YEAR_IN_SECONDS: f32 = DAY_IN_SECONDS * 365.0;
 
-pub const DEFAULT_TIMESTEP: f64 = 60.0 * 60.0;
+pub const DEFAULT_TIMESTEP: f64 = 60.0 * 15.0; //15mins
+pub const DEFAULT_SUB_STEPS: i32 = 4 * 24; //DEFAULT_TIMESTEP * DEFAULT_SUB_STEPS = 1 day/s

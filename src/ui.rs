@@ -15,7 +15,7 @@ use bevy_egui::{egui::{self, Ui, InnerResponse, Response, ComboBox}, EguiContext
 use bevy_inspector_egui::egui::{RichText, TextEdit};
 use chrono::{Days, NaiveDate, Utc, DateTime, NaiveDateTime};
 //use crate::fps::Fps;
-use crate::{input::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, OrbitSettings, SimPosition}, constants::{DAY_IN_SECONDS, M_TO_UNIT}, selection::SelectedEntity, orbit_lines, fps::Fps, skybox::Cubemap, setup::StartingTime, lock_on::LockOn};
+use crate::{input::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, OrbitSettings, SimPosition}, constants::{DAY_IN_SECONDS, M_TO_UNIT}, selection::SelectedEntity, orbit_lines, fps::Fps, skybox::Cubemap, setup::StartingTime, lock_on::LockOn, physics::{apply_physics, SubSteps}};
 use crate::physics::{Pause, update_position};
 use crate::SimState;
 use crate::speed::Speed;
@@ -39,7 +39,7 @@ impl Plugin for UIPlugin {
             .add_plugins(BlockInputPlugin)
             .add_systems(
                 Update,
-                (system_ui.after(time_ui), body_ui.after(update_position), time_ui.after(body_ui)).run_if(in_state(SimState::Simulation))
+                (system_ui.after(time_ui), body_ui.after(apply_physics), time_ui.after(body_ui)).run_if(in_state(SimState::Simulation))
             );
     }
 }
@@ -55,7 +55,8 @@ pub fn time_ui(
     mut pause: ResMut<Pause>,
     keys: Res<Input<KeyCode>>,
     mut state: ResMut<NextState<SimState>>,
-    starting_time: Res<StartingTime>
+    starting_time: Res<StartingTime>,
+    mut sub_steps: ResMut<SubSteps>
 ) {
     let mut window = windows.single_mut();
     if !pause.0 {
@@ -70,27 +71,51 @@ pub fn time_ui(
         .show(egui_context.ctx_mut(), |ui| {
             ui.horizontal(|ui| {
                 ui.with_layout(egui::Layout::left_to_right(egui::Align::LEFT), |ui| {
+                    ui.horizontal_centered(|ui| {
                     if ui.small_button("<<").clicked() {
-                        speed.big_step_down();
+                        sub_steps.big_step_down();
                     }
                     if ui.small_button("<").clicked() || keys.just_pressed(KeyCode::Left) {
-                        speed.small_step_down();
+                        sub_steps.small_step_down();
                     }
                     ui.label(format!(
                         "{} ({})",
                         date.format("%d.%m.%Y"),
-                        speed.format()
+                        speed.format(sub_steps.0)
                     ));
                     let time_text = if !pause.0 { "Pause" } else { "Resume" };
                     if ui.button(time_text).clicked() || keys.just_pressed(KeyCode::Space) {
                         pause.0 = !pause.0;
                     }
                     if ui.small_button(">").clicked() || keys.just_pressed(KeyCode::Right) {
-                        speed.small_step_up();
+                        sub_steps.small_step_up();
                     }
                     if ui.small_button(">>").clicked() {
-                        speed.big_step_up();
+                        sub_steps.big_step_up();
                     }
+             //       ui.add_space(20.0);
+                    ui.label("Substeps per second");
+                    let mut new_sub_steps = sub_steps.0.to_string();
+                    if ui
+                        .add(TextEdit::singleline(&mut new_sub_steps).desired_width(50.0))
+                        .changed()
+                    {
+                        if let Ok(new_sub_steps_num) = new_sub_steps.parse::<i32>() {
+                            sub_steps.0 = new_sub_steps_num;
+                        }
+                    }
+               //     ui.add_space(20.0);
+                    ui.label("Timestep in seconds");
+                    let mut new_speed = speed.0.to_string();
+                    if ui
+                        .add(TextEdit::singleline(&mut new_speed).desired_width(50.0))
+                        .changed()
+                    {
+                        if let Ok(new_speed_num) = new_speed.parse::<f64>() {
+                            speed.0 = new_speed_num;
+                        }
+                    }
+                    });
                 });
 
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::RIGHT), |ui| {
@@ -310,7 +335,7 @@ fn body_ui(
                     // Distance to parent
                     if let Some((parent_pos, _, p_name)) = parent {
                         ui.label(RichText::new(format!("Distance to {}", p_name)).size(16.0).underline());
-                        let distance_in_km = parent_pos.0.distance(pos.0) / 10000.0;
+                        let distance_in_km = parent_pos.0.distance(pos.0) / 1000.0;
                         ui.label(format!("{:.3} km", distance_in_km));
                         ui.label(format!("{:.3} au", distance_in_km * M_TO_UNIT));
                         

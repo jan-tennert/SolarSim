@@ -32,7 +32,11 @@ fn axial_tilt_planets(
             children.0.contains(&entity)
         });
         if let Some((p_transform, _, _, _, _)) = parent {
-            transform.look_at(p_transform.translation, Vec3::NEG_Z);
+            let (u, w) = (p_transform.translation - transform.translation)
+                .normalize()
+                .any_orthonormal_pair();
+            let u_p = Quat::from_axis_angle(w, tilt.num.to_radians());
+          //  transform.rotate(u_p);
             tilt.applied = true;
         }
     }

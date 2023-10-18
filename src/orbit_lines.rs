@@ -1,6 +1,6 @@
 use bevy::{prelude::{Plugin, App, Resource, Res, Entity, Query, Transform, Update, IntoSystemConfigs, in_state, Vec3, Gizmos, With, Without, ResMut}, time::{Timer, TimerMode, Time}, render::{render_resource::{PrimitiveTopology, RenderPipelineDescriptor, SpecializedMeshPipelineError, PolygonMode, ShaderRef, AsBindGroup}, mesh::MeshVertexBufferLayout}, pbr::{MaterialPipeline, MaterialPipelineKey}, reflect::{TypePath, TypeUuid}};
 
-use crate::{body::{OrbitSettings, Planet, Moon, Star, BodyChildren, SimPosition}, SimState, physics::update_position, constants::M_TO_UNIT};
+use crate::{body::{OrbitSettings, Planet, Moon, Star, BodyChildren, SimPosition}, SimState, physics::{update_position, apply_physics}, constants::M_TO_UNIT};
 
 pub struct OrbitLinePlugin;
 
@@ -9,7 +9,7 @@ impl Plugin for OrbitLinePlugin {
         app
             .init_resource::<OrbitOffset>()
             .init_resource::<OffsetTimer>()
-            .add_systems(Update, (update_lines.after(update_position), draw_orbit_line.after(update_lines), clean_orbit_lines.after(draw_orbit_line)).run_if(in_state(SimState::Simulation)));
+            .add_systems(Update, (update_lines.after(apply_physics), draw_orbit_line.after(update_lines), clean_orbit_lines.after(draw_orbit_line)).run_if(in_state(SimState::Simulation)));
     }
 }
 

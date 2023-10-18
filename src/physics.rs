@@ -4,7 +4,7 @@ use bevy::app::{App, Plugin, Update};
 use bevy::math::{Vec3, I64Vec3, Vec3A, DVec3};
 use bevy::prelude::{in_state, IntoSystemConfigs, Mut, Query, Res, Resource, Time, Transform, Entity, GlobalTransform, BVec3, Gizmos, Color, ResMut};
 use crate::body::{Acceleration, Mass, SimPosition, Velocity, OrbitSettings};
-use crate::constants::{G, M_TO_UNIT};
+use crate::constants::{G, M_TO_UNIT, DEFAULT_SUB_STEPS};
 use crate::SimState;
 use crate::orbit_lines::{OrbitOffset, draw_lines};
 use crate::selection::SelectedEntity;
@@ -16,27 +16,73 @@ impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<Pause>()
+            .init_resource::<SubSteps>()
             .register_type::<Velocity>()
             .register_type::<Acceleration>()
             .register_type::<Mass>()
             .register_type::<SimPosition>()
             .register_type::<OrbitSettings>()
-            .add_systems(Update, (update_acceleration, update_velocity.after(update_acceleration), update_position.after(update_velocity)).run_if(in_state(SimState::Simulation)));
+            .add_systems(Update, (apply_physics).run_if(in_state(SimState::Simulation)));
     }
 }
 
 #[derive(Resource, Default)]
 pub struct Pause(pub bool);
 
-fn update_acceleration(
-    mut query: Query<(&Mass, &mut Acceleration, &SimPosition)>,
-    pause: Res<Pause>
+#[derive(Resource)]
+pub struct SubSteps(pub i32);
+
+impl Default for SubSteps {
+    fn default() -> Self {
+        SubSteps(DEFAULT_SUB_STEPS)
+    }   
+}
+
+impl SubSteps {
+    
+    pub fn small_step_up(&mut self) {
+        self.0 *= 2; 
+    }
+        
+    pub fn big_step_up(&mut self) {
+        self.0 *= 10;
+    }
+        
+    pub fn small_step_down(&mut self) {
+        self.0 = std::cmp::max(self.0 / 2, 1);
+    }
+        
+    pub fn big_step_down(&mut self) {
+        self.0 = std::cmp::max(self.0 / 10, 1);
+    }
+      
+}
+
+pub fn apply_physics(
+    mut query: Query<(Entity, &Mass, &mut Acceleration, &mut Velocity, &mut SimPosition, &mut Transform)>,
+    pause: Res<Pause>,
+    time: Res<Time>,
+    speed: Res<Speed>,
+    selected_entity: Res<SelectedEntity>,
+    mut orbit_offset: ResMut<OrbitOffset>,
+    sub_steps: Res<SubSteps>
 ) {
     if pause.0 {
         return;
     }
-    let mut other_bodies: Vec<(&Mass, Mut<Acceleration>, &SimPosition)> = Vec::new();
-    for (mass, mut acc, sim_pos) in query.iter_mut() {
+    let delta = time.delta_seconds() as f64;
+    for _ in 0..sub_steps.0 {
+        update_acceleration(&mut query);
+        update_velocity(&mut query, delta, &speed);
+        update_position(&mut query, delta, &speed, &selected_entity, &mut orbit_offset)
+    }
+}
+
+fn update_acceleration(
+    query: &mut Query<(Entity, &Mass, &mut Acceleration, &mut Velocity, &mut SimPosition, &mut Transform)>,
+) {
+    let mut other_bodies: Vec<(&Mass, Mut<Acceleration>, Mut<SimPosition>)> = Vec::new();
+    for (_, mass, mut acc, _, sim_pos, _) in query.iter_mut() {
         acc.0 = DVec3::ZERO;
         for (other_mass, ref mut other_acc, other_sim_pos) in other_bodies.iter_mut() {
             let r_sq = (sim_pos.0 - other_sim_pos.0).length_squared() as f64;
@@ -51,41 +97,32 @@ fn update_acceleration(
         }
         other_bodies.push((mass, acc, sim_pos));
     }
-    for (mass, mut acc, _) in query.iter_mut() {
+    for (_, mass, mut acc, _, _, _) in query.iter_mut() {
         acc.0 /= mass.0;
     }
 }
 
 fn update_velocity(
-    mut query: Query<(&mut Velocity, &Acceleration)>,
-    time: Res<Time>,
-    speed: Res<Speed>,
-    pause: Res<Pause>
+    query: &mut Query<(Entity, &Mass, &mut Acceleration, &mut Velocity, &mut SimPosition, &mut Transform)>,
+    delta_time: f64,
+    speed: &Res<Speed>,
 ) {
-    if pause.0 {
-        return;
-    }
-    for (mut vel, acc) in query.iter_mut() {
-        vel.0 += acc.0 * time.delta_seconds() as f64 * speed.0;
+    for (_, _, acc, mut vel, _, _) in query.iter_mut() {
+        vel.0 += acc.0 * delta_time * speed.0;
     }
 }
 
 pub fn update_position(
-    mut query: Query<(Entity, &mut SimPosition, &mut Transform, &Velocity)>,
-    time: Res<Time>,
-    speed: Res<Speed>,
-    selected_entity: Res<SelectedEntity>,
-    pause: Res<Pause>,
-    mut orbit_offset: ResMut<OrbitOffset>,
+    query: &mut Query<(Entity, &Mass, &mut Acceleration, &mut Velocity, &mut SimPosition, &mut Transform)>,
+    delta_time: f64,
+    speed: &Res<Speed>,
+    selected_entity: &Res<SelectedEntity>,
+    orbit_offset: &mut ResMut<OrbitOffset>,
 ) {
-    if pause.0 {
-        return;
-    }
-    let delta_time = time.delta_seconds() as f64;
     // Calculate the offset based on the selected entity's position
     let offset = match selected_entity.0 {
         Some(selected) => {
-            if let Ok((_, mut sim_pos, mut transform, vel)) = query.get_mut(selected) {
+            if let Ok((_, _, _, vel, mut sim_pos, mut transform)) = query.get_mut(selected) {
                 sim_pos.0 += vel.0 * delta_time * speed.0; //this is the same step as below, but we are doing this first for the offset
                 let raw_translation = sim_pos.0 * M_TO_UNIT;
                 transform.translation = Vec3::ZERO; //the selected entity will always be at 0,0,0
@@ -96,7 +133,7 @@ pub fn update_position(
         }
         None => DVec3::ZERO,
     };
-    for (entity, mut sim_pos, mut transform, vel) in query.iter_mut() {
+    for (entity, _, _, vel, mut sim_pos, mut transform) in query.iter_mut() {
         if let Some(s_entity) = selected_entity.0 {
             if s_entity == entity {
                 continue;
