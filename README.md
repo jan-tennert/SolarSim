@@ -44,7 +44,9 @@ You can get vector positions and velocity on the [Horizons System](https://ssd.j
 
 - The coordinate center & table settings should remain as is.
 
-Then click on **Generate Ephemeris** and read the first entry of the list.![](C:\Users\jan\AppData\Roaming\marktext\images\2023-10-18-21-39-29-image.png)
+Then click on **Generate Ephemeris** and read the first entry of the list.
+
+![image](https://github.com/jan-tennert/Simulation/assets/26686035/26858c7c-9ac3-4438-8794-b590f897c0f4)
 
 The first row will be your starting positions and the second row your starting velocity, you can paste them as is into the HorizonUi.
 
