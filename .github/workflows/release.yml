@@ -134,7 +134,6 @@ jobs:
       - name: Build Horizon Ui
         run: |
           cd .\horizon-ui
-          chmod +x gradlew
           ./gradlew obfuscate
           cd ..
 
