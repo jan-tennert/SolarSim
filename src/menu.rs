@@ -20,6 +20,7 @@ fn main_menu(
 ) {
     egui::CentralPanel::default().frame(Frame::none()).show(contexts.ctx_mut(), |ui| {
         ui.with_layout(egui::Layout::from_main_dir_and_cross_align(egui::Direction::BottomUp, egui::Align::Center), |ui| {
+            ui.add_space(10.0);
             if ui.button("Start Simulation").clicked() {
                 let _ = state.set(SimState::Loading);
             }

@@ -44,7 +44,7 @@ pub struct UIPlugin;
 impl Plugin for UIPlugin {
     fn build(&self, app: &mut App) {
         app
-         //   .add_plugins(EguiPlugin)
+            .add_plugins(EguiPlugin)
             .init_resource::<UiState>()
             .register_type::<SimTime>()
             .init_resource::<SimTime>()

@@ -1,4 +1,4 @@
-use bevy::{app::{App, Plugin}, prelude::{Query, Transform, Res, Entity, PreUpdate, Local, GizmoConfig, ResMut, AabbGizmo, GlobalTransform, PostUpdate, Update, With, Handle, Mesh, Vec3, Name, Children, in_state, IntoSystemConfigs, Visibility, Resource, NextState}, render::primitives::{Aabb, Sphere}, math::Vec3A, scene::{SceneSpawner, SceneInstance}};
+use bevy::{app::{App, Plugin}, prelude::{Query, Transform, Res, Entity, PreUpdate, Local, GizmoConfig, ResMut, AabbGizmo, GlobalTransform, PostUpdate, Update, With, Handle, Mesh, Vec3, Name, Children, in_state, IntoSystemConfigs, Visibility, Resource, NextState, Commands, NodeBundle, default, Color, OnEnter, BuildChildren, TextBundle, Label, OnExit}, render::primitives::{Aabb, Sphere}, math::Vec3A, scene::{SceneSpawner, SceneInstance}, ui::{Style, Val, JustifyContent, UiRect, AlignItems, Node}, text::TextStyle};
 
 use crate::{SimState, body::Mass};
 
@@ -8,6 +8,8 @@ impl Plugin for LoadingPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<LoadingState>()
+            .add_systems(OnEnter(SimState::Loading), spawn_loading)
+            .add_systems(OnExit(SimState::Loading), despawn_loading)
             .add_systems(Update, (loading_system).run_if(in_state(SimState::Loading)));
     }
 }
@@ -31,6 +33,50 @@ impl LoadingState {
         return self.loaded_bodies && self.scaled_bodies
     }
     
+}
+
+fn despawn_loading(
+    mut commands: Commands,
+    nodes: Query<(Entity, &Node)>
+) {
+    for (entity, _) in &nodes {
+        commands.entity(entity).despawn();
+    }
+}
+
+fn spawn_loading(
+    mut commands: Commands
+) {
+    let mut parent = commands
+        .spawn(NodeBundle {
+            style: Style {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            background_color: Color::rgb(0.15, 0.15, 0.15).into(),
+            ..default()
+        });
+    parent.with_children(|parent| {
+        parent.spawn((
+            TextBundle::from_section(
+                "Loading...",
+                TextStyle {
+                    //font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                    font_size: 30.0,
+                    color: Color::GRAY,
+                    ..default()
+                },
+            )
+            .with_style(Style {
+                margin: UiRect::all(Val::Px(5.)),
+                ..default()
+            }),
+            Label
+        ));
+    });
 }
 
 fn loading_system(
