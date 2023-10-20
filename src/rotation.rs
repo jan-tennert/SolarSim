@@ -44,7 +44,7 @@ fn axial_tilt_planets(
             transform.rotate_x((90.0 as f32).to_radians());
           //  transform.rotate_x(tilt.num.to_radians());
             tilt.applied = true;
-            tilt.axis = Some(tilted);
+            tilt.axis = Some(u_p);
         }
     }
 }
@@ -66,7 +66,7 @@ fn rotate_bodies(
             let rotation_duration = rotation_speed.0 * 60.0;
             let rotations_per_day = DAY_IN_SECONDS / (rotation_duration as f32);
             
-         //   transform.rotate_axis(axis.axis.unwrap(), 2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
+          //  transform.rotate_axis(axis.axis.unwrap(), 2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
             transform.rotate_z(2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
             
         }

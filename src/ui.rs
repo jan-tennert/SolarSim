@@ -259,6 +259,7 @@ pub fn system_ui(
                     ui.checkbox(&mut config.aabb.draw_all, "Draw Outlines");
                     ui.add_space(5.0);
                     ui.label("F10 - Hide Ui");
+                    ui.label("F11 - Toggle Fullscreen");
                     ui.label("Space - Pause");
                     ui.label("Left Arrow - 2x Speed");
                     ui.label("Right Arrow - 1/2 Speed");
@@ -339,14 +340,14 @@ fn body_ui(
                         ui.label(" kg");
                     });
                     ui.horizontal(|ui| {
-                        if ui.button(":10").clicked() {
-                            mass.0 /= 10.0;
+                        if ui.button(":5").clicked() {
+                            mass.0 /= 5.0;
                         }
                         if ui.button(":2").clicked() {
                             mass.0 /= 2.0;
                         }
-                        if ui.button("x10").clicked() {
-                            mass.0 *= 10.0;
+                        if ui.button("x5").clicked() {
+                            mass.0 *= 5.0;
                         }
                         if ui.button("x2").clicked() {
                             mass.0 *= 2.0;

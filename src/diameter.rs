@@ -14,17 +14,17 @@ impl Plugin for DiameterPlugin {
 }
 
 fn apply_real_diameter(
-    mut bodies: Query<(&SceneInstance, &mut Diameter, &mut Visibility, &mut Transform, &mut Scale)>,
+    mut bodies: Query<(&SceneInstance, &mut Diameter, &mut Transform, &mut Scale)>,
     meshes: Query<(&GlobalTransform, Option<&Aabb>), With<Handle<Mesh>>>,
     spawner: Res<SceneSpawner>,
     mut loading_state: ResMut<LoadingState>
 ) {
-    if !bodies.is_empty() && bodies.iter().all(|(_, diameter, _, _, _)| {
+    if !bodies.is_empty() && bodies.iter().all(|(_, diameter, _, _)| {
         diameter.applied
     }) {
         loading_state.scaled_bodies = true;
     }
-    for (instance, mut diameter, mut visibility, mut transform, mut scale) in &mut bodies {
+    for (instance, mut diameter, mut transform, mut scale) in &mut bodies {
         if diameter.applied {
             continue;
         }
