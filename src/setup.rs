@@ -14,7 +14,7 @@ use bevy::scene::{Scene, SceneInstance};
 use crate::bodies::Bodies;
 use crate::SimState;
 use crate::body::{BodyBundle, Star, Planet, Moon, BodyChildren};
-use crate::pan_orbit::lib::PanOrbitCamera;
+use crate::camera::PanOrbitCamera;
 use crate::serialization::SimulationData;
 use crate::skybox::Cubemap;
 
@@ -149,12 +149,7 @@ pub fn setup_camera(
             },
             ..default()
         },
-        PanOrbitCamera {
-            orbit_smoothness: 0.0,
-            pan_smoothness: 0.0,
-            zoom_smoothness: 0.0,
-            ..default()
-        },
+        PanOrbitCamera::default(),
         Skybox(skybox_handle.clone()),
         BloomSettings {
             intensity: 0.4, // the default is 0.3,

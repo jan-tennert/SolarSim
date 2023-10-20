@@ -1,6 +1,6 @@
 use bevy::{app::{App, Plugin}, prelude::{Query, Transform, Res, Entity, PreUpdate, Local, GizmoConfig, ResMut, AabbGizmo, GlobalTransform, PostUpdate, Update, With, Handle, Mesh, Vec3, Name, Children, in_state, IntoSystemConfigs, Visibility}, render::primitives::{Aabb, Sphere}, math::Vec3A, scene::{SceneSpawner, SceneInstance}};
 
-use crate::{body::Diameter, SimState, constants::M_TO_UNIT};
+use crate::{body::{Diameter, Scale}, SimState, constants::M_TO_UNIT};
 
 pub struct DiameterPlugin;
 
@@ -14,11 +14,11 @@ impl Plugin for DiameterPlugin {
 }
 
 fn apply_real_diameter(
-    mut bodies: Query<(&SceneInstance, &mut Diameter, &mut Visibility, &mut Transform)>,
+    mut bodies: Query<(&SceneInstance, &mut Diameter, &mut Visibility, &mut Transform, &mut Scale)>,
     meshes: Query<(&GlobalTransform, Option<&Aabb>), With<Handle<Mesh>>>,
     spawner: Res<SceneSpawner>
 ) {
-    for (instance, mut diameter, mut visibility, mut transform) in &mut bodies {
+    for (instance, mut diameter, mut visibility, mut transform, mut scale) in &mut bodies {
         if diameter.applied {
             continue;
         }
@@ -30,6 +30,7 @@ fn apply_real_diameter(
                 };
                 let aabb = Aabb::from(sphere);
                 transform.scale = Vec3::splat((diameter.num * M_TO_UNIT) as f32) / (Vec3::from(aabb.half_extents));
+                scale.0 = transform.scale.x;
                 diameter.applied = true;
                 *visibility = Visibility::Visible;
             }

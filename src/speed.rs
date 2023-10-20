@@ -23,15 +23,15 @@ impl Speed {
         let speed_in_seconds = self.0 * (sub_steps as f64);
             
         if speed_in_seconds < 1.0 {
-            return format!("{:.2} s/s", speed_in_seconds);
+            return format!("{:.2} s", speed_in_seconds);
         } else if speed_in_seconds < 60.0 {
-            return format!("{:.2} s/s", speed_in_seconds);
+            return format!("{:.2} s", speed_in_seconds);
         } else if speed_in_seconds < 3600.0 {
             let minutes = speed_in_seconds / 60.0;
-            return format!("{:.2} min/s", minutes);
+            return format!("{:.2} min", minutes);
         } else if speed_in_seconds < 86400.0 {
             let hours = speed_in_seconds / 3600.0;
-            return format!("{:.2} hours/s", hours);
+            return format!("{:.2} hours", hours);
         } else if speed_in_seconds < 2592000.0 {
             let days = speed_in_seconds / 86400.0;
             return format!("{:.2} days", days);

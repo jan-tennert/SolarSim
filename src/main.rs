@@ -11,7 +11,6 @@ mod selection;
 mod menu;
 mod skybox;
 mod diameter;
-mod pan_orbit;
 mod ui;
 mod orbit_lines;
 mod reset;
@@ -19,25 +18,21 @@ mod rotation;
 mod serialization;
 mod lock_on;
 mod input;
-
-use std::fs::File;
-use std::io::{BufReader, Read};
+mod camera;
 
 use bevy::app::{App, PluginGroup, AppLabel};
 use bevy::DefaultPlugins;
-use bevy::core_pipeline::fxaa::Fxaa;
 use bevy::diagnostic::{LogDiagnosticsPlugin, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::{default, States, Msaa};
 use bevy::render::RenderPlugin;
 use bevy::render::settings::{Backends, WgpuSettings};
 use bevy::window::{WindowPlugin, Window, PresentMode};
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use camera::PanOrbitCameraPlugin;
 use diameter::DiameterPlugin;
 use fps::FpsPlugin;
 use input::InputPlugin;
 use lock_on::LockOnPlugin;
 use orbit_lines::OrbitLinePlugin;
-use pan_orbit::lib::PanOrbitCameraPlugin;
 use reset::ResetPlugin;
 use rotation::RotationPlugin;
 use serialization::{SerializationPlugin, SimulationData};
@@ -81,6 +76,7 @@ fn main() {
   //      .add_plugins(DefaultPickingPlugins)
         .add_plugins(LockOnPlugin)
         .add_plugins(SerializationPlugin)
+   //     .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(SetupPlugin)
         .add_plugins(PhysicsPlugin)

@@ -15,7 +15,7 @@ use bevy_egui::{egui::{self, Ui, InnerResponse, Response, ComboBox}, EguiContext
 use bevy_inspector_egui::egui::{RichText, TextEdit};
 use chrono::{Days, NaiveDate, Utc, DateTime, NaiveDateTime};
 //use crate::fps::Fps;
-use crate::{egui_input_block::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, OrbitSettings, SimPosition}, constants::{DAY_IN_SECONDS, M_TO_UNIT}, selection::SelectedEntity, orbit_lines, fps::Fps, skybox::Cubemap, setup::StartingTime, lock_on::LockOn, physics::{apply_physics, SubSteps}};
+use crate::{egui_input_block::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, OrbitSettings, SimPosition, Scale, Diameter}, constants::{DAY_IN_SECONDS, M_TO_UNIT}, selection::SelectedEntity, orbit_lines, fps::Fps, skybox::Cubemap, setup::StartingTime, lock_on::LockOn, physics::{apply_physics, SubSteps}};
 use crate::physics::{Pause, update_position};
 use crate::SimState;
 use crate::speed::Speed;
@@ -138,7 +138,7 @@ pub fn time_ui(
                     if ui.button("Reset").clicked() {
                         let _ = state.set(SimState::Reset);
                     }
-                    ui.checkbox(&mut lock_on_parent.0, "Lock on Parent");
+                    ui.checkbox(&mut lock_on_parent.enabled, "Lock on Parent");
                     let mut vsync = window.present_mode == PresentMode::AutoVsync;
                     let old_option = vsync;
                     ui.checkbox(&mut vsync, "VSync");
@@ -252,11 +252,14 @@ pub fn system_ui(
                     }
                     
                     ui.checkbox(&mut config.aabb.draw_all, "Draw Outlines");
-                    ui.add_space(10.0);
+                    ui.add_space(5.0);
                     ui.label("F10 - Hide Ui");
                     ui.label("Space - Pause");
                     ui.label("Left Arrow - 2x Speed");
                     ui.label("Right Arrow - 1/2 Speed");
+                    ui.label("C - Reset Camera");
+                    ui.label("Left Mouse - Rotate Camera");
+                    ui.label("Right Mouse - Move Camera");
                     
                     ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
                         if ui.button("Back to Menu").clicked() {
@@ -289,7 +292,7 @@ fn body_tree<R>(
 fn body_ui(
     mut egui_context: EguiContexts,
     mut commands: Commands,
-    mut query: Query<(&Name, Entity, &SimPosition, &Velocity, &mut OrbitSettings, &mut Mass, Option<&BodyChildren>)>,
+    mut query: Query<(&Name, Entity, &SimPosition, &Velocity, &Diameter, &mut OrbitSettings, &mut Mass, &mut Scale, &mut Transform, Option<&BodyChildren>)>,
     selected_entity: Res<SelectedEntity>,   
     ui_state: Res<UiState>
 ) {
@@ -298,18 +301,18 @@ fn body_ui(
     }
     if let Some(entity) = selected_entity.0 {
         let mut parent: Option<(&SimPosition, &Velocity, &Name)> = None;
-        let mut selected: Option<(&Name, Entity, &SimPosition, &Velocity, Mut<OrbitSettings>, Mut<Mass>)> = None;
-        for (name, b_entity, pos, velocity, orbit, mass, children) in query.iter_mut() {
+        let mut selected: Option<(&Name, Entity, &SimPosition, &Velocity, &Diameter, Mut<OrbitSettings>, Mut<Transform>, Mut<Mass>, Mut<Scale>)> = None;
+        for (name, b_entity, pos, velocity, diameter, orbit, mass, scale, transform, children) in query.iter_mut() {
             if let Some(children) = children {
                 if children.0.contains(&entity) {
                     parent = Some((pos, velocity, name));
                 }
             }
             if b_entity == entity {
-                selected = Some((name, b_entity, pos, velocity, orbit, mass));
+                selected = Some((name, b_entity, pos, velocity, diameter, orbit, transform, mass, scale));
             }
         }
-        if let Some((name, entity, pos, velocity, mut orbit, mut mass)) = selected {
+        if let Some((name, entity, pos, velocity, diameter, mut orbit, mut transform, mut mass, mut scale)) = selected {
             egui::SidePanel::right("body_panel")
                 .max_width(250.0)
                 .resizable(true)
@@ -354,6 +357,30 @@ fn body_ui(
                         "X: {:.2} Y: {:.2} Z: {:.2}",
                         pos.0.x / 1000.0, pos.0.y / 1000.0, pos.0.z / 1000.0
                     ));
+                    if scale.0 != 0.0 {
+                        ui.label(
+                            RichText::new("Body Scale")
+                                .size(16.0)
+                                .underline(),
+                        );
+                        let mut n_scale = transform.scale.x / scale.0;
+                        ui.horizontal(|ui| {
+                            ui.add(
+                                egui::Slider::new(&mut n_scale, 0.001..=100.0)
+                                .clamp_to_range(true)
+                                .logarithmic(true));
+                        });
+                        transform.scale = Vec3::splat(n_scale * scale.0);
+                        ui.label(
+                        RichText::new("Diameter")
+                            .size(16.0)
+                            .underline(),
+                        );
+                        let scaled_diameter = (diameter.num as f32) * n_scale;
+                        ui.label(format!("{} km", scaled_diameter / 1000.0));
+                    }
+                    
+                    
                     // Velocity Orbit Velocity around parent
                     let actual_velocity = match parent {
                         Some((_, vel, _)) => (vel.0 - velocity.0).length() / 1000.0,
