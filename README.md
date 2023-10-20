@@ -1,7 +1,5 @@
 # Simulation
 
-https://github.com/jan-tennert/Simulation/assets/26686035/4f97a30b-5bac-4a50-87e9-48ac06ff4d14
-
 A complete simulation of our solar system with many features including:
 
 - True to scale gravitational simulation of all bodies
@@ -10,9 +8,9 @@ A complete simulation of our solar system with many features including:
 
 - Drawing orbital lines of bodies
 
-- Manipulating orbits by changing masses and velocities
+- Manipulating orbits by changing masses
 
-- High quality 3D models of all planets and moons
+- High quality 3D models of all planets and moons from NASA
 
 - Speed up the simulation by increasing substeps or timesteps
 
