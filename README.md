@@ -1,6 +1,6 @@
 # Simulation
 
-A complete simulation of our solar system with many features including:
+A complete simulation of our solar system made with [Bevy](bevyengine.org/) with many features including:
 
 - True to scale gravitational simulation of all bodies
 
