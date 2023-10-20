@@ -15,6 +15,7 @@ use crate::bodies::Bodies;
 use crate::SimState;
 use crate::body::{BodyBundle, Star, Planet, Moon, BodyChildren};
 use crate::camera::PanOrbitCamera;
+use crate::loading::LoadingState;
 use crate::serialization::SimulationData;
 use crate::skybox::Cubemap;
 
@@ -26,8 +27,8 @@ impl Plugin for SetupPlugin {
             .init_resource::<BodiesHandle>()
             .init_resource::<StartingTime>()
             .add_systems(Startup, setup_camera)
-            .add_systems(OnEnter(SimState::Simulation), load_bodies)
-            .add_systems(Update, setup_planets.run_if(in_state(SimState::Simulation)));
+            .add_systems(OnEnter(SimState::Loading), load_bodies)
+            .add_systems(Update, setup_planets.run_if(in_state(SimState::Loading)));
     }
 }
 
@@ -55,7 +56,8 @@ pub fn setup_planets(
     assets: Res<AssetServer>,
     mut bodies_handle: ResMut<BodiesHandle>,
     bodies_asset: ResMut<Assets<SimulationData>>,
-    mut starting_time: ResMut<StartingTime>
+    mut starting_time: ResMut<StartingTime>,
+    mut loading_state: ResMut<LoadingState>
 ) {
     if bodies_handle.spawned {
         return;
@@ -106,6 +108,7 @@ pub fn setup_planets(
   
     }
     bodies_handle.spawned = true;
+    loading_state.loaded_bodies = true;
 }
 
 fn apply_body(

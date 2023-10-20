@@ -7,7 +7,7 @@ use bevy::{
     },
     reflect::Reflect,
     time::Time,
-    window::PresentMode, render::camera::TemporalJitter, pbr::{ScreenSpaceAmbientOcclusionSettings, ScreenSpaceAmbientOcclusionQualityLevel}, core_pipeline::Skybox, transform::commands,
+    window::PresentMode, render::camera::TemporalJitter, pbr::{ScreenSpaceAmbientOcclusionSettings, ScreenSpaceAmbientOcclusionQualityLevel}, core_pipeline::Skybox, transform::commands, diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
 };
 use bevy::app::Update;
 use bevy::prelude::{in_state, Window};
@@ -15,7 +15,7 @@ use bevy_egui::{egui::{self, Ui, InnerResponse, Response, ComboBox}, EguiContext
 use bevy_inspector_egui::egui::{RichText, TextEdit};
 use chrono::{Days, NaiveDate, Utc, DateTime, NaiveDateTime};
 //use crate::fps::Fps;
-use crate::{egui_input_block::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, OrbitSettings, SimPosition, Scale, Diameter}, constants::{DAY_IN_SECONDS, M_TO_UNIT}, selection::SelectedEntity, orbit_lines, fps::Fps, skybox::Cubemap, setup::StartingTime, lock_on::LockOn, physics::{apply_physics, SubSteps}};
+use crate::{egui_input_block::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, OrbitSettings, SimPosition, Scale, Diameter}, constants::{DAY_IN_SECONDS, M_TO_UNIT}, selection::SelectedEntity, orbit_lines, skybox::Cubemap, setup::StartingTime, lock_on::LockOn, physics::{apply_physics, SubSteps}};
 use crate::physics::{Pause, update_position};
 use crate::SimState;
 use crate::speed::Speed;
@@ -44,7 +44,7 @@ pub struct UIPlugin;
 impl Plugin for UIPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_plugins(EguiPlugin)
+         //   .add_plugins(EguiPlugin)
             .init_resource::<UiState>()
             .register_type::<SimTime>()
             .init_resource::<SimTime>()
@@ -61,7 +61,6 @@ pub fn time_ui(
     mut sim_time: ResMut<SimTime>,
     mut egui_context: EguiContexts,
     mut speed: ResMut<Speed>,
-    fps: Res<Fps>,
     mut windows: Query<&mut Window>,
     mut lock_on_parent: ResMut<LockOn>,
     mut pause: ResMut<Pause>,
@@ -69,7 +68,8 @@ pub fn time_ui(
     mut state: ResMut<NextState<SimState>>,
     starting_time: Res<StartingTime>,
     mut sub_steps: ResMut<SubSteps>,
-    ui_state: Res<UiState>
+    ui_state: Res<UiState>,
+    diagnostics: Res<DiagnosticsStore>,
 ) {
     if !ui_state.visible {
         return;
@@ -149,7 +149,12 @@ pub fn time_ui(
                             window.present_mode = PresentMode::AutoNoVsync;
                         }
                     }
-                    ui.label(format!("{:.0} FPS", fps.0));
+                    if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
+                        if let Some(value) = fps.smoothed() {
+                            // Update the value of the second section
+                            ui.label(format!("{:.0} FPS", value));
+                        }
+                    }
                 })
             });
         });

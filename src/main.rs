@@ -6,7 +6,6 @@ mod bodies;
 mod physics;
 mod egui_input_block;
 mod speed;
-mod fps;
 mod selection;
 mod menu;
 mod skybox;
@@ -19,6 +18,7 @@ mod serialization;
 mod lock_on;
 mod input;
 mod camera;
+mod loading;
 
 use bevy::app::{App, PluginGroup, AppLabel};
 use bevy::DefaultPlugins;
@@ -27,10 +27,11 @@ use bevy::prelude::{default, States, Msaa};
 use bevy::render::RenderPlugin;
 use bevy::render::settings::{Backends, WgpuSettings};
 use bevy::window::{WindowPlugin, Window, PresentMode};
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use camera::PanOrbitCameraPlugin;
 use diameter::DiameterPlugin;
-use fps::FpsPlugin;
 use input::InputPlugin;
+use loading::LoadingPlugin;
 use lock_on::LockOnPlugin;
 use orbit_lines::OrbitLinePlugin;
 use reset::ResetPlugin;
@@ -48,6 +49,7 @@ use crate::setup::SetupPlugin;
 pub enum SimState {
     #[default]
     Menu,
+    Loading,
     Simulation,
     Reset,
     ExitToMainMenu
@@ -72,10 +74,11 @@ fn main() {
                 ..default()
             })
         ) 
-   //     .add_plugins(WorldInspectorPlugin::new())
+        .add_plugins(WorldInspectorPlugin::new())
   //      .add_plugins(DefaultPickingPlugins)
         .add_plugins(LockOnPlugin)
         .add_plugins(SerializationPlugin)
+        .add_plugins(LoadingPlugin)
    //     .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(SetupPlugin)
@@ -89,7 +92,6 @@ fn main() {
         .add_plugins(ResetPlugin)
         .add_plugins(OrbitLinePlugin)
         .add_plugins(RotationPlugin)
-        .add_plugins(FpsPlugin)
         .add_plugins(FrameTimeDiagnosticsPlugin::default())
         .add_plugins(DiameterPlugin)
     //    .add_plugins(ScreenDiagnosticsPlugin::default())
