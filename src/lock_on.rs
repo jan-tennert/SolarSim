@@ -43,7 +43,7 @@ fn lock_on(
         }
         if let Some(p_transform) = parent {
             let (_, mut c_transform, _, _) = camera.single_mut();   
-            c_transform.look_at(p_transform.translation, Vec3::Y);
+            c_transform.look_at(p_transform.translation, Vec3::X);
         }
     }       
 }

@@ -292,7 +292,7 @@ fn body_tree<R>(
 fn body_ui(
     mut egui_context: EguiContexts,
     mut commands: Commands,
-    mut query: Query<(&Name, Entity, &SimPosition, &Velocity, &Diameter, &mut OrbitSettings, &mut Mass, &mut Scale, &mut Transform, Option<&BodyChildren>)>,
+    mut query: Query<(&Name, Entity, &SimPosition, &Velocity, &Diameter, &mut OrbitSettings, &mut Mass, &Scale, &mut Transform, Option<&BodyChildren>)>,
     selected_entity: Res<SelectedEntity>,   
     ui_state: Res<UiState>
 ) {
@@ -301,18 +301,18 @@ fn body_ui(
     }
     if let Some(entity) = selected_entity.0 {
         let mut parent: Option<(&SimPosition, &Velocity, &Name)> = None;
-        let mut selected: Option<(&Name, Entity, &SimPosition, &Velocity, &Diameter, Mut<OrbitSettings>, Mut<Transform>, Mut<Mass>, Mut<Scale>)> = None;
+        let mut selected: Option<(&Name, Entity, &SimPosition, &Velocity, &Diameter, Mut<OrbitSettings>, Mut<Transform>, Mut<Mass>, &Scale)> = None;
         for (name, b_entity, pos, velocity, diameter, orbit, mass, scale, transform, children) in query.iter_mut() {
             if let Some(children) = children {
                 if children.0.contains(&entity) {
                     parent = Some((pos, velocity, name));
                 }
-            }
-            if b_entity == entity {
+            } 
+             if b_entity == entity {
                 selected = Some((name, b_entity, pos, velocity, diameter, orbit, transform, mass, scale));
             }
         }
-        if let Some((name, entity, pos, velocity, diameter, mut orbit, mut transform, mut mass, mut scale)) = selected {
+        if let Some((name, entity, pos, velocity, diameter, mut orbit, mut transform, mut mass, scale)) = selected {
             egui::SidePanel::right("body_panel")
                 .max_width(250.0)
                 .resizable(true)
@@ -347,16 +347,6 @@ fn body_ui(
                             mass.0 *= 2.0;
                         }
                     });
-                    // Position
-                    ui.label(
-                        RichText::new("Vector Position (km)")
-                            .size(16.0)
-                            .underline(),
-                    );
-                    ui.label(format!(
-                        "X: {:.2} Y: {:.2} Z: {:.2}",
-                        pos.0.x / 1000.0, pos.0.y / 1000.0, pos.0.z / 1000.0
-                    ));
                     if scale.0 != 0.0 {
                         ui.label(
                             RichText::new("Body Scale")
@@ -382,7 +372,7 @@ fn body_ui(
                     
                     
                     // Velocity Orbit Velocity around parent
-                    let actual_velocity = match parent {
+                    let actual_velocity = match &parent {
                         Some((_, vel, _)) => (vel.0 - velocity.0).length() / 1000.0,
                         None => velocity.0.length() / 1000.0,
                     };

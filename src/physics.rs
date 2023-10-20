@@ -1,5 +1,3 @@
-use std::ops::Add;
-use std::process::exit;
 use bevy::app::{App, Plugin, Update};
 use bevy::math::{Vec3, I64Vec3, Vec3A, DVec3};
 use bevy::prelude::{in_state, IntoSystemConfigs, Mut, Query, Res, Resource, Time, Transform, Entity, GlobalTransform, BVec3, Gizmos, Color, ResMut};
