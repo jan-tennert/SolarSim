@@ -85,7 +85,7 @@ pub fn setup_planets(
             },
             ..default()
         });
-        apply_body(BodyBundle::from(entry.clone()), Star, &assets, &mut star);
+        apply_body(BodyBundle::from(entry.clone()), Star::default(), &assets, &mut star);
         for planet_entry in &entry.children {
             let mut planet = star.commands().spawn(SpatialBundle {
                 visibility: Visibility::Hidden,

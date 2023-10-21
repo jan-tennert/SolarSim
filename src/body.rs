@@ -72,7 +72,11 @@ pub struct Diameter {
 
 //Types:
 #[derive(Component, Reflect, Clone, Default)]
-pub struct Star;
+pub struct Star {
+    
+    pub use_imposter: bool,
+             
+}
 
 #[derive(Component, Reflect, Clone, Default)]
 pub struct Planet;

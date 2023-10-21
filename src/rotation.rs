@@ -42,7 +42,8 @@ fn axial_tilt_planets(
             let tilted = Quat::from_axis_angle(Vec3::X, tilt.num.to_radians()) * Vec3::Z;
     //        transform.rotate_axis(u_p, 0.0);
             transform.rotate_x((90.0 as f32).to_radians());
-          //  transform.rotate_x(tilt.num.to_radians());
+        //    transform.rotate_y(tilt.num.to_radians());
+        //    transform.rotate_x(tilt.num.to_radians());
             tilt.applied = true;
             tilt.axis = Some(u_p);
         }

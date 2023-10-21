@@ -19,6 +19,7 @@ mod lock_on;
 mod input;
 mod camera;
 mod loading;
+mod star_renderer;
 
 use bevy::app::{App, PluginGroup, AppLabel};
 use bevy::DefaultPlugins;
@@ -39,6 +40,7 @@ use rotation::RotationPlugin;
 use serialization::{SerializationPlugin, SimulationData};
 use skybox::SkyboxPlugin;
 use speed::SpeedPlugin;
+use star_renderer::StarRendererPlugin;
 use ui::UIPlugin;
 use crate::menu::MenuPlugin;
 use crate::physics::PhysicsPlugin;
@@ -74,7 +76,7 @@ fn main() {
                 ..default()
             })
         ) 
-    //    .add_plugins(WorldInspectorPlugin::new())
+        .add_plugins(WorldInspectorPlugin::new())
   //      .add_plugins(DefaultPickingPlugins)
         .add_plugins(LockOnPlugin)
         .add_plugins(SerializationPlugin)
@@ -87,6 +89,7 @@ fn main() {
         .add_plugins(InputPlugin)
         .add_plugins(SelectionPlugin)
         .add_plugins(SkyboxPlugin)
+        .add_plugins(StarRendererPlugin)
         .add_plugins(UIPlugin)
         .add_plugins(SpeedPlugin)
         .add_plugins(ResetPlugin)
