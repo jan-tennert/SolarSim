@@ -1,5 +1,7 @@
 # Simulation
 
+https://github.com/jan-tennert/Simulation/assets/26686035/0345b4f1-479d-4888-be3a-5652cec5d38d
+
 A complete simulation of our solar system made with [Bevy](https://bevyengine.org/) with many features including:
 
 - True to scale gravitational simulation of all bodies
