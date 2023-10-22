@@ -9,11 +9,13 @@ use bevy::math::Vec3;
 use bevy::pbr::{PointLight, PointLightBundle};
 use bevy::prelude::{Camera3dBundle, Commands, default, OnEnter, Res, SceneBundle, SpatialBundle, Transform, Handle, Entity, Bundle, Projection, PerspectiveProjection, Startup, GizmoConfig, ResMut, Color, Msaa, Camera, StandardMaterial, Mesh, Assets, Material, Resource, Update, IntoSystemConfigs, in_state, Visibility};
 use bevy::scene::{Scene, SceneInstance};
+use rand::{SeedableRng, Rng};
+use rand::rngs::StdRng;
 
 
 use crate::bodies::Bodies;
 use crate::SimState;
-use crate::body::{BodyBundle, Star, Planet, Moon, BodyChildren};
+use crate::body::{BodyBundle, Star, Planet, Moon, BodyChildren, OrbitSettings};
 use crate::camera::PanOrbitCamera;
 use crate::loading::LoadingState;
 use crate::serialization::SimulationData;
@@ -68,11 +70,9 @@ pub fn setup_planets(
     }
     let data = bodies.unwrap();
     starting_time.0 = data.starting_time_millis;
-    for entry in &data.bodies {
-        let mut star = commands.spawn(SpatialBundle {
-            visibility: Visibility::Hidden,
-            ..default()
-        });
+    let stars = data.bodies.iter().count();  
+    for (s_index, entry) in data.bodies.iter().enumerate() {
+        let mut star = commands.spawn(SpatialBundle::default());
         let mut planets: Vec<Entity> = vec![];
         star.insert(PointLightBundle {
             point_light: PointLight {
@@ -85,22 +85,18 @@ pub fn setup_planets(
             },
             ..default()
         });
-        apply_body(BodyBundle::from(entry.clone()), Star::default(), &assets, &mut star);
-        for planet_entry in &entry.children {
-            let mut planet = star.commands().spawn(SpatialBundle {
-                visibility: Visibility::Hidden,
-                ..default()
-            });
+        apply_body(BodyBundle::from(entry.clone()), Star::default(), &assets, &mut star, 360.0 * ((s_index + 1) as f32 / stars as f32));
+        let planet_count = entry.children.iter().count();
+        for (p_index, planet_entry) in entry.children.iter().enumerate() {
+            let mut planet = star.commands().spawn(SpatialBundle::default());
             let mut moons: Vec<Entity> = vec![];            
-            apply_body(BodyBundle::from(planet_entry.clone()), Planet, &assets, &mut planet);
+            apply_body(BodyBundle::from(planet_entry.clone()), Planet, &assets, &mut planet, 360.0 * ((p_index + 1) as f32 / planet_count as f32));
             planets.push(planet.id());
-            for moon_entry in &planet_entry.children {
-                let mut moon = planet.commands().spawn(SpatialBundle {
-                    visibility: Visibility::Hidden,
-                    ..default()
-                });
+            let moon_count = planet_entry.children.iter().count();
+            for (m_index, moon_entry) in planet_entry.children.iter().enumerate() {
+                let mut moon = planet.commands().spawn(SpatialBundle::default());
                 moons.push(moon.id());
-                apply_body(BodyBundle::from(moon_entry.clone()), Moon, &assets, &mut moon);
+                apply_body(BodyBundle::from(moon_entry.clone()), Moon, &assets, &mut moon, 360.0 * ((m_index + 1) as f32 / moon_count as f32));
             } 
             planet.insert(BodyChildren(moons));
         }  
@@ -115,18 +111,16 @@ fn apply_body(
     bundle: BodyBundle,
     body_type: impl Bundle,
     assets: &Res<AssetServer>,
-    entity: &mut EntityCommands 
+    entity: &mut EntityCommands,
+    hue: f32,
 ) {
     let asset_handle: Handle<Scene> = assets.load(bundle.model_path.clone().0);      
     entity.insert(bundle.clone());
     entity.insert(body_type);
-    /*entity.with_children(|child| {
-        child.spawn(SceneBundle {
-            scene: asset_handle,
-            transform: Transform::from_scale(Vec3::splat(bundle.scale.0)).with_rotation(bundle.starting_rotation.0),
-            ..Default::default()
-        });
-    });*/
+    entity.insert(OrbitSettings {
+        color: Color::hsl(hue, 1.0, 0.5),
+       ..default() 
+    });
     entity.insert(SceneBundle {
             scene: asset_handle,
             transform: Transform::default(),

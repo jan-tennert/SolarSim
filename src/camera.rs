@@ -10,6 +10,8 @@ use bevy::{
 
 use crate::{SimState, physics::apply_physics, lock_on::LockOn};
 
+pub const DEFAULT_CAM_RADIUS: f32 = 150.0;
+
 /// Tags an entity as capable of panning and orbiting.
 #[derive(Component, Reflect)]
 pub struct PanOrbitCamera {
@@ -23,7 +25,7 @@ impl Default for PanOrbitCamera {
     fn default() -> Self {
         PanOrbitCamera {
             focus: Vec3::ZERO,
-            radius: 150.0,
+            radius: DEFAULT_CAM_RADIUS,
             upside_down: false,
         }
     }

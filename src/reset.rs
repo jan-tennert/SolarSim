@@ -1,6 +1,6 @@
-use bevy::prelude::{SystemSet, App, Plugin, OnExit, Entity, Name, With, ResMut, Commands, Query, NextState, Update, IntoSystemConfigs, in_state, OnEnter, Camera, Without, DespawnRecursiveExt};
+use bevy::prelude::{SystemSet, App, Plugin, OnExit, Entity, Name, With, ResMut, Commands, Query, NextState, Update, IntoSystemConfigs, in_state, OnEnter, Camera, Without, DespawnRecursiveExt, Vec3};
 
-use crate::{SimState, speed::Speed, ui::SimTime, body::Mass, physics::{Pause, SubSteps}, selection::SelectedEntity, constants::{HOUR_IN_SECONDS, DEFAULT_SUB_STEPS, DEFAULT_TIMESTEP}, setup::BodiesHandle, loading::LoadingState};
+use crate::{SimState, speed::Speed, ui::SimTime, body::Mass, physics::{Pause, SubSteps}, selection::SelectedEntity, constants::{HOUR_IN_SECONDS, DEFAULT_SUB_STEPS, DEFAULT_TIMESTEP}, setup::BodiesHandle, loading::LoadingState, camera::{PanOrbitCamera, DEFAULT_CAM_RADIUS}};
 
 pub struct ResetPlugin;
 
@@ -24,7 +24,8 @@ fn clean_up(
     mut bodies: ResMut<BodiesHandle>,
     mut sub_steps: ResMut<SubSteps>,
     mut loading_state: ResMut<LoadingState>,
-    mut commands: Commands
+    mut commands: Commands,
+    mut camera: Query<&mut PanOrbitCamera>
 ) {
     for (entity, _, _) in entities.iter() {
         commands.entity(entity).despawn_recursive()
@@ -36,6 +37,9 @@ fn clean_up(
     sub_steps.0 = DEFAULT_SUB_STEPS;
     bodies.spawned = false;
     loading_state.reset();
+    let mut cam = camera.single_mut();
+    cam.focus = Vec3::ZERO;
+    cam.radius = DEFAULT_CAM_RADIUS;
 }
 
 fn switch_to_menu(
