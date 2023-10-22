@@ -2,7 +2,6 @@
 mod body;
 mod constants;
 mod setup;
-mod bodies;
 mod physics;
 mod egui_input_block;
 mod speed;

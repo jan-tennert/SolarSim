@@ -11,7 +11,6 @@ use bevy::prelude::{Camera3dBundle, Commands, default, OnEnter, Res, SceneBundle
 use bevy::scene::{Scene, SceneInstance};
 
 
-use crate::bodies::Bodies;
 use crate::SimState;
 use crate::body::{BodyBundle, Star, Planet, Moon, BodyChildren, OrbitSettings};
 use crate::camera::PanOrbitCamera;
@@ -69,6 +68,8 @@ pub fn setup_planets(
     let data = bodies.unwrap();
     starting_time.0 = data.starting_time_millis;
     let stars = data.bodies.iter().count();  
+    
+    //iterate through the stars
     for (s_index, entry) in data.bodies.iter().enumerate() {
         let mut star = commands.spawn(SpatialBundle::default());
         let mut planets: Vec<Entity> = vec![];
@@ -85,14 +86,22 @@ pub fn setup_planets(
         });
         apply_body(BodyBundle::from(entry.clone()), Star::default(), &assets, &mut star, 360.0 * ((s_index + 1) as f32 / stars as f32));
         let planet_count = entry.children.iter().count();
+        
+        //iterate through the planets
         for (p_index, planet_entry) in entry.children.iter().enumerate() {
             let mut planet = star.commands().spawn(SpatialBundle::default());
             let mut moons: Vec<Entity> = vec![];            
             apply_body(BodyBundle::from(planet_entry.clone()), Planet, &assets, &mut planet, 360.0 * ((p_index + 1) as f32 / planet_count as f32));
+            
+            //for the tree-based ui later
             planets.push(planet.id());
             let moon_count = planet_entry.children.iter().count();
+            
+            //iterate through the moons
             for (m_index, moon_entry) in planet_entry.children.iter().enumerate() {
                 let mut moon = planet.commands().spawn(SpatialBundle::default());
+                
+                //for the tree-based ui later                
                 moons.push(moon.id());
                 apply_body(BodyBundle::from(moon_entry.clone()), Moon, &assets, &mut moon, 360.0 * ((m_index + 1) as f32 / moon_count as f32));
             } 
