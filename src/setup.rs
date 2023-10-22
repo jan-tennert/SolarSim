@@ -9,8 +9,6 @@ use bevy::math::Vec3;
 use bevy::pbr::{PointLight, PointLightBundle};
 use bevy::prelude::{Camera3dBundle, Commands, default, OnEnter, Res, SceneBundle, SpatialBundle, Transform, Handle, Entity, Bundle, Projection, PerspectiveProjection, Startup, GizmoConfig, ResMut, Color, Msaa, Camera, StandardMaterial, Mesh, Assets, Material, Resource, Update, IntoSystemConfigs, in_state, Visibility};
 use bevy::scene::{Scene, SceneInstance};
-use rand::{SeedableRng, Rng};
-use rand::rngs::StdRng;
 
 
 use crate::bodies::Bodies;
