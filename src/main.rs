@@ -62,7 +62,7 @@ fn main() {
         .add_plugins(DefaultPlugins
             .set(RenderPlugin {
                 wgpu_settings: WgpuSettings {
-                    backends: Some(Backends::VULKAN),
+                  //  backends: Some(Backends::VULKAN),
                     ..default()
                 },
             })

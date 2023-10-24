@@ -38,14 +38,14 @@ fn axial_tilt_planets(
             let (u, w) = (transform.translation - p_transform.translation)
                 .normalize()
                 .any_orthonormal_pair();
-            let u_p = Quat::from_axis_angle(w, tilt.num.to_radians()).mul_vec3(u);
+        //    let u_p = Quat::from_axis_angle(w, tilt.num.to_radians()).mul_vec3(u);
             let tilted = Quat::from_axis_angle(Vec3::X, tilt.num.to_radians()) * Vec3::Z;
     //        transform.rotate_axis(u_p, 0.0);
             transform.rotate_x((90.0 as f32).to_radians());
         //    transform.rotate_y(tilt.num.to_radians());
         //    transform.rotate_x(tilt.num.to_radians());
             tilt.applied = true;
-            tilt.axis = Some(u_p);
+            tilt.axis = Some(tilted);
         }
     }
 }
@@ -67,7 +67,7 @@ fn rotate_bodies(
             let rotation_duration = rotation_speed.0 * 60.0;
             let rotations_per_day = DAY_IN_SECONDS / (rotation_duration as f32);
             
-          //  transform.rotate_axis(axis.axis.unwrap(), 2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
+           // transform.rotate_axis(axis.axis.unwrap(), 2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
             transform.rotate_z(2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
             
         }
