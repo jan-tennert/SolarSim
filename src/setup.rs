@@ -1,24 +1,21 @@
 use bevy::app::{App, Plugin};
-use bevy::asset::{AssetServer, LoadState};
-use bevy::core_pipeline::Skybox;
+use bevy::asset::AssetServer;
 use bevy::core_pipeline::bloom::BloomSettings;
-use bevy::core_pipeline::experimental::taa::TemporalAntiAliasPlugin;
+use bevy::core_pipeline::Skybox;
 use bevy::ecs::system::EntityCommands;
 use bevy::hierarchy::BuildChildren;
 use bevy::math::Vec3;
 use bevy::pbr::{PointLight, PointLightBundle};
-use bevy::prelude::{Camera3dBundle, Commands, default, OnEnter, Res, SceneBundle, SpatialBundle, Transform, Handle, Entity, Bundle, Projection, PerspectiveProjection, Startup, GizmoConfig, ResMut, Color, Msaa, Camera, StandardMaterial, Mesh, Assets, Material, Resource, Update, IntoSystemConfigs, in_state, Visibility};
-use bevy::scene::{Scene, SceneInstance};
-use bevy::text::{TextSection, TextStyle, TextAlignment};
-use bevy_mod_billboard::{BillboardLockAxis, BillboardLockAxisBundle, BillboardTextBundle};
-use bevy_mod_billboard::prelude::BillboardPlugin;
+use bevy::prelude::{Assets, Bundle, Camera, Camera3dBundle, Color, Commands, default, Entity, Handle, in_state, IntoSystemConfigs, OnEnter, PerspectiveProjection, Projection, Res, ResMut, Resource, SceneBundle, SpatialBundle, Startup, Transform, Update};
+use bevy::scene::Scene;
+use bevy::text::{TextAlignment, TextSection, TextStyle};
+use bevy_mod_billboard::{BillboardLockAxisBundle, BillboardTextBundle};
 
-
-use crate::SimState;
-use crate::body::{BodyBundle, Star, Planet, Moon, BodyChildren, OrbitSettings};
+use crate::body::{BodyBundle, BodyChildren, Moon, OrbitSettings, Planet, Star};
 use crate::camera::PanOrbitCamera;
 use crate::loading::LoadingState;
 use crate::serialization::SimulationData;
+use crate::SimState;
 use crate::skybox::Cubemap;
 
 pub struct SetupPlugin;
@@ -87,14 +84,14 @@ pub fn setup_planets(
             },
             ..default()
         });
-        apply_body(BodyBundle::from(entry.clone()), Star::default(), &assets, &mut star, 360.0 * ((s_index + 1) as f32 / stars as f32), false);
+        apply_body(BodyBundle::from(entry.clone()), Star::default(), &assets, &mut star, 360.0 * ((s_index + 1) as f32 / stars as f32), true);
         let planet_count = entry.children.iter().count();
         
         //iterate through the planets
         for (p_index, planet_entry) in entry.children.iter().enumerate() {
             let mut planet = star.commands().spawn(SpatialBundle::default());
             let mut moons: Vec<Entity> = vec![];            
-            apply_body(BodyBundle::from(planet_entry.clone()), Planet, &assets, &mut planet, 360.0 * ((p_index + 1) as f32 / planet_count as f32), true);
+            apply_body(BodyBundle::from(planet_entry.clone()), Planet, &assets, &mut planet, 360.0 * ((p_index + 1) as f32 / planet_count as f32), false);
             
             //for the tree-based ui later
             planets.push(planet.id());
@@ -106,7 +103,7 @@ pub fn setup_planets(
                 
                 //for the tree-based ui later                
                 moons.push(moon.id());
-                apply_body(BodyBundle::from(moon_entry.clone()), Moon, &assets, &mut moon, 360.0 * ((m_index + 1) as f32 / moon_count as f32), true);
+                apply_body(BodyBundle::from(moon_entry.clone()), Moon, &assets, &mut moon, 360.0 * ((m_index + 1) as f32 / moon_count as f32), false);
             } 
             planet.insert(BodyChildren(moons));
         }  
@@ -123,7 +120,7 @@ fn apply_body(
     assets: &Res<AssetServer>,
     entity: &mut EntityCommands,
     hue: f32,
-    spawn_billboard: bool,
+    add_billboard: bool,
 ) {
     let asset_handle: Handle<Scene> = assets.load(bundle.model_path.clone().0);
     let color = Color::hsl(hue, 1.0, 0.5);
@@ -133,34 +130,34 @@ fn apply_body(
         color,
        ..default() 
     });
-    entity.insert(SceneBundle {
+    entity.with_children(|parent| {
+        parent.spawn(SceneBundle {
             scene: asset_handle,
             transform: Transform::default(),
             ..Default::default()
-    });
-    if spawn_billboard {
-        entity.with_children(|parent| {
-            parent.spawn(BillboardLockAxisBundle {
-                billboard_bundle: BillboardTextBundle {
-                    transform: Transform::from_translation(Vec3::new(0., 2000., 0.))
-                        .with_scale(Vec3::splat(8.5)),
-                    text: bevy::text::Text::from_sections([
-                        TextSection {
-                            value: bundle.name.to_string(),
-                            style: TextStyle {
-                                font_size: 60.0,
-                                // font: fira_sans_regular_handle.clone(),
-                                color,
-                                ..default()
-                            }
-                        }
-                    ]).with_alignment(TextAlignment::Center),
-                    ..default()
-                },
-                ..default()
-            });
         });
-    }
+    });
+    entity.with_children(|parent| {
+        parent.spawn(BillboardLockAxisBundle {
+            billboard_bundle: BillboardTextBundle {
+                transform: Transform::from_translation(Vec3::new(0., 2000., 0.))
+                    .with_scale(Vec3::splat(8.5)),
+                text: bevy::text::Text::from_sections([
+                    TextSection {
+                        value: bundle.name.to_string(),
+                        style: TextStyle {
+                            font_size: 60.0,
+                            // font: fira_sans_regular_handle.clone(),
+                            color,
+                            ..default()
+                        }
+                    }
+                ]).with_alignment(TextAlignment::Center),
+                ..default()
+            },
+            ..default()
+        });
+    });
 }    
 
 pub fn setup_camera(    

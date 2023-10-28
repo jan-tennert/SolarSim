@@ -1,23 +1,22 @@
-use std::collections::HashMap;
-
 use bevy::{
+    core_pipeline::Skybox,
+    diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     prelude::{
-        App, Camera, Commands, DespawnRecursiveExt, Entity, Input, KeyCode,
-        Mut, Name, Plugin, PointLight, Query, Res, ResMut, Resource, Transform, Vec3, Visibility, With, Without, NextState, Children, IntoSystemConfigs, GizmoConfig, Color, AssetServer,
+        App, Camera, Color, Commands, DespawnRecursiveExt, Entity, GizmoConfig,
+        Input, IntoSystemConfigs, KeyCode, Mut, Name, NextState, Plugin, PointLight, Query, Res, ResMut, Resource, Transform, Vec3, Visibility, With, Without,
     },
-    reflect::Reflect,
-    time::Time,
-    window::PresentMode, render::camera::TemporalJitter, pbr::{ScreenSpaceAmbientOcclusionSettings, ScreenSpaceAmbientOcclusionQualityLevel}, core_pipeline::Skybox, transform::commands, diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
+    reflect::Reflect, time::Time, window::PresentMode,
 };
 use bevy::app::Update;
 use bevy::prelude::{in_state, Window};
-use bevy_egui::{egui::{self, Ui, InnerResponse, Response, ComboBox}, EguiContexts, EguiPlugin};
+use bevy_egui::{egui::{self, InnerResponse, Response, Ui}, EguiContexts, EguiPlugin};
 use bevy_inspector_egui::egui::{RichText, TextEdit};
-use chrono::{Days, NaiveDate, Utc, DateTime, NaiveDateTime};
+use chrono::{Days, NaiveDateTime};
+
 //use crate::fps::Fps;
-use crate::{egui_input_block::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, OrbitSettings, SimPosition, Scale, Diameter}, constants::{DAY_IN_SECONDS, M_TO_UNIT}, selection::SelectedEntity, orbit_lines, skybox::Cubemap, setup::StartingTime, lock_on::LockOn, physics::{apply_physics, SubSteps}};
+use crate::{body::{BodyChildren, Diameter, Mass, Moon, OrbitSettings, Planet, Scale, SimPosition, Star, Velocity}, constants::{DAY_IN_SECONDS, M_TO_UNIT}, egui_input_block::BlockInputPlugin, lock_on::LockOn, physics::{apply_physics, SubSteps}, selection::SelectedEntity, setup::StartingTime, skybox::Cubemap};
 use crate::billboard::BillboardSettings;
-use crate::physics::{Pause, update_position};
+use crate::physics::Pause;
 use crate::SimState;
 use crate::speed::Speed;
 
@@ -303,6 +302,7 @@ fn body_ui(
     mut egui_context: EguiContexts,
     mut commands: Commands,
     mut query: Query<(&Name, Entity, &SimPosition, &Velocity, &Diameter, &mut OrbitSettings, &mut Mass, &Scale, &mut Transform, Option<&BodyChildren>)>,
+    camera: Query<(&Camera, &Transform, Without<Velocity>)>,
     selected_entity: Res<SelectedEntity>,   
     ui_state: Res<UiState>
 ) {
@@ -388,6 +388,12 @@ fn body_ui(
                     };
                     ui.label(RichText::new("Orbital Velocity").size(16.0).underline());
                     ui.label(format!("{:.3} km/s", actual_velocity));
+
+                    ui.label(RichText::new("Distance to Camera").size(16.0).underline());
+                    let (_, camera_pos, _) = camera.single();
+                    let c_distance_in_au = camera_pos.translation.distance(transform.translation);
+                    ui.label(format!("{:.3} au", c_distance_in_au / 10000.0));
+
                     // Distance to parent
                     if let Some((parent_pos, _, p_name)) = parent {
                         ui.label(RichText::new(format!("Distance to {}", p_name)).size(16.0).underline());

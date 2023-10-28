@@ -1,6 +1,6 @@
-use bevy::{app::{App, Plugin}, prelude::{Query, Transform, Res, Entity, PreUpdate, Local, GizmoConfig, ResMut, AabbGizmo, GlobalTransform, PostUpdate, Update, With, Handle, Mesh, Vec3, Name, Children, in_state, IntoSystemConfigs, Visibility}, render::primitives::{Aabb, Sphere}, math::Vec3A, scene::{SceneSpawner, SceneInstance}};
+use bevy::{app::{App, Plugin}, math::Vec3A, prelude::{Children, GlobalTransform, Handle, in_state, IntoSystemConfigs, Mesh, Query, Res, ResMut, Transform, Update, Vec3, With}, render::primitives::{Aabb, Sphere}, scene::{SceneInstance, SceneSpawner}};
 
-use crate::{body::{Diameter, Scale}, SimState, constants::M_TO_UNIT, loading::LoadingState};
+use crate::{body::{Diameter, Scale}, constants::M_TO_UNIT, loading::LoadingState, SimState};
 
 pub struct DiameterPlugin;
 
@@ -14,7 +14,8 @@ impl Plugin for DiameterPlugin {
 }
 
 fn apply_real_diameter(
-    mut bodies: Query<(&SceneInstance, &mut Diameter, &mut Transform, &mut Scale)>,
+    mut bodies: Query<(&Children, &mut Diameter, &mut Transform, &mut Scale)>,
+    scenes: Query<&SceneInstance>,
     meshes: Query<(&GlobalTransform, Option<&Aabb>), With<Handle<Mesh>>>,
     spawner: Res<SceneSpawner>,
     mut loading_state: ResMut<LoadingState>
@@ -24,21 +25,25 @@ fn apply_real_diameter(
     }) {
         loading_state.scaled_bodies = true;
     }
-    for (instance, mut diameter, mut transform, mut scale) in &mut bodies {
+    for (children, mut diameter, mut transform, mut scale) in &mut bodies {
         if diameter.applied {
             continue;
         }
-        let m = meshes.iter_many(spawner.iter_instance_entities(**instance));
-        for (g_transform, maybe_abb) in m {
-            if let Some(aabb) = maybe_abb {
-                let sphere = Sphere {
-                center: Vec3A::from(g_transform.transform_point(Vec3::from(aabb.center))),
-                    radius: g_transform.radius_vec3a(aabb.half_extents),
-                };
-                let aabb = Aabb::from(sphere);
-                transform.scale = Vec3::splat((diameter.num * M_TO_UNIT) as f32) / (Vec3::from(aabb.half_extents));
-                scale.0 = transform.scale.x;
-                diameter.applied = true;
+        for children in children {
+            if let Ok(scene) = scenes.get(*children) {
+                let m = meshes.iter_many(spawner.iter_instance_entities(**scene));
+                for (g_transform, maybe_abb) in m {
+                    if let Some(aabb) = maybe_abb {
+                        let sphere = Sphere {
+                            center: Vec3A::from(g_transform.transform_point(Vec3::from(aabb.center))),
+                            radius: g_transform.radius_vec3a(aabb.half_extents),
+                        };
+                        let aabb = Aabb::from(sphere);
+                        transform.scale = Vec3::splat((diameter.num * M_TO_UNIT) as f32) / (Vec3::from(aabb.half_extents));
+                        scale.0 = transform.scale.x;
+                        diameter.applied = true;
+                    }
+                }
             }
         }
     }
