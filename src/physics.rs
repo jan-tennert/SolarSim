@@ -1,11 +1,12 @@
 use bevy::app::{App, Plugin, Update};
-use bevy::math::{Vec3, I64Vec3, Vec3A, DVec3};
-use bevy::prelude::{in_state, IntoSystemConfigs, Mut, Query, Res, Resource, Time, Transform, Entity, GlobalTransform, BVec3, Gizmos, Color, ResMut};
-use crate::body::{Acceleration, Mass, SimPosition, Velocity, OrbitSettings};
-use crate::constants::{G, M_TO_UNIT, DEFAULT_SUB_STEPS};
-use crate::SimState;
-use crate::orbit_lines::{OrbitOffset, draw_lines};
+use bevy::math::{DVec3, Vec3};
+use bevy::prelude::{Entity, in_state, IntoSystemConfigs, Mut, Query, Res, ResMut, Resource, Time, Transform};
+
+use crate::body::{Acceleration, Mass, OrbitSettings, SimPosition, Velocity};
+use crate::constants::{DEFAULT_SUB_STEPS, G, M_TO_UNIT};
+use crate::orbit_lines::OrbitOffset;
 use crate::selection::SelectedEntity;
+use crate::SimState;
 use crate::speed::Speed;
 
 pub struct PhysicsPlugin;

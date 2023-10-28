@@ -1,6 +1,6 @@
-use bevy::prelude::{SystemSet, App, Plugin, OnExit, Entity, Name, With, ResMut, Commands, Query, NextState, Update, IntoSystemConfigs, in_state, OnEnter, Camera, Without, DespawnRecursiveExt, Vec3};
+use bevy::prelude::{App, Camera, Commands, DespawnRecursiveExt, Entity, NextState, OnEnter, OnExit, Plugin, Query, ResMut, Vec3, With, Without};
 
-use crate::{SimState, speed::Speed, ui::SimTime, body::Mass, physics::{Pause, SubSteps}, selection::SelectedEntity, constants::{HOUR_IN_SECONDS, DEFAULT_SUB_STEPS, DEFAULT_TIMESTEP}, setup::BodiesHandle, loading::LoadingState, camera::{PanOrbitCamera, DEFAULT_CAM_RADIUS}};
+use crate::{body::Mass, camera::{DEFAULT_CAM_RADIUS, PanOrbitCamera}, constants::{DEFAULT_SUB_STEPS, DEFAULT_TIMESTEP}, loading::LoadingState, physics::{Pause, SubSteps}, selection::SelectedEntity, setup::BodiesHandle, SimState, speed::Speed, ui::SimTime};
 
 pub struct ResetPlugin;
 

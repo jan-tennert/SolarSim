@@ -1,6 +1,6 @@
-use bevy::{app::{App, Plugin}, prelude::{Query, Transform, Res, Entity, PreUpdate, Local, GizmoConfig, ResMut, AabbGizmo, GlobalTransform, PostUpdate, Update, With, Handle, Mesh, Vec3, Name, Children, in_state, IntoSystemConfigs, Visibility, Resource, NextState, Commands, NodeBundle, default, Color, OnEnter, BuildChildren, TextBundle, Label, OnExit}, render::primitives::{Aabb, Sphere}, math::Vec3A, scene::{SceneSpawner, SceneInstance}, ui::{Style, Val, JustifyContent, UiRect, AlignItems, Node}, text::TextStyle};
+use bevy::{app::{App, Plugin}, prelude::{BuildChildren, Color, Commands, default, Entity, in_state, IntoSystemConfigs, Label, NextState, NodeBundle, OnEnter, OnExit, Query, ResMut, Resource, TextBundle, Update}, text::TextStyle, ui::{AlignItems, JustifyContent, Node, Style, UiRect, Val}};
 
-use crate::{SimState, body::Mass};
+use crate::SimState;
 
 pub struct LoadingPlugin;
 

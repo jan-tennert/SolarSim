@@ -1,7 +1,7 @@
-use bevy::{prelude::{ResMut, Res, Resource, Input, KeyCode, MouseButton, Plugin}, input::InputSystem};
+use bevy::{input::InputSystem, prelude::{Input, KeyCode, MouseButton, Plugin, Res, ResMut, Resource}};
 use bevy::app::{PostUpdate, PreUpdate};
 use bevy::prelude::IntoSystemConfigs;
-use bevy_egui::{EguiContext, EguiContexts, EguiSet, EguiStartupSet};
+use bevy_egui::{EguiContexts, EguiSet};
 
 //Block input when hovering over egui interfaces
 

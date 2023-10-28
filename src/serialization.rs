@@ -1,7 +1,7 @@
 use bevy::{
     asset::{AssetLoader, LoadContext, LoadedAsset},
-    reflect::{TypePath, TypeUuid},
-    utils::BoxedFuture, prelude::{Vec3, AddAsset, Plugin}, math::DVec3,
+    math::DVec3,
+    prelude::{AddAsset, Plugin}, reflect::{TypePath, TypeUuid}, utils::BoxedFuture,
 };
 use serde::Deserialize;
 

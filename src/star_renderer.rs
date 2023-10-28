@@ -1,7 +1,8 @@
 use bevy::app::{App, Plugin, Update};
-use bevy::prelude::{in_state, Query, Transform, Resource, Entity, With, ResMut, IntoSystemConfigs, Camera, Without, Visibility};
+use bevy::prelude::{Camera, in_state, IntoSystemConfigs, Query, Transform, Visibility, With, Without};
+
+use crate::body::Star;
 use crate::SimState;
-use crate::body::{Mass, Star};
 
 pub struct StarRendererPlugin;
 

@@ -1,8 +1,6 @@
-use std::{f32::consts::PI};
+use bevy::prelude::{App, Camera, Entity, in_state, IntoSystemConfigs, Plugin, Query, Res, Resource, Transform, Update, Vec3, Without};
 
-use bevy::prelude::{App, Entity, Plugin, Resource, Res, Update, IntoSystemConfigs, in_state, Transform, Query, Camera, Vec3, Without, ResMut};
-
-use crate::{selection::{SelectedEntity, apply_camera_to_selection}, SimState, body::{BodyChildren, Mass}, physics::{update_position, apply_physics}, camera::{pan_orbit_camera, PanOrbitCamera}};
+use crate::{body::{BodyChildren, Mass}, camera::pan_orbit_camera, selection::SelectedEntity, SimState};
 
 pub struct LockOnPlugin;
 

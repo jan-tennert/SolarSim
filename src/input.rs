@@ -1,6 +1,6 @@
-use bevy::{prelude::{Res, SystemSet, App, Plugin, OnExit, Entity, Name, With, ResMut, Commands, Query, NextState, Update, IntoSystemConfigs, in_state, OnEnter, Camera, Without, DespawnRecursiveExt, Input, KeyCode, Vec3}, window::{Window, WindowMode}};
+use bevy::{prelude::{App, in_state, Input, IntoSystemConfigs, KeyCode, Plugin, Query, Res, ResMut, Update, Vec3}, window::{Window, WindowMode}};
 
-use crate::{ui::UiState, SimState, camera::PanOrbitCamera};
+use crate::{camera::PanOrbitCamera, SimState, ui::UiState};
 
 pub struct InputPlugin;
 

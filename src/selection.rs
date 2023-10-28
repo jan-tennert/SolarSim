@@ -1,7 +1,8 @@
 use bevy::app::{App, Plugin, Update};
-use bevy::prelude::{in_state, Query, Transform, Resource, Entity, With, ResMut, IntoSystemConfigs};
-use crate::SimState;
+use bevy::prelude::{Entity, in_state, IntoSystemConfigs, Query, ResMut, Resource, Transform, With};
+
 use crate::body::{Mass, Star};
+use crate::SimState;
 
 pub struct SelectionPlugin;
 

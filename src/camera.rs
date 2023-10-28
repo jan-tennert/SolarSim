@@ -1,14 +1,14 @@
 use bevy::{
     input::mouse::{MouseMotion, MouseWheel},
     prelude::{
-        Component, EventReader, Input, Mat3, MouseButton, Projection, Quat, Query, Res, Transform,
-        Vec2, Vec3, App,
-        Plugin,  SystemSet, Resource, ResMut, Update, IntoSystemConfigs, in_state
+        App, Component, EventReader, in_state, Input, IntoSystemConfigs, Mat3, MouseButton, Plugin, Projection,
+        Quat, Query, Res,
+        ResMut, Transform, Update, Vec2, Vec3
     },
-    window::{ Window}, reflect::Reflect,
+    reflect::Reflect, window::Window,
 };
 
-use crate::{SimState, physics::apply_physics, lock_on::LockOn};
+use crate::{lock_on::LockOn, physics::apply_physics, SimState};
 
 pub const DEFAULT_CAM_RADIUS: f32 = 150.0;
 

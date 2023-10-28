@@ -1,13 +1,13 @@
-use bevy::core_pipeline::Skybox;
-use bevy::prelude::Plugin;
 use bevy::{
     asset::LoadState,
     prelude::*,
     render::
         render_resource::{
-            TextureViewDescriptor, TextureViewDimension,
+        TextureViewDescriptor, TextureViewDimension,
         },
 };
+use bevy::core_pipeline::Skybox;
+use bevy::prelude::Plugin;
 
 pub struct SkyboxPlugin;
 

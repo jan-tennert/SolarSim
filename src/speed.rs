@@ -1,7 +1,7 @@
 use bevy::app::{App, Plugin};
 use bevy::prelude::Resource;
 
-use crate::constants::{DAY_IN_SECONDS, DEFAULT_TIMESTEP};
+use crate::constants::DEFAULT_TIMESTEP;
 
 pub struct SpeedPlugin;
 

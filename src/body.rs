@@ -1,6 +1,6 @@
 use bevy::core::Name;
-use bevy::math::{Vec3, DVec3};
-use bevy::prelude::{Bundle, Component, Reflect, Transform, Entity, Color, Quat, default, Visibility};
+use bevy::math::{DVec3, Vec3};
+use bevy::prelude::{Bundle, Color, Component, default, Entity, Reflect, Transform};
 
 use crate::serialization::SerializedBody;
 

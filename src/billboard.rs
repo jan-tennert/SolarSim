@@ -40,7 +40,7 @@ fn auto_scale_billboards(
     moons: Query<(&Children, &Transform, With<Moon>, Without<Planet>, Without<Text>)>,
     stars: Query<(&Children, &Transform, With<Star>, Without<Text>)>,
     mut billboards: Query<(&Text, &mut Transform, &mut Visibility, With<BillboardTextBounds>)>,
-    camera: Query<(&PanOrbitCamera)>,
+    camera: Query<&PanOrbitCamera>,
     settings: Res<BillboardSettings>
 ) {
     if !settings.show {
