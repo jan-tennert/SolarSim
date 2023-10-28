@@ -25,6 +25,7 @@ bevy_egui = "0.22"
 chrono = "0.4.23"
 serde_json = "1.0.107"
 serde = { version = "1.0.189", features = ["derive"] }
+bevy_mod_billboard = "0.4.1"
 
 [patch.crates-io]
 bevy = { git = "https://github.com/jan-tennert/bevy", branch = "skybox-fix" }

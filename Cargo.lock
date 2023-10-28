@@ -10,6 +10,7 @@ dependencies = [
  "bevy-inspector-egui",
  "bevy_easings",
  "bevy_egui",
+ "bevy_mod_billboard",
  "chrono",
  "serde",
  "serde_json",
@@ -787,6 +788,16 @@ version = "0.11.3"
 source = "git+https://github.com/jan-tennert/bevy?branch=skybox-fix#7603b1895214ccc4a8fc84de5b976761e95f9dce"
 dependencies = [
  "glam",
+]
+
+[[package]]
+name = "bevy_mod_billboard"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1461d2d757cb3ee6a8f6f5cf5589b7bf00752e2f03d633598b297b5e87f4e65b"
+dependencies = [
+ "bevy",
+ "bitflags 2.4.0",
 ]
 
 [[package]]

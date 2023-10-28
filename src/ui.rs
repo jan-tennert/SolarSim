@@ -16,6 +16,7 @@ use bevy_inspector_egui::egui::{RichText, TextEdit};
 use chrono::{Days, NaiveDate, Utc, DateTime, NaiveDateTime};
 //use crate::fps::Fps;
 use crate::{egui_input_block::BlockInputPlugin, body::{Mass, Velocity, Star, Moon, Planet, BodyChildren, OrbitSettings, SimPosition, Scale, Diameter}, constants::{DAY_IN_SECONDS, M_TO_UNIT}, selection::SelectedEntity, orbit_lines, skybox::Cubemap, setup::StartingTime, lock_on::LockOn, physics::{apply_physics, SubSteps}};
+use crate::billboard::BillboardSettings;
 use crate::physics::{Pause, update_position};
 use crate::SimState;
 use crate::speed::Speed;
@@ -197,6 +198,7 @@ pub fn system_ui(
     mut camera: Query<(Entity, &mut Camera, Option<&Skybox>)>,    
     mut commands: Commands,
     mut cubemap: ResMut<Cubemap>,
+    mut billboard: ResMut<BillboardSettings>,
     ui_state: Res<UiState>
 ) {
     if !ui_state.visible {
@@ -258,6 +260,7 @@ pub fn system_ui(
                     }
                     
                     ui.checkbox(&mut config.aabb.draw_all, "Draw Outlines");
+                    ui.checkbox(&mut billboard.show, "Show Body Names");
                     ui.add_space(5.0);
                     ui.label("F10 - Hide Ui");
                     ui.label("F11 - Toggle Fullscreen");

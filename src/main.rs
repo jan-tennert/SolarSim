@@ -19,6 +19,7 @@ mod input;
 mod camera;
 mod loading;
 mod star_renderer;
+mod billboard;
 
 use bevy::app::{App, PluginGroup, AppLabel};
 use bevy::DefaultPlugins;
@@ -28,6 +29,7 @@ use bevy::render::RenderPlugin;
 use bevy::render::settings::{Backends, WgpuSettings};
 use bevy::window::{WindowPlugin, Window, PresentMode};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_mod_billboard::plugin::BillboardPlugin;
 use camera::PanOrbitCameraPlugin;
 use diameter::DiameterPlugin;
 use input::InputPlugin;
@@ -41,6 +43,7 @@ use skybox::SkyboxPlugin;
 use speed::SpeedPlugin;
 use star_renderer::StarRendererPlugin;
 use ui::UIPlugin;
+use crate::billboard::BodyBillboardPlugin;
 use crate::menu::MenuPlugin;
 use crate::physics::PhysicsPlugin;
 use crate::selection::SelectionPlugin;
@@ -62,7 +65,7 @@ fn main() {
         .add_plugins(DefaultPlugins
             .set(RenderPlugin {
                 wgpu_settings: WgpuSettings {
-                  //  backends: Some(Backends::VULKAN),
+                    backends: Some(Backends::VULKAN),
                     ..default()
                 },
             })
@@ -80,7 +83,9 @@ fn main() {
         .add_plugins(LockOnPlugin)
         .add_plugins(SerializationPlugin)
         .add_plugins(LoadingPlugin)
-   //     .add_plugins(PanOrbitCameraPlugin)
+        .add_plugins(BodyBillboardPlugin)
+        .add_plugins(BillboardPlugin)
+        //     .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(SetupPlugin)
         .add_plugins(PhysicsPlugin)
