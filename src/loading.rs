@@ -19,7 +19,7 @@ pub struct LoadingState {
     
     pub loaded_bodies: bool,
     pub scaled_bodies: bool
-             
+
 }
 
 impl LoadingState {
@@ -30,7 +30,7 @@ impl LoadingState {
     }
     
     pub fn is_done(&self) -> bool {
-        return self.loaded_bodies && self.scaled_bodies
+        return self.loaded_bodies && self.scaled_bodies;
     }
     
 }

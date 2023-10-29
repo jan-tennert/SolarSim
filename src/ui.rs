@@ -9,7 +9,7 @@ use bevy::{
 };
 use bevy::app::Update;
 use bevy::prelude::{in_state, Window};
-use bevy_egui::{egui::{self, InnerResponse, Response, Ui}, EguiContexts, EguiPlugin};
+use bevy_egui::{egui::{self, InnerResponse, Response, Ui}, EguiContexts};
 use bevy_inspector_egui::egui::{RichText, TextEdit};
 use chrono::{Days, NaiveDateTime};
 
@@ -44,7 +44,7 @@ pub struct UIPlugin;
 impl Plugin for UIPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_plugins(EguiPlugin)
+       //     .add_plugins(EguiPlugin)
             .init_resource::<UiState>()
             .register_type::<SimTime>()
             .init_resource::<SimTime>()
@@ -210,35 +210,35 @@ pub fn system_ui(
                 .show(egui_context.ctx_mut(), |ui| {
                     ui.heading("Bodies");
                     for (s_name, s_children, s_entity,  _, _, _, _) in &mut star_query {
-                        let s_old_selected = selected_entity.0 == Some(s_entity);
+                        let s_old_selected = selected_entity.entity == Some(s_entity);
                         let mut s_selected = s_old_selected;
                         body_tree(ui, &mut s_selected, s_name, true, |ui| {
                             for planet_child in &s_children.0 {
                                 if let Ok((p_name, p_children, p_entity, _, _, _, _)) = planet_query.get_mut(*planet_child) {
-                                    let p_old_selected = selected_entity.0 == Some(p_entity);
+                                    let p_old_selected = selected_entity.entity == Some(p_entity);
                                     let mut p_selected = p_old_selected;
                                     body_tree(ui, &mut p_selected, p_name, false, |ui| {
                                         for moon_child in &p_children.0 {
                                             if let Ok((m_name, m_entity,  _, _, _, _)) = moon_query.get_mut(*moon_child) {
-                                                let m_old_selected = selected_entity.0 == Some(m_entity);
+                                                let m_old_selected = selected_entity.entity == Some(m_entity);
                                                 let mut m_selected = m_old_selected;
                                                 ui.horizontal(|ui| {
                                                     ui.toggle_value(&mut m_selected, m_name.as_str());
                                                 });
                                                 if m_selected && !m_old_selected {
-                                                    selected_entity.0 = Some(m_entity);
+                                                    selected_entity.change_entity(m_entity)
                                                 }
                                             }
                                         }          
                                     });
                                     if p_selected && !p_old_selected {
-                                        selected_entity.0 = Some(p_entity);
+                                        selected_entity.change_entity(p_entity)
                                     }
                                 }
                             } 
                         });
                         if s_selected && !s_old_selected {
-                            selected_entity.0 = Some(s_entity);
+                            selected_entity.change_entity(s_entity)
                         }
                     }
                     ui.heading("Options");
@@ -309,7 +309,7 @@ fn body_ui(
     if !ui_state.visible {
         return;
     }
-    if let Some(entity) = selected_entity.0 {
+    if let Some(entity) = selected_entity.entity {
         let mut parent: Option<(&SimPosition, &Velocity, &Name)> = None;
         let mut selected: Option<(&Name, Entity, &SimPosition, &Velocity, &Diameter, Mut<OrbitSettings>, Mut<Transform>, Mut<Mass>, &Scale)> = None;
         for (name, b_entity, pos, velocity, diameter, orbit, mass, scale, transform, children) in query.iter_mut() {

@@ -5,18 +5,21 @@ use bevy::core_pipeline::Skybox;
 use bevy::ecs::system::EntityCommands;
 use bevy::hierarchy::BuildChildren;
 use bevy::math::Vec3;
-use bevy::pbr::{PointLight, PointLightBundle};
-use bevy::prelude::{Assets, Bundle, Camera, Camera3dBundle, Color, Commands, default, Entity, Handle, in_state, IntoSystemConfigs, OnEnter, PerspectiveProjection, Projection, Res, ResMut, Resource, SceneBundle, SpatialBundle, Startup, Transform, Update};
+use bevy::pbr::{PbrBundle, PointLight, PointLightBundle};
+use bevy::prelude::{Assets, Bundle, Camera, Camera3dBundle, Color, Commands, default, Entity, Handle, in_state, IntoSystemConfigs, Mesh, OnEnter, PerspectiveProjection, Projection, Res, ResMut, Resource, SceneBundle, shape, SpatialBundle, StandardMaterial, Startup, Transform, Update, Visibility};
 use bevy::scene::Scene;
 use bevy::text::{TextAlignment, TextSection, TextStyle};
 use bevy_mod_billboard::{BillboardLockAxisBundle, BillboardTextBundle};
 
 use crate::body::{BodyBundle, BodyChildren, Moon, OrbitSettings, Planet, Star};
 use crate::camera::PanOrbitCamera;
+use crate::constants::M_TO_UNIT;
 use crate::loading::LoadingState;
+use crate::selection::SelectedEntity;
 use crate::serialization::SimulationData;
 use crate::SimState;
 use crate::skybox::Cubemap;
+use crate::star_renderer::StarBillboard;
 
 pub struct SetupPlugin;
 
@@ -56,7 +59,10 @@ pub fn setup_planets(
     mut bodies_handle: ResMut<BodiesHandle>,
     bodies_asset: ResMut<Assets<SimulationData>>,
     mut starting_time: ResMut<StartingTime>,
-    mut loading_state: ResMut<LoadingState>
+    mut loading_state: ResMut<LoadingState>,
+    mut selected_entity: ResMut<SelectedEntity>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     if bodies_handle.spawned {
         return;
@@ -72,6 +78,9 @@ pub fn setup_planets(
     //iterate through the stars
     for (s_index, entry) in data.bodies.iter().enumerate() {
         let mut star = commands.spawn(SpatialBundle::default());
+        if selected_entity.entity.is_none() {
+            selected_entity.change_entity(star.id());
+        }
         let mut planets: Vec<Entity> = vec![];
         star.insert(PointLightBundle {
             point_light: PointLight {
@@ -84,14 +93,14 @@ pub fn setup_planets(
             },
             ..default()
         });
-        apply_body(BodyBundle::from(entry.clone()), Star::default(), &assets, &mut star, 360.0 * ((s_index + 1) as f32 / stars as f32), true);
+        apply_body(BodyBundle::from(entry.clone()), Star::default(), &assets, &mut star, &mut meshes, &mut materials,360.0 * ((s_index + 1) as f32 / stars as f32), true);
         let planet_count = entry.children.iter().count();
         
         //iterate through the planets
         for (p_index, planet_entry) in entry.children.iter().enumerate() {
             let mut planet = star.commands().spawn(SpatialBundle::default());
             let mut moons: Vec<Entity> = vec![];            
-            apply_body(BodyBundle::from(planet_entry.clone()), Planet, &assets, &mut planet, 360.0 * ((p_index + 1) as f32 / planet_count as f32), false);
+            apply_body(BodyBundle::from(planet_entry.clone()), Planet, &assets, &mut planet, &mut meshes, &mut materials,360.0 * ((p_index + 1) as f32 / planet_count as f32), false);
             
             //for the tree-based ui later
             planets.push(planet.id());
@@ -103,7 +112,7 @@ pub fn setup_planets(
                 
                 //for the tree-based ui later                
                 moons.push(moon.id());
-                apply_body(BodyBundle::from(moon_entry.clone()), Moon, &assets, &mut moon, 360.0 * ((m_index + 1) as f32 / moon_count as f32), false);
+                apply_body(BodyBundle::from(moon_entry.clone()), Moon, &assets, &mut moon, &mut meshes, &mut materials, 360.0 * ((m_index + 1) as f32 / moon_count as f32), false);
             } 
             planet.insert(BodyChildren(moons));
         }  
@@ -119,6 +128,8 @@ fn apply_body(
     body_type: impl Bundle,
     assets: &Res<AssetServer>,
     entity: &mut EntityCommands,
+    meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<StandardMaterial>>,
     hue: f32,
     add_billboard: bool,
 ) {
@@ -157,6 +168,17 @@ fn apply_body(
             },
             ..default()
         });
+
+        if add_billboard {
+            parent.spawn(PbrBundle {
+                mesh: meshes.add(shape::Circle::new(((bundle.diameter.num * M_TO_UNIT) as f32) * 3.0).into()),
+                material: materials.add(Color::rgb(100.0, 100.0, 0.0).into()),
+        //        transform: Transform::from_scale(Vec3::splat(((bundle.diameter.num * M_TO_UNIT)) as f32)),
+                visibility: Visibility::Visible,
+                ..default()
+            })
+                .insert(StarBillboard);
+        }
     });
 }    
 

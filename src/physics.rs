@@ -119,7 +119,7 @@ pub fn update_position(
     orbit_offset: &mut ResMut<OrbitOffset>,
 ) {
     // Calculate the offset based on the selected entity's position
-    let offset = match selected_entity.0 {
+    let offset = match selected_entity.entity {
         Some(selected) => {
             if let Ok((_, _, _, vel, mut sim_pos, mut transform)) = query.get_mut(selected) {
                 sim_pos.0 += vel.0 * delta_time * speed.0; //this is the same step as below, but we are doing this first for the offset
@@ -133,7 +133,7 @@ pub fn update_position(
         None => DVec3::ZERO,
     };
     for (entity, _, _, vel, mut sim_pos, mut transform) in query.iter_mut() {
-        if let Some(s_entity) = selected_entity.0 {
+        if let Some(s_entity) = selected_entity.entity {
             if s_entity == entity {
                 continue;
             }

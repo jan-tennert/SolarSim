@@ -30,7 +30,7 @@ fn lock_on(
     if !lock_on.enabled {
         return;
     }
-    if let Some(s_entity) = selected_entity.0 {
+    if let Some(s_entity) = selected_entity.entity {
         let mut parent: Option<&Transform> = None;
         for (_, transform, children, _) in query.iter_mut() {
             if let Some(children) = children {

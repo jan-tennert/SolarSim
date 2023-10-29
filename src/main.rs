@@ -7,6 +7,7 @@ use bevy::prelude::{default, States};
 use bevy::render::RenderPlugin;
 use bevy::render::settings::WgpuSettings;
 use bevy::window::{PresentMode, Window, WindowPlugin};
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_billboard::plugin::BillboardPlugin;
 
 use camera::PanOrbitCameraPlugin;
@@ -80,7 +81,7 @@ fn main() {
                 ..default()
             })
         ) 
-   //     .add_plugins(WorldInspectorPlugin::new())
+        .add_plugins(WorldInspectorPlugin::new())
   //      .add_plugins(DefaultPickingPlugins)
         .add_plugins(LockOnPlugin)
         .add_plugins(SerializationPlugin)

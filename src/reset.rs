@@ -33,7 +33,7 @@ fn clean_up(
     speed.0 = DEFAULT_TIMESTEP;
     pause.0 = false;
     sim_time.0 = 0.0;
-    selected_entity.0 = None;
+    selected_entity.entity = None;
     sub_steps.0 = DEFAULT_SUB_STEPS;
     bodies.spawned = false;
     loading_state.reset();
