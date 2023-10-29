@@ -8,7 +8,7 @@ use crate::camera::PanOrbitCamera;
 use crate::SimState;
 
 const STAR_IMPOSTER_THRESHOLD: f32 = 4_000.0;
-const STAR_IMPOSTER_DIVIDER: f32 = 10000.0;
+pub const STAR_IMPOSTER_DIVIDER: f32 = 10000.0;
 
 pub struct StarRendererPlugin;
 
@@ -55,6 +55,6 @@ fn change_sun_renderer(
         let (transform, _, _, _, _) = stars.get(**parent).unwrap();
         let distance = c_transform.translation.distance(transform.translation);
         b_transform.look_at(-c_transform.translation, Vec3::Y);
-        b_transform.scale = Vec3::splat(distance / STAR_IMPOSTER_THRESHOLD);
+        b_transform.scale = Vec3::splat(distance / STAR_IMPOSTER_DIVIDER);
     }
 }

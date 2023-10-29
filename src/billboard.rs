@@ -40,7 +40,7 @@ fn auto_scale_billboards(
     moons: Query<(&Children, &Transform, With<Moon>, Without<Planet>, Without<Text>)>,
     stars: Query<(&Children, &Transform, With<Star>, Without<Text>)>,
     mut billboards: Query<(&Text, &mut Transform, &mut Visibility, With<BillboardTextBounds>)>,
-    camera: Query<&PanOrbitCamera>,
+    camera: Query<(&PanOrbitCamera, &Transform, Without<BillboardTextBounds>, Without<Planet>, Without<Moon>, Without<Star>)>,
     settings: Res<BillboardSettings>
 ) {
     if !settings.show {
@@ -49,7 +49,7 @@ fn auto_scale_billboards(
         }
         return;
     }
-    let cam = camera.single();
+    let (cam, c_transform, _, _, _, _) = camera.single();
     let radius = cam.radius;
     for (children, p_transform, _, _, _) in planets.iter() {
         for child in children.iter() {
@@ -68,8 +68,8 @@ fn auto_scale_billboards(
         for child in children.iter() {
             if let Ok((_, mut transform, mut visible, _)) = billboards.get_mut(*child) {
                 if radius < PLANET_VISIBILITY_THRESHOLD && radius > MOON_VISIBILITY_THRESHOLD {
-                    *visible = Visibility::Visible;
                     transform.scale = p_transform.scale.recip() * (radius / RADIUS_DIVIDER);
+                    *visible = Visibility::Visible;
                 } else {
                     *visible = Visibility::Hidden;
                 }
@@ -81,6 +81,8 @@ fn auto_scale_billboards(
         for child in children.iter() {
             if let Ok((_, mut transform, mut visible, _)) = billboards.get_mut(*child) {
                 if radius > STAR_VISIBILITY_THRESHOLD {
+                    let distance_to_cam = c_transform.translation.distance(p_transform.translation);
+               //     let offset = distance_to_cam / STAR_IMPOSTER_DIVIDER
                     *visible = Visibility::Visible;
                     transform.scale = p_transform.scale.recip() * (radius / RADIUS_DIVIDER);
                 } else {
