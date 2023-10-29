@@ -12,7 +12,7 @@ use crate::star_renderer::STAR_IMPOSTER_DIVIDER;
 const STAR_VISIBILITY_THRESHOLD: f32 = 40_000_000.0; //if the camera's radius is less than this, stars' names will be hidden
 const PLANET_VISIBILITY_THRESHOLD: f32 = 1000.0; //if the camera's radius is less than this, planets' names will be hidden
 const MOON_VISIBILITY_THRESHOLD: f32 = 10.0; //if the camera's radius is less than this, moons' names will be hidden
-const RADIUS_DIVIDER: f32 = 3200.0;
+const RADIUS_DIVIDER: f32 = 3700.0;
 const TRANSLATION_MULTIPLIER: f32 = 2000.0;
 
 pub struct BodyBillboardPlugin;
@@ -55,42 +55,56 @@ fn auto_scale_billboards(
     let (cam, c_transform, _, _, _, _) = camera.single();
     let radius = cam.radius;
     for (children, p_transform, _, _, _) in planets.iter() {
-        for child in children.iter() {
-            if let Ok((_, mut transform, mut visible, _)) = billboards.get_mut(*child) {
-                if radius > PLANET_VISIBILITY_THRESHOLD && radius < STAR_VISIBILITY_THRESHOLD {
-                    apply_billboard(*c_transform, radius, *p_transform, &mut transform, 1.0);
-                    *visible = Visibility::Visible;
-                } else {
-                    *visible = Visibility::Hidden;
-                }
-            }
-        }
+        billboard(
+            &mut billboards,
+            c_transform,
+            p_transform,
+            radius,
+            children,
+            radius > PLANET_VISIBILITY_THRESHOLD && radius < STAR_VISIBILITY_THRESHOLD
+        )
     }
 
     for (children, p_transform, _, _, _) in moons.iter() {
-        for child in children.iter() {
-            if let Ok((_, mut transform, mut visible, _)) = billboards.get_mut(*child) {
-                if radius < PLANET_VISIBILITY_THRESHOLD && radius > MOON_VISIBILITY_THRESHOLD {
-                    apply_billboard(*c_transform, radius, *p_transform, &mut transform, 1.0);
-                    *visible = Visibility::Visible;
-                } else {
-                    *visible = Visibility::Hidden;
-                }
-            }
-        }
+        billboard(
+            &mut billboards,
+            c_transform,
+            p_transform,
+            radius,
+            children,
+            radius < PLANET_VISIBILITY_THRESHOLD && radius > MOON_VISIBILITY_THRESHOLD
+        )
     }
 
     for (children, p_transform, _, _) in stars.iter() {
-        for child in children.iter() {
-            if let Ok((_, mut transform, mut visible, _)) = billboards.get_mut(*child) {
-                if radius > STAR_VISIBILITY_THRESHOLD {
-                    let distance_to_cam = c_transform.translation.distance(p_transform.translation);
-                    let offset = distance_to_cam / STAR_IMPOSTER_DIVIDER;
-                    apply_billboard(*c_transform, radius, *p_transform, &mut transform, offset);
-                    *visible = Visibility::Visible;
-                } else {
-                    *visible = Visibility::Hidden;
-                }
+        billboard(
+            &mut billboards,
+            c_transform,
+            p_transform,
+            radius,
+            children,
+            radius > STAR_VISIBILITY_THRESHOLD
+        )
+    }
+}
+
+fn billboard(
+    billboards: &mut Query<(&Text, &mut Transform, &mut Visibility, With<BillboardTextBounds>)>,
+    c_transform: &Transform,
+    p_transform: &Transform,
+    radius: f32,
+    children: &Children,
+    predicate: bool
+) {
+    for child in children.iter() {
+        if let Ok((_, mut transform, mut visible, _)) = billboards.get_mut(*child) {
+            if predicate {
+                let distance_to_cam = c_transform.translation.distance(p_transform.translation);
+                let offset = distance_to_cam / STAR_IMPOSTER_DIVIDER;
+                apply_billboard(*c_transform, radius, *p_transform, &mut transform, offset);
+                *visible = Visibility::Visible;
+            } else {
+                *visible = Visibility::Hidden;
             }
         }
     }
