@@ -172,9 +172,8 @@ fn apply_body(
         if add_billboard {
             parent.spawn(PbrBundle {
                 mesh: meshes.add(shape::Circle::new(((bundle.diameter.num * M_TO_UNIT) as f32) * 3.0).into()),
-                material: materials.add(Color::rgb(100.0, 100.0, 0.0).into()),
-        //        transform: Transform::from_scale(Vec3::splat(((bundle.diameter.num * M_TO_UNIT)) as f32)),
-                visibility: Visibility::Visible,
+                material: materials.add(Color::rgb(30.0, 30.0, 0.0).into()),
+                visibility: Visibility::Hidden,
                 ..default()
             })
                 .insert(StarBillboard);

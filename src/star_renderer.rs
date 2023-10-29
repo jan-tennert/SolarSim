@@ -7,6 +7,9 @@ use crate::body::Star;
 use crate::camera::PanOrbitCamera;
 use crate::SimState;
 
+const STAR_IMPOSTER_THRESHOLD: f32 = 4_000.0;
+const STAR_IMPOSTER_DIVIDER: f32 = 10000.0;
+
 pub struct StarRendererPlugin;
 
 impl Plugin for StarRendererPlugin {
@@ -22,31 +25,26 @@ impl Plugin for StarRendererPlugin {
 pub struct StarBillboard;
 
 fn change_sun_renderer(
-    camera: Query<(&Transform, &PanOrbitCamera, With<Camera>, Without<Star>, Without<StarBillboard>)>,
+    camera: Query<(&Transform, &PanOrbitCamera, &Camera, Without<Star>, Without<StarBillboard>)>,
     mut stars: Query<(&Transform, &Children, &mut Star, Without<Camera>, Without<StarBillboard>)>,
     mut star_billboards: Query<(&mut Transform, &mut Visibility, &Parent, With<StarBillboard>, Without<Camera>, Without<Star>)>,
     mut scenes: Query<(&SceneInstance, &mut Visibility, Without<StarBillboard>, Without<Star>)>,
 ) {
-    let (c_transform, pan_orbit, _, _, _) = camera.single();
+    let (c_transform, pan_orbit, camera, _, _) = camera.single();
     for (transform, children, mut star, _, _) in &mut stars {
         let distance = c_transform.translation.distance(transform.translation);
-        if distance > 25_000.0 &&!star.use_imposter {
-            star.use_imposter = true;
-            for child in children.iter() {
-                if let Ok((_, mut visibility, _ , _)) = scenes.get_mut(*child) {
+        for child in children.iter() {
+            if let Ok((_, mut visibility, _ , _)) = scenes.get_mut(*child) {
+                if distance > STAR_IMPOSTER_THRESHOLD && camera.hdr {
                     *visibility = Visibility::Hidden;
-                }
-                if let Ok((_, mut visibility, _, _, _, _)) = star_billboards.get_mut(*child) {
+                } else {
                     *visibility = Visibility::Visible;
                 }
             }
-        } else if distance < 25_000.0 && star.use_imposter {
-            star.use_imposter = false;
-            for child in children.iter() {
-                if let Ok((scene, mut visibility, _, _)) = scenes.get_mut(*child) {
+            if let Ok((_, mut visibility, _, _, _, _)) = star_billboards.get_mut(*child) {
+                if distance > STAR_IMPOSTER_THRESHOLD && camera.hdr {
                     *visibility = Visibility::Visible;
-                }
-                if let Ok((_, mut visibility, _, _, _, _)) = star_billboards.get_mut(*child) {
+                } else {
                     *visibility = Visibility::Hidden;
                 }
             }
@@ -56,8 +54,7 @@ fn change_sun_renderer(
     for (mut b_transform, _, parent, _, _, _) in &mut star_billboards {
         let (transform, _, _, _, _) = stars.get(**parent).unwrap();
         let distance = c_transform.translation.distance(transform.translation);
-        println!("{}", distance);
         b_transform.look_at(-c_transform.translation, Vec3::Y);
-        b_transform.scale = Vec3::splat(distance / 6000.0);
+        b_transform.scale = Vec3::splat(distance / STAR_IMPOSTER_THRESHOLD);
     }
 }

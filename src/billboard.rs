@@ -10,7 +10,7 @@ use crate::SimState;
 const STAR_VISIBILITY_THRESHOLD: f32 = 40_000_000.0; //if the camera's radius is less than this, stars' names will be hidden
 const PLANET_VISIBILITY_THRESHOLD: f32 = 1000.0; //if the camera's radius is less than this, planets' names will be hidden
 const MOON_VISIBILITY_THRESHOLD: f32 = 10.0; //if the camera's radius is less than this, moons' names will be hidden
-const RADIUS_DIVIDER: f32 = 3400.0;
+const RADIUS_DIVIDER: f32 = 3200.0;
 
 pub struct BodyBillboardPlugin;
 
