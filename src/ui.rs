@@ -51,7 +51,7 @@ impl Plugin for UIPlugin {
             .add_plugins(BlockInputPlugin)
             .add_systems(
                 Update,
-                (system_ui.after(time_ui), body_ui.after(apply_physics), time_ui.after(body_ui)).run_if(in_state(SimState::Simulation))
+                (system_ui.after(time_ui), body_ui.after(apply_physics), time_ui.after(body_ui)).run_if(in_state(SimState::Simulation)),
             );
     }
 }
@@ -88,50 +88,50 @@ pub fn time_ui(
             ui.horizontal(|ui| {
                 ui.with_layout(egui::Layout::left_to_right(egui::Align::LEFT), |ui| {
                     ui.horizontal_centered(|ui| {
-                    if ui.small_button("<<").clicked() {
-                        sub_steps.big_step_down();
-                    }
-                    if ui.small_button("<").clicked() || keys.just_pressed(KeyCode::Left) {
-                        sub_steps.small_step_down();
-                    }
-                    ui.label(format!(
-                        "{} ({}/s)",
-                        date.format("%d.%m.%Y"),
-                        speed.format(sub_steps.0)
-                    ));
-                    let time_text = if !pause.0 { "Pause" } else { "Resume" };
-                    if ui.button(time_text).clicked() || keys.just_pressed(KeyCode::Space) {
-                        pause.0 = !pause.0;
-                    }
-                    if ui.small_button(">").clicked() || keys.just_pressed(KeyCode::Right) {
-                        sub_steps.small_step_up();
-                    }
-                    if ui.small_button(">>").clicked() {
-                        sub_steps.big_step_up();
-                    }
-             //       ui.add_space(20.0);
-                    ui.label("Substeps per second");
-                    let mut new_sub_steps = sub_steps.0.to_string();
-                    if ui
-                        .add(TextEdit::singleline(&mut new_sub_steps).desired_width(50.0))
-                        .changed()
-                    {
-                        if let Ok(new_sub_steps_num) = new_sub_steps.parse::<i32>() {
-                            sub_steps.0 = new_sub_steps_num;
+                        if ui.small_button("<<").clicked() {
+                            sub_steps.big_step_down();
                         }
-                    }
-               //     ui.add_space(20.0);
-                    ui.label("Timestep in seconds");
-                    let mut new_speed = speed.0.to_string();
-                    if ui
-                        .add(TextEdit::singleline(&mut new_speed).desired_width(50.0))
-                        .changed()
-                    {
-                        if let Ok(new_speed_num) = new_speed.parse::<f64>() {
-                            speed.0 = new_speed_num;
+                        if ui.small_button("<").clicked() || keys.just_pressed(KeyCode::Left) {
+                            sub_steps.small_step_down();
                         }
-                    }
-                    ui.label(format!("({})", speed.format(1)))
+                        ui.label(format!(
+                            "{} ({}/s)",
+                            date.format("%d.%m.%Y"),
+                            speed.format(sub_steps.0)
+                        ));
+                        let time_text = if !pause.0 { "Pause" } else { "Resume" };
+                        if ui.button(time_text).clicked() || keys.just_pressed(KeyCode::Space) {
+                            pause.0 = !pause.0;
+                        }
+                        if ui.small_button(">").clicked() || keys.just_pressed(KeyCode::Right) {
+                            sub_steps.small_step_up();
+                        }
+                        if ui.small_button(">>").clicked() {
+                            sub_steps.big_step_up();
+                        }
+                        //       ui.add_space(20.0);
+                        ui.label("Substeps per second");
+                        let mut new_sub_steps = sub_steps.0.to_string();
+                        if ui
+                            .add(TextEdit::singleline(&mut new_sub_steps).desired_width(50.0))
+                            .changed()
+                        {
+                            if let Ok(new_sub_steps_num) = new_sub_steps.parse::<i32>() {
+                                sub_steps.0 = new_sub_steps_num;
+                            }
+                        }
+                        //     ui.add_space(20.0);
+                        ui.label("Timestep in seconds");
+                        let mut new_speed = speed.0.to_string();
+                        if ui
+                            .add(TextEdit::singleline(&mut new_speed).desired_width(50.0))
+                            .changed()
+                        {
+                            if let Ok(new_speed_num) = new_speed.parse::<f64>() {
+                                speed.0 = new_speed_num;
+                            }
+                        }
+                        ui.label(format!("({})", speed.format(1)))
                     });
                 });
 
@@ -167,7 +167,7 @@ pub fn system_ui(
         &Name,
         &BodyChildren,
         Entity,
-        &mut Visibility,        
+        &mut Visibility,
         With<Star>,
         Without<Planet>,
         Without<Planet>
@@ -176,7 +176,7 @@ pub fn system_ui(
         &Name,
         &BodyChildren,
         Entity,
-        &mut Visibility,        
+        &mut Visibility,
         With<Planet>,
         Without<Star>,
         Without<Moon>
@@ -184,107 +184,107 @@ pub fn system_ui(
     mut moon_query: Query<(
         &Name,
         Entity,
-        &mut Visibility,        
+        &mut Visibility,
         With<Moon>,
         Without<Planet>,
         Without<Star>
     )>,
-  //  mut camera: Query<&mut Camera>,
+    //  mut camera: Query<&mut Camera>,
     mut light: Query<&mut PointLight>,
     mut state: ResMut<NextState<SimState>>,
     mut selected_entity: ResMut<SelectedEntity>,
     mut config: ResMut<GizmoConfig>,
-    mut camera: Query<(Entity, &mut Camera, Option<&Skybox>)>,    
+    mut camera: Query<(Entity, &mut Camera, Option<&Skybox>)>,
     mut commands: Commands,
     mut cubemap: ResMut<Cubemap>,
     mut billboard: ResMut<BillboardSettings>,
-    ui_state: Res<UiState>
+    ui_state: Res<UiState>,
 ) {
     if !ui_state.visible {
         return;
     }
     if let Ok((entity, mut camera, skybox)) = camera.get_single_mut() {
         egui::SidePanel::left("system_panel")
-                .default_width(400.0)
-                .resizable(true)
-                .show(egui_context.ctx_mut(), |ui| {
-                    ui.heading("Bodies");
-                    for (s_name, s_children, s_entity,  _, _, _, _) in &mut star_query {
-                        let s_old_selected = selected_entity.entity == Some(s_entity);
-                        let mut s_selected = s_old_selected;
-                        body_tree(ui, &mut s_selected, s_name, true, |ui| {
-                            for planet_child in &s_children.0 {
-                                if let Ok((p_name, p_children, p_entity, _, _, _, _)) = planet_query.get_mut(*planet_child) {
-                                    let p_old_selected = selected_entity.entity == Some(p_entity);
-                                    let mut p_selected = p_old_selected;
-                                    body_tree(ui, &mut p_selected, p_name, false, |ui| {
-                                        for moon_child in &p_children.0 {
-                                            if let Ok((m_name, m_entity,  _, _, _, _)) = moon_query.get_mut(*moon_child) {
-                                                let m_old_selected = selected_entity.entity == Some(m_entity);
-                                                let mut m_selected = m_old_selected;
-                                                ui.horizontal(|ui| {
-                                                    ui.toggle_value(&mut m_selected, m_name.as_str());
-                                                });
-                                                if m_selected && !m_old_selected {
-                                                    selected_entity.change_entity(m_entity)
-                                                }
+            .default_width(400.0)
+            .resizable(true)
+            .show(egui_context.ctx_mut(), |ui| {
+                ui.heading("Bodies");
+                for (s_name, s_children, s_entity, _, _, _, _) in &mut star_query {
+                    let s_old_selected = selected_entity.entity == Some(s_entity);
+                    let mut s_selected = s_old_selected;
+                    body_tree(ui, &mut s_selected, s_name, true, |ui| {
+                        for planet_child in &s_children.0 {
+                            if let Ok((p_name, p_children, p_entity, _, _, _, _)) = planet_query.get_mut(*planet_child) {
+                                let p_old_selected = selected_entity.entity == Some(p_entity);
+                                let mut p_selected = p_old_selected;
+                                body_tree(ui, &mut p_selected, p_name, false, |ui| {
+                                    for moon_child in &p_children.0 {
+                                        if let Ok((m_name, m_entity, _, _, _, _)) = moon_query.get_mut(*moon_child) {
+                                            let m_old_selected = selected_entity.entity == Some(m_entity);
+                                            let mut m_selected = m_old_selected;
+                                            ui.horizontal(|ui| {
+                                                ui.toggle_value(&mut m_selected, m_name.as_str());
+                                            });
+                                            if m_selected && !m_old_selected {
+                                                selected_entity.change_entity(m_entity)
                                             }
-                                        }          
-                                    });
-                                    if p_selected && !p_old_selected {
-                                        selected_entity.change_entity(p_entity)
+                                        }
                                     }
+                                });
+                                if p_selected && !p_old_selected {
+                                    selected_entity.change_entity(p_entity)
                                 }
-                            } 
-                        });
-                        if s_selected && !s_old_selected {
-                            selected_entity.change_entity(s_entity)
-                        }
-                    }
-                    ui.heading("Options");
-                    ui.checkbox(&mut camera.hdr, "HDR/Bloom");
-                    if let Ok(mut light) = light.get_single_mut() {
-                        ui.checkbox(&mut light.shadows_enabled, "Shadows");
-                    }
-                    let skybox_enabled = skybox.is_some();
-                    let mut skybox_setting = skybox_enabled;
-                    ui.checkbox(&mut skybox_setting, "Milky Way Skybox");
-                    
-                    if skybox_enabled && !skybox_setting {
-                        commands.entity(entity).remove::<Skybox>();
-                        cubemap.activated = false;
-                    } else if !skybox_enabled && skybox_setting {
-                        commands.entity(entity).insert(Skybox(cubemap.image_handle.clone()));
-                        cubemap.activated = true;
-                    }
-                    
-                    ui.checkbox(&mut config.aabb.draw_all, "Draw Outlines");
-                    ui.checkbox(&mut billboard.show, "Show Body Names");
-                    ui.add_space(5.0);
-                    ui.label("F10 - Hide Ui");
-                    ui.label("F11 - Toggle Fullscreen");
-                    ui.label("Space - Pause");
-                    ui.label("Left Arrow - 2x Speed");
-                    ui.label("Right Arrow - 1/2 Speed");
-                    ui.label("C - Reset Camera");
-                    ui.label("Left Mouse - Rotate Camera");
-                    ui.label("Right Mouse - Move Camera");
-                    
-                    ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
-                        if ui.button("Back to Menu").clicked() {
-                            let _ = state.set(SimState::ExitToMainMenu);
+                            }
                         }
                     });
+                    if s_selected && !s_old_selected {
+                        selected_entity.change_entity(s_entity)
+                    }
+                }
+                ui.heading("Options");
+                ui.checkbox(&mut camera.hdr, "HDR/Bloom");
+                if let Ok(mut light) = light.get_single_mut() {
+                    ui.checkbox(&mut light.shadows_enabled, "Shadows");
+                }
+                let skybox_enabled = skybox.is_some();
+                let mut skybox_setting = skybox_enabled;
+                ui.checkbox(&mut skybox_setting, "Milky Way Skybox");
+
+                if skybox_enabled && !skybox_setting {
+                    commands.entity(entity).remove::<Skybox>();
+                    cubemap.activated = false;
+                } else if !skybox_enabled && skybox_setting {
+                    commands.entity(entity).insert(Skybox(cubemap.image_handle.clone()));
+                    cubemap.activated = true;
+                }
+
+                ui.checkbox(&mut config.aabb.draw_all, "Draw Outlines");
+                ui.checkbox(&mut billboard.show, "Show Body Names");
+                ui.add_space(5.0);
+                ui.label("F10 - Hide Ui");
+                ui.label("F11 - Toggle Fullscreen");
+                ui.label("Space - Pause");
+                ui.label("Left Arrow - 2x Speed");
+                ui.label("Right Arrow - 1/2 Speed");
+                ui.label("C - Reset Camera");
+                ui.label("Left Mouse - Rotate Camera");
+                ui.label("Right Mouse - Move Camera");
+
+                ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
+                    if ui.button("Back to Menu").clicked() {
+                        let _ = state.set(SimState::ExitToMainMenu);
+                    }
                 });
-    }    
+            });
+    }
 }
 
 fn body_tree<R>(
-    ui: &mut Ui, 
-    mut selected: &mut bool, 
-    name: &Name, 
+    ui: &mut Ui,
+    mut selected: &mut bool,
+    name: &Name,
     default_open: bool,
-    add_body: impl FnOnce(&mut Ui) -> R
+    add_body: impl FnOnce(&mut Ui) -> R,
 ) -> (
     Response,
     InnerResponse<()>,
@@ -303,8 +303,8 @@ fn body_ui(
     mut commands: Commands,
     mut query: Query<(&Name, Entity, &SimPosition, &Velocity, &Diameter, &mut OrbitSettings, &mut Mass, &Scale, &mut Transform, Option<&BodyChildren>, Option<&BodyParent>)>,
     camera: Query<(&Camera, &Transform, Without<Velocity>)>,
-    selected_entity: Res<SelectedEntity>,   
-    ui_state: Res<UiState>
+    selected_entity: Res<SelectedEntity>,
+    ui_state: Res<UiState>,
 ) {
     if !ui_state.visible {
         return;
@@ -313,12 +313,12 @@ fn body_ui(
         let mut parent: Option<(&SimPosition, &Velocity, &Name)> = None;
         let mut selected: Option<(&Name, Entity, &SimPosition, &Velocity, &Diameter, Mut<OrbitSettings>, Mut<Transform>, Mut<Mass>, &Scale, Option<&BodyChildren>)> = None;
         let mut s_children: Vec<Mut<OrbitSettings>> = vec![];
-        for (name, b_entity, pos, velocity, diameter, mut orbit, mass, scale, transform, children, maybe_parent) in query.iter_mut() {
+        for (name, b_entity, pos, velocity, diameter, orbit, mass, scale, transform, children, maybe_parent) in query.iter_mut() {
             if let Some(children) = children { //check for the parent of the selected entity
                 if children.0.contains(&entity) {
                     parent = Some((pos, velocity, name));
                 }
-            } 
+            }
             if b_entity == entity { //check for the selected entity
                 selected = Some((name, b_entity, pos, velocity, diameter, orbit, transform, mass, scale, children));
             } else if let Some(parent_id) = maybe_parent { //check for potential children of the entity
@@ -337,16 +337,8 @@ fn body_ui(
                     //Mass block
                     ui.label(RichText::new("Mass").size(16.0).underline());
                     ui.horizontal(|ui| {
-                        let mut new_mass = mass.0.to_string();
-                        if ui
-                            .add(TextEdit::singleline(&mut new_mass).desired_width(100.0))
-                            .changed()
-                        {
-                            if let Ok(f_mass) = new_mass.parse::<f64>() {
-                                mass.0 = f_mass;
-                            }
-                        }
-                        ui.label(" kg");
+                        let f_mass = mass.0 * 10e-24;
+                        ui.label(format!("{:.3} 10^24 kg", f_mass));
                     });
                     ui.horizontal(|ui| {
                         if ui.button(":5").clicked() {
@@ -372,20 +364,20 @@ fn body_ui(
                         ui.horizontal(|ui| {
                             ui.add(
                                 egui::Slider::new(&mut n_scale, 0.001..=100.0)
-                                .clamp_to_range(true)
-                                .logarithmic(true));
+                                    .clamp_to_range(true)
+                                    .logarithmic(true));
                         });
                         transform.scale = Vec3::splat(n_scale * scale.0);
                         ui.label(
-                        RichText::new("Diameter")
-                            .size(16.0)
-                            .underline(),
+                            RichText::new("Diameter")
+                                .size(16.0)
+                                .underline(),
                         );
                         let scaled_diameter = (diameter.num as f32) * n_scale;
                         ui.label(format!("{} km", scaled_diameter / 1000.0));
                     }
-                    
-                    
+
+
                     // Velocity Orbit Velocity around parent
                     let actual_velocity = match &parent {
                         Some((_, vel, _)) => (vel.0 - velocity.0).length() / 1000.0,
@@ -405,44 +397,41 @@ fn body_ui(
                         let distance_in_km = parent_pos.0.distance(pos.0) / 10000.0;
                         ui.label(format!("{:.3} km", distance_in_km));
                         ui.label(format!("{:.3} au", distance_in_km * M_TO_UNIT));
-                        
-                        let old_draw_orbit = orbit.draw_lines;
-                        ui.checkbox(&mut orbit.draw_lines, "Draw Orbit lines");
-                        if s_children.iter().count() > 0 {
-                            let old_draw_children_orbits = s_children.iter().all(|orbit| {
-                                orbit.draw_lines
-                            });
-                            let mut draw_children_orbits = old_draw_children_orbits;
-                            ui.checkbox(&mut draw_children_orbits, "Draw Children Orbits");
-                            if draw_children_orbits != old_draw_children_orbits {
-                                for orbit in s_children.iter_mut() {
-                                    orbit.draw_lines = draw_children_orbits;
-                                }
-                            }
-                        }
-                                                
-                        ui.horizontal(|ui| {
-                            ui.label("Orbit Color");    
-                            let mut rgb = [orbit.color.r(), orbit.color.g(), orbit.color.b()];    
-                            ui.color_edit_button_rgb(&mut rgb);
-                            orbit.color = Color::rgb(rgb[0], rgb[1], rgb[2]);
-                        });
-
-                        ui.label("Max Orbit Points");    
-                        ui.add(egui::DragValue::new(&mut orbit.max_points).speed(1.0));
-                        
-                        if orbit.max_points < 1 {
-                            orbit.max_points = 1;
-                        }
-                        
-                        ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
-                            if ui.button("Delete").clicked() {
-                                commands.entity(entity).despawn_recursive()
-                            }
-                        });
                     }
+                    ui.checkbox(&mut orbit.draw_lines, "Draw Orbit lines");
+                    if s_children.iter().count() > 0 {
+                        let old_draw_children_orbits = s_children.iter().all(|orbit| {
+                            orbit.draw_lines
+                        });
+                        let mut draw_children_orbits = old_draw_children_orbits;
+                        ui.checkbox(&mut draw_children_orbits, "Draw Children Orbits");
+                        if draw_children_orbits != old_draw_children_orbits {
+                            for orbit in s_children.iter_mut() {
+                                orbit.draw_lines = draw_children_orbits;
+                            }
+                        }
+                    }
+
+                    ui.horizontal(|ui| {
+                        ui.label("Orbit Color");
+                        let mut rgb = [orbit.color.r(), orbit.color.g(), orbit.color.b()];
+                        ui.color_edit_button_rgb(&mut rgb);
+                        orbit.color = Color::rgb(rgb[0], rgb[1], rgb[2]);
+                    });
+
+                    ui.label("Max Orbit Points");
+                    ui.add(egui::DragValue::new(&mut orbit.max_points).speed(1.0));
+
+                    if orbit.max_points < 1 {
+                        orbit.max_points = 1;
+                    }
+
+                    ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
+                        if ui.button("Delete").clicked() {
+                            commands.entity(entity).despawn_recursive()
+                        }
+                    });
                 });
-            }
+        }
     }
-    
 }
