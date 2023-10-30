@@ -1,6 +1,6 @@
 use bevy::core::Name;
 use bevy::math::{DVec3, Vec3};
-use bevy::prelude::{Bundle, Color, Component, default, Entity, Reflect, Transform};
+use bevy::prelude::{Bundle, Color, Component, default, Entity, Handle, Reflect, Scene, Transform};
 
 use crate::serialization::SerializedBody;
 
@@ -69,6 +69,9 @@ pub struct Diameter {
     pub applied: bool
     
 }
+
+#[derive(Component, Reflect, Clone, Default)]
+pub struct SceneHandle(pub Handle<Scene>);
 
 //Types:
 #[derive(Component, Reflect, Clone, Default)]

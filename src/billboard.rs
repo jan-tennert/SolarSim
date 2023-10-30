@@ -4,8 +4,9 @@ use bevy::prelude::{Children, in_state, IntoSystemConfigs, Query, Res, Resource,
 use bevy::text::Text;
 use bevy_mod_billboard::text::BillboardTextBounds;
 
-use crate::body::{Moon, Planet, Star};
+use crate::body::{Diameter, Moon, Planet, Star};
 use crate::camera::{pan_orbit_camera, PanOrbitCamera};
+use crate::constants::M_TO_UNIT;
 use crate::SimState;
 use crate::star_renderer::STAR_IMPOSTER_DIVIDER;
 
@@ -39,9 +40,7 @@ impl Default for BillboardSettings {
 }
 
 fn auto_scale_billboards(
-    planets: Query<(&Children, &Transform, With<Planet>, Without<Moon>, Without<Text>)>,
-    moons: Query<(&Children, &Transform, With<Moon>, Without<Planet>, Without<Text>)>,
-    stars: Query<(&Children, &Transform, With<Star>, Without<Text>)>,
+    bodies: Query<(&Children, &Transform, &Diameter, Option<&Planet>, Option<&Star>, Without<Text>)>,
     mut billboards: Query<(&Text, &mut Transform, &mut Visibility, With<BillboardTextBounds>)>,
     camera: Query<(&PanOrbitCamera, &Transform, Without<BillboardTextBounds>, Without<Planet>, Without<Moon>, Without<Star>)>,
     settings: Res<BillboardSettings>
@@ -54,36 +53,30 @@ fn auto_scale_billboards(
     }
     let (cam, c_transform, _, _, _, _) = camera.single();
     let radius = cam.radius;
-    for (children, p_transform, _, _, _) in planets.iter() {
-        billboard(
-            &mut billboards,
-            c_transform,
-            p_transform,
-            radius,
-            children,
+    for (children, p_transform, diameter, planet, star, _) in bodies.iter() {
+        let distance_to_cam = c_transform.translation.distance(p_transform.translation) / STAR_IMPOSTER_DIVIDER;
+        let is_planet = planet.is_some();
+        let is_star = star.is_some();
+        let predicate = if is_planet {
             radius > PLANET_VISIBILITY_THRESHOLD && radius < STAR_VISIBILITY_THRESHOLD
-        )
-    }
-
-    for (children, p_transform, _, _, _) in moons.iter() {
-        billboard(
-            &mut billboards,
-            c_transform,
-            p_transform,
-            radius,
-            children,
-            radius < PLANET_VISIBILITY_THRESHOLD && radius > MOON_VISIBILITY_THRESHOLD
-        )
-    }
-
-    for (children, p_transform, _, _) in stars.iter() {
-        billboard(
-            &mut billboards,
-            c_transform,
-            p_transform,
-            radius,
-            children,
+        } else if is_star {
             radius > STAR_VISIBILITY_THRESHOLD
+        } else {
+            radius < PLANET_VISIBILITY_THRESHOLD && radius > MOON_VISIBILITY_THRESHOLD
+        };
+        let offset = if is_star {
+            distance_to_cam
+        } else {
+            distance_to_cam * 100.0 / (diameter.num * M_TO_UNIT) as f32
+        };
+        billboard(
+            &mut billboards,
+            c_transform,
+            p_transform,
+            radius,
+            offset,
+            children,
+            predicate
         )
     }
 }
@@ -93,14 +86,13 @@ fn billboard(
     c_transform: &Transform,
     p_transform: &Transform,
     radius: f32,
+    offset: f32,
     children: &Children,
     predicate: bool
 ) {
     for child in children.iter() {
         if let Ok((_, mut transform, mut visible, _)) = billboards.get_mut(*child) {
             if predicate {
-                let distance_to_cam = c_transform.translation.distance(p_transform.translation);
-                let offset = distance_to_cam / STAR_IMPOSTER_DIVIDER;
                 apply_billboard(*c_transform, radius, *p_transform, &mut transform, offset);
                 *visible = Visibility::Visible;
             } else {

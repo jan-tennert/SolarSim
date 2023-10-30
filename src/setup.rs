@@ -1,5 +1,6 @@
 use bevy::app::{App, Plugin};
 use bevy::asset::AssetServer;
+use bevy::core::Name;
 use bevy::core_pipeline::bloom::BloomSettings;
 use bevy::core_pipeline::Skybox;
 use bevy::ecs::system::EntityCommands;
@@ -11,7 +12,7 @@ use bevy::scene::Scene;
 use bevy::text::{TextAlignment, TextSection, TextStyle};
 use bevy_mod_billboard::{BillboardLockAxisBundle, BillboardTextBundle};
 
-use crate::body::{BodyBundle, BodyChildren, Moon, OrbitSettings, Planet, Star};
+use crate::body::{BodyBundle, BodyChildren, Moon, OrbitSettings, Planet, SceneHandle, Star};
 use crate::camera::PanOrbitCamera;
 use crate::constants::M_TO_UNIT;
 use crate::loading::LoadingState;
@@ -141,14 +142,14 @@ fn apply_body(
         color,
        ..default() 
     });
+    entity.insert(SceneHandle(asset_handle.clone()));
     entity.with_children(|parent| {
         parent.spawn(SceneBundle {
             scene: asset_handle,
             transform: Transform::default(),
             ..Default::default()
-        });
-    });
-    entity.with_children(|parent| {
+        })
+            .insert(Name::new(format!("{} Scene", bundle.name)));
         parent.spawn(BillboardLockAxisBundle {
             billboard_bundle: BillboardTextBundle {
                 transform: Transform::from_translation(Vec3::new(0., 2000., 0.))
@@ -167,7 +168,8 @@ fn apply_body(
                 ..default()
             },
             ..default()
-        });
+        })
+            .insert(Name::new(format!("{} Text Billboard", bundle.name)));
 
         if add_billboard {
             parent.spawn(PbrBundle {
@@ -176,7 +178,8 @@ fn apply_body(
                 visibility: Visibility::Hidden,
                 ..default()
             })
-                .insert(StarBillboard);
+                .insert(StarBillboard)
+                .insert(Name::new(format!("{} Imposter Billboard", bundle.name)));
         }
     });
 }    

@@ -7,7 +7,7 @@ use bevy::prelude::{default, States};
 use bevy::render::RenderPlugin;
 use bevy::render::settings::WgpuSettings;
 use bevy::window::{PresentMode, Window, WindowPlugin};
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_egui::EguiPlugin;
 use bevy_mod_billboard::plugin::BillboardPlugin;
 
 use camera::PanOrbitCameraPlugin;
@@ -68,7 +68,7 @@ fn main() {
         .add_plugins(DefaultPlugins
             .set(RenderPlugin {
                 wgpu_settings: WgpuSettings {
-             //       backends: Some(Backends::VULKAN),
+                  //  backends: Some(Backends::VULKAN),
                     ..default()
                 },
             })
@@ -80,8 +80,9 @@ fn main() {
                 }),
                 ..default()
             })
-        ) 
-        .add_plugins(WorldInspectorPlugin::new())
+        )
+        .add_plugins(EguiPlugin)
+   //     .add_plugins(WorldInspectorPlugin::new())
   //      .add_plugins(DefaultPickingPlugins)
         .add_plugins(LockOnPlugin)
         .add_plugins(SerializationPlugin)
