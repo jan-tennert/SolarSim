@@ -16,6 +16,7 @@ use chrono::{Days, NaiveDateTime};
 //use crate::fps::Fps;
 use crate::{body::{BodyChildren, Diameter, Mass, Moon, OrbitSettings, Planet, Scale, SimPosition, Star, Velocity}, constants::{DAY_IN_SECONDS, M_TO_UNIT}, egui_input_block::BlockInputPlugin, lock_on::LockOn, physics::{apply_physics, SubSteps}, selection::SelectedEntity, setup::StartingTime, skybox::Cubemap};
 use crate::billboard::BillboardSettings;
+use crate::body::BodyParent;
 use crate::physics::Pause;
 use crate::SimState;
 use crate::speed::Speed;
@@ -300,7 +301,7 @@ fn body_tree<R>(
 fn body_ui(
     mut egui_context: EguiContexts,
     mut commands: Commands,
-    mut query: Query<(&Name, Entity, &SimPosition, &Velocity, &Diameter, &mut OrbitSettings, &mut Mass, &Scale, &mut Transform, Option<&BodyChildren>)>,
+    mut query: Query<(&Name, Entity, &SimPosition, &Velocity, &Diameter, &mut OrbitSettings, &mut Mass, &Scale, &mut Transform, Option<&BodyChildren>, Option<&BodyParent>)>,
     camera: Query<(&Camera, &Transform, Without<Velocity>)>,
     selected_entity: Res<SelectedEntity>,   
     ui_state: Res<UiState>
@@ -310,18 +311,23 @@ fn body_ui(
     }
     if let Some(entity) = selected_entity.entity {
         let mut parent: Option<(&SimPosition, &Velocity, &Name)> = None;
-        let mut selected: Option<(&Name, Entity, &SimPosition, &Velocity, &Diameter, Mut<OrbitSettings>, Mut<Transform>, Mut<Mass>, &Scale)> = None;
-        for (name, b_entity, pos, velocity, diameter, orbit, mass, scale, transform, children) in query.iter_mut() {
-            if let Some(children) = children {
+        let mut selected: Option<(&Name, Entity, &SimPosition, &Velocity, &Diameter, Mut<OrbitSettings>, Mut<Transform>, Mut<Mass>, &Scale, Option<&BodyChildren>)> = None;
+        let mut s_children: Vec<Mut<OrbitSettings>> = vec![];
+        for (name, b_entity, pos, velocity, diameter, mut orbit, mass, scale, transform, children, maybe_parent) in query.iter_mut() {
+            if let Some(children) = children { //check for the parent of the selected entity
                 if children.0.contains(&entity) {
                     parent = Some((pos, velocity, name));
                 }
             } 
-             if b_entity == entity {
-                selected = Some((name, b_entity, pos, velocity, diameter, orbit, transform, mass, scale));
+            if b_entity == entity { //check for the selected entity
+                selected = Some((name, b_entity, pos, velocity, diameter, orbit, transform, mass, scale, children));
+            } else if let Some(parent_id) = maybe_parent { //check for potential children of the entity
+                if parent_id.0 == entity {
+                    s_children.push(orbit)
+                }
             }
         }
-        if let Some((name, entity, pos, velocity, diameter, mut orbit, mut transform, mut mass, scale)) = selected {
+        if let Some((name, entity, pos, velocity, diameter, mut orbit, mut transform, mut mass, scale, _)) = selected {
             egui::SidePanel::right("body_panel")
                 .max_width(250.0)
                 .resizable(true)
@@ -402,9 +408,17 @@ fn body_ui(
                         
                         let old_draw_orbit = orbit.draw_lines;
                         ui.checkbox(&mut orbit.draw_lines, "Draw Orbit lines");
-                        
-                        if old_draw_orbit && !orbit.draw_lines {
-                            orbit.lines.clear();
+                        if s_children.iter().count() > 0 {
+                            let old_draw_children_orbits = s_children.iter().all(|orbit| {
+                                orbit.draw_lines
+                            });
+                            let mut draw_children_orbits = old_draw_children_orbits;
+                            ui.checkbox(&mut draw_children_orbits, "Draw Children Orbits");
+                            if draw_children_orbits != old_draw_children_orbits {
+                                for orbit in s_children.iter_mut() {
+                                    orbit.draw_lines = draw_children_orbits;
+                                }
+                            }
                         }
                                                 
                         ui.horizontal(|ui| {

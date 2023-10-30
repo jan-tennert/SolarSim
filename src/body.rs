@@ -33,6 +33,9 @@ pub struct ModelPath(pub String);
 pub struct BodyChildren(pub Vec<Entity>);
 
 #[derive(Component, Reflect, Clone)]
+pub struct BodyParent(pub Entity);
+
+#[derive(Component, Reflect, Clone)]
 pub struct OrbitSettings {
     
     pub color: Color,

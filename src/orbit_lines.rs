@@ -95,6 +95,10 @@ fn clean_orbit_lines(
                     orbit.lines.remove(0);
                 }
             }
+        } else {
+            if !orbit.lines.is_empty() {
+                orbit.lines.clear();
+            }
         }
     }
 }

@@ -12,7 +12,7 @@ use bevy::scene::Scene;
 use bevy::text::{TextAlignment, TextSection, TextStyle};
 use bevy_mod_billboard::{BillboardLockAxisBundle, BillboardTextBundle};
 
-use crate::body::{BodyBundle, BodyChildren, Moon, OrbitSettings, Planet, SceneHandle, Star};
+use crate::body::{BodyBundle, BodyChildren, BodyParent, Moon, OrbitSettings, Planet, SceneHandle, Star};
 use crate::camera::PanOrbitCamera;
 use crate::constants::M_TO_UNIT;
 use crate::loading::LoadingState;
@@ -79,8 +79,9 @@ pub fn setup_planets(
     //iterate through the stars
     for (s_index, entry) in data.bodies.iter().enumerate() {
         let mut star = commands.spawn(SpatialBundle::default());
+        let star_id = star.id();
         if selected_entity.entity.is_none() {
-            selected_entity.change_entity(star.id());
+            selected_entity.change_entity(star_id);
         }
         let mut planets: Vec<Entity> = vec![];
         star.insert(PointLightBundle {
@@ -100,21 +101,24 @@ pub fn setup_planets(
         //iterate through the planets
         for (p_index, planet_entry) in entry.children.iter().enumerate() {
             let mut planet = star.commands().spawn(SpatialBundle::default());
-            let mut moons: Vec<Entity> = vec![];            
+            let planet_id = planet.id();
+            let mut moons: Vec<Entity> = vec![];
             apply_body(BodyBundle::from(planet_entry.clone()), Planet, &assets, &mut planet, &mut meshes, &mut materials,360.0 * ((p_index + 1) as f32 / planet_count as f32), false);
             
             //for the tree-based ui later
-            planets.push(planet.id());
+            planets.push(planet_id);
             let moon_count = planet_entry.children.iter().count();
             
             //iterate through the moons
             for (m_index, moon_entry) in planet_entry.children.iter().enumerate() {
                 let mut moon = planet.commands().spawn(SpatialBundle::default());
-                
+
                 //for the tree-based ui later                
                 moons.push(moon.id());
                 apply_body(BodyBundle::from(moon_entry.clone()), Moon, &assets, &mut moon, &mut meshes, &mut materials, 360.0 * ((m_index + 1) as f32 / moon_count as f32), false);
-            } 
+                moon.insert(BodyParent(planet_id));
+            }
+            planet.insert(BodyParent(star_id));
             planet.insert(BodyChildren(moons));
         }  
         star.insert(BodyChildren(planets));
