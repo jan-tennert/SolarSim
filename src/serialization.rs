@@ -1,11 +1,14 @@
 use bevy::{
-    asset::{AssetLoader, LoadContext, LoadedAsset},
+    asset::{AssetLoader, LoadContext},
     math::DVec3,
-    prelude::{AddAsset, Plugin}, reflect::{TypePath, TypeUuid}, utils::BoxedFuture,
+    prelude::Plugin, reflect::{TypePath, TypeUuid}, utils::BoxedFuture,
 };
+use bevy::asset::AsyncReadExt;
+use bevy::asset::io::Reader;
+use bevy::prelude::{Asset, AssetApp};
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize, TypeUuid, TypePath, Clone)]
+#[derive(Debug, Deserialize, TypeUuid, TypePath, Clone, Asset)]
 #[uuid = "39cadc56-aa9c-4543-8640-a018b74b5052"]
 pub struct SimulationData {
     pub bodies: Vec<SerializedBody>,
@@ -52,15 +55,21 @@ pub struct SerializedBodyData {
 pub struct BodyAssetLoader;
 
 impl AssetLoader for BodyAssetLoader {
+    type Asset = SimulationData;
+    type Settings = ();
+    type Error = serde_json::Error;
+
     fn load<'a>(
         &'a self,
-        bytes: &'a [u8],
-        load_context: &'a mut LoadContext,
-    ) -> BoxedFuture<'a, Result<(), bevy::asset::Error>> {
+        reader: &'a mut Reader,
+        _settings: &'a Self::Settings,
+        _load_context: &'a mut LoadContext,
+    ) -> BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
         Box::pin(async move {
-            let custom_asset = serde_json::from_str::<SimulationData>(std::str::from_utf8(bytes).unwrap())?;
-            load_context.set_default_asset(LoadedAsset::new(custom_asset));
-            Ok(())
+            let mut bytes = Vec::new();
+            reader.read_to_end(&mut bytes).await.unwrap();
+            let custom_asset = serde_json::from_str::<SimulationData>(std::str::from_utf8(&*bytes).unwrap())?;
+            Ok((custom_asset))
         })
     }
 
@@ -76,7 +85,7 @@ impl Plugin for SerializationPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app
             .init_asset_loader::<BodyAssetLoader>()
-            .add_asset::<SimulationData>();
+            .init_asset::<SimulationData>();
     }
 
 }

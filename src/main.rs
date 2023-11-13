@@ -4,8 +4,6 @@ use bevy::app::{App, PluginGroup};
 use bevy::DefaultPlugins;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::{default, States};
-use bevy::render::RenderPlugin;
-use bevy::render::settings::WgpuSettings;
 use bevy::window::{PresentMode, Window, WindowPlugin};
 use bevy_egui::EguiPlugin;
 use bevy_mod_billboard::plugin::BillboardPlugin;
@@ -66,12 +64,6 @@ fn main() {
     App::new()
      //   .add_plugins(DefaultPlugins)
         .add_plugins(DefaultPlugins
-            .set(RenderPlugin {
-                wgpu_settings: WgpuSettings {
-                  //  backends: Some(Backends::VULKAN),
-                    ..default()
-                },
-            })
             .set(WindowPlugin {
                 primary_window: Some(Window {
                     title: "Solar System Simulation (Jan Tennert)".to_string(),

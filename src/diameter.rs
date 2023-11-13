@@ -29,7 +29,7 @@ fn apply_real_diameter(
         loading_state.scaled_bodies = true;
     }
     for (children, handle, mut diameter, mut transform, mut scale) in &mut bodies {
-        if diameter.applied || asset_server.get_load_state(&handle.0) != bevy::asset::LoadState::Loaded {
+        if diameter.applied || asset_server.get_load_state(&handle.0) != Some(bevy::asset::LoadState::Loaded) {
             continue;
         }
         for children in children {
