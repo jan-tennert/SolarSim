@@ -24,11 +24,11 @@ Download the newest binaries from the [releases](https://github.com/jan-tennert/
 
 ### Adding new bodies
 
-If you want to customize or even add new bodies, run `horizon-ui.jar`. You can right click on stars and planets to add children. 
+If you want to customize or even add new bodies, run `horizon-ui.jar`. You can right-click on stars and planets to add children. 
 
 Make sure you pay attention to the units!
 
-You can get vector positions and velocity on the [Horizons System](https://ssd.jpl.nasa.gov/horizons/app.html#/) website. You have to make sure you have the right _settings:
+You can get vector positions and velocity on the [Horizons System](https://ssd.jpl.nasa.gov/horizons/app.html#/) website. You have to make sure you have the right settings:
 
 - For the Ephemeris Type, select Vector Table
 
@@ -44,7 +44,7 @@ You can get vector positions and velocity on the [Horizons System](https://ssd.j
   
   So if you have the date, click on Time Specification and change the starting date depending on what you got from horizon-ui
 
-- The coordinate center & table _settings should remain as is.
+- The coordinate center & table settings should remain as is.
 
 Then click on **Generate Ephemeris** and read the first entry of the list.
 
