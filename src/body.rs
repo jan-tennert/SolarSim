@@ -4,7 +4,7 @@ use bevy::prelude::{Bundle, Color, Component, default, Entity, Handle, Reflect, 
 
 use crate::serialization::SerializedBody;
 
-#[derive(Component, Clone, Default, Reflect)]
+#[derive(Component, Clone, Default, Reflect, Copy)]
 pub struct Mass(pub f64);
 
 #[derive(Default, Component, Reflect, Clone)]

@@ -1,4 +1,4 @@
-use bevy::{prelude::{App, Entity, Gizmos, in_state, IntoSystemConfigs, Plugin, Query, Res, ResMut, Resource, Transform, Update, Vec3, With, Without}, time::{Time, Timer, TimerMode}};
+use bevy::{prelude::{App, Entity, Gizmos, in_state, IntoSystemConfigs, Plugin, Query, Res, ResMut, Resource, Transform, Update, Vec3, With, Without, PostUpdate, PreUpdate}, time::{Time, Timer, TimerMode}};
 
 use crate::{body::{BodyChildren, Moon, OrbitSettings, Planet, SimPosition, Star}, constants::M_TO_UNIT, physics::apply_physics, SimState};
 
@@ -9,7 +9,7 @@ impl Plugin for OrbitLinePlugin {
         app
             .init_resource::<OrbitOffset>()
             .init_resource::<OffsetTimer>()
-            .add_systems(Update, (update_lines.after(apply_physics), draw_orbit_line.after(update_lines), clean_orbit_lines.after(draw_orbit_line)).run_if(in_state(SimState::Simulation)));
+            .add_systems(PreUpdate, (update_lines.after(apply_physics), draw_orbit_line.after(update_lines), clean_orbit_lines.after(draw_orbit_line)).run_if(in_state(SimState::Simulation)));
     }
 }
 

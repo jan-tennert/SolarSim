@@ -18,7 +18,7 @@ impl Plugin for LoadingPlugin {
 pub struct LoadingState {
     
     pub loaded_bodies: bool,
-    pub scaled_bodies: bool
+    pub scaled_bodies: bool,
 
 }
 

@@ -7,10 +7,11 @@ use bevy::ecs::system::EntityCommands;
 use bevy::hierarchy::BuildChildren;
 use bevy::math::Vec3;
 use bevy::pbr::{PbrBundle, PointLight, PointLightBundle};
-use bevy::prelude::{Assets, Bundle, Camera, Camera3dBundle, Color, Commands, default, Entity, Handle, in_state, IntoSystemConfigs, Mesh, OnEnter, PerspectiveProjection, Projection, Res, ResMut, Resource, SceneBundle, shape, SpatialBundle, StandardMaterial, Startup, Transform, Update, Visibility};
+use bevy::prelude::{Assets, Bundle, Camera, Camera3dBundle, ChildBuilder, Color, Commands, default, Entity, Handle, in_state, IntoSystemConfigs, Mesh, OnEnter, PerspectiveProjection, Projection, Res, ResMut, Resource, SceneBundle, shape, SpatialBundle, StandardMaterial, Startup, Transform, Update, Visibility};
 use bevy::scene::Scene;
 use bevy::text::{TextAlignment, TextSection, TextStyle};
 use bevy_mod_billboard::{BillboardLockAxisBundle, BillboardTextBundle};
+use crate::apsis::{ApsisType, ApsisBody};
 
 use crate::body::{BodyBundle, BodyChildren, BodyParent, Moon, OrbitSettings, Planet, SceneHandle, Star};
 use crate::camera::PanOrbitCamera;
@@ -136,7 +137,7 @@ fn apply_body(
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
     hue: f32,
-    add_billboard: bool,
+    is_star: bool,
 ) {
     let asset_handle: Handle<Scene> = assets.load(bundle.model_path.clone().0);
     let color = Color::hsl(hue, 1.0, 0.5);
@@ -146,47 +147,90 @@ fn apply_body(
         color,
        ..default() 
     });
+    if !is_star {
+        entity.insert(ApsisBody::default());
+    }
     entity.insert(SceneHandle(asset_handle.clone()));
     entity.with_children(|parent| {
-        parent.spawn(SceneBundle {
-            scene: asset_handle,
-            transform: Transform::default(),
-            ..Default::default()
-        })
-            .insert(Name::new(format!("{} Scene", bundle.name)));
-        parent.spawn(BillboardLockAxisBundle {
-            billboard_bundle: BillboardTextBundle {
-                transform: Transform::from_translation(Vec3::new(0., 2000., 0.))
-                    .with_scale(Vec3::splat(8.5)),
-                text: bevy::text::Text::from_sections([
-                    TextSection {
-                        value: bundle.name.to_string(),
-                        style: TextStyle {
-                            font_size: 60.0,
-                            // font: fira_sans_regular_handle.clone(),
-                            color,
-                            ..default()
-                        }
-                    }
-                ]).with_alignment(TextAlignment::Center),
-                ..default()
-            },
-            ..default()
-        })
-            .insert(Name::new(format!("{} Text Billboard", bundle.name)));
 
-        if add_billboard {
-            parent.spawn(PbrBundle {
-                mesh: meshes.add(shape::Circle::new(((bundle.diameter.num * M_TO_UNIT) as f32) * 3.0).into()),
-                material: materials.add(Color::rgb(30.0, 30.0, 0.0).into()),
-                visibility: Visibility::Hidden,
-                ..default()
-            })
-                .insert(StarBillboard)
-                .insert(Name::new(format!("{} Imposter Billboard", bundle.name)));
+        spawn_scene(
+            asset_handle.clone(),
+            bundle.clone(),
+            parent
+        );
+
+        spawn_billboard(
+            bundle.clone(),
+            color,
+            parent
+        );
+        
+        if is_star {
+            spawn_imposter(
+                bundle.clone(),
+                parent,
+                meshes,
+                materials
+            );
         }
     });
-}    
+}
+
+fn spawn_imposter(
+    bundle: BodyBundle,
+    parent: &mut ChildBuilder,
+    meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<StandardMaterial>>,
+) {
+    parent.spawn(PbrBundle {
+        mesh: meshes.add(shape::Circle::new(((bundle.diameter.num * M_TO_UNIT) as f32) * 3.0).into()),
+        material: materials.add(Color::rgb(30.0, 30.0, 0.0).into()),
+        visibility: Visibility::Hidden,
+        ..default()
+    })
+        .insert(StarBillboard)
+        .insert(Name::new(format!("{} Imposter Billboard", bundle.name)));
+}
+
+fn spawn_scene(
+    asset_handle: Handle<Scene>,
+    bundle: BodyBundle,
+    parent: &mut ChildBuilder
+) {
+    parent.spawn(SceneBundle {
+        scene: asset_handle,
+        transform: Transform::default(),
+        ..Default::default()
+    })
+        .insert(Name::new(format!("{} Scene", bundle.name)));
+}
+
+fn spawn_billboard(
+    bundle: BodyBundle,
+    color: Color,
+    parent: &mut ChildBuilder
+) {
+    parent.spawn(BillboardLockAxisBundle {
+        billboard_bundle: BillboardTextBundle {
+            transform: Transform::from_translation(Vec3::new(0., 2000., 0.))
+                .with_scale(Vec3::splat(8.5)),
+            text: bevy::text::Text::from_sections([
+                TextSection {
+                    value: bundle.name.to_string(),
+                    style: TextStyle {
+                        font_size: 60.0,
+                        // font: fira_sans_regular_handle.clone(),
+                        color,
+                        ..default()
+                    }
+                }
+            ]).with_alignment(TextAlignment::Center),
+            ..default()
+        },
+        ..default()
+    })
+        .insert(Name::new(format!("{} Text Billboard", bundle.name)));
+}
 
 pub fn setup_camera(    
     mut commands: Commands,

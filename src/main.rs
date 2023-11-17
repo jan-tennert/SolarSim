@@ -1,11 +1,13 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use apsis::ApsisPlugin;
 use bevy::app::{App, PluginGroup};
 use bevy::DefaultPlugins;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::{default, States};
 use bevy::window::{PresentMode, Window, WindowPlugin};
 use bevy_egui::EguiPlugin;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_billboard::plugin::BillboardPlugin;
 
 use camera::PanOrbitCameraPlugin;
@@ -49,6 +51,8 @@ mod camera;
 mod loading;
 mod star_renderer;
 mod billboard;
+mod apsis;
+mod unit;
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
 pub enum SimState {
@@ -73,14 +77,15 @@ fn main() {
                 ..default()
             })
         )
-        .add_plugins(EguiPlugin)
-   //     .add_plugins(WorldInspectorPlugin::new())
+   //     .add_plugins(EguiPlugin)
+        .add_plugins(WorldInspectorPlugin::new())
   //      .add_plugins(DefaultPickingPlugins)
         .add_plugins(LockOnPlugin)
         .add_plugins(SerializationPlugin)
         .add_plugins(LoadingPlugin)
         .add_plugins(BodyBillboardPlugin)
         .add_plugins(BillboardPlugin)
+        .add_plugins(ApsisPlugin)
         //     .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(SetupPlugin)

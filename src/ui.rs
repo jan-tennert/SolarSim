@@ -14,12 +14,14 @@ use bevy_inspector_egui::egui::{RichText, TextEdit};
 use chrono::{Days, NaiveDateTime};
 
 //use crate::fps::Fps;
-use crate::{body::{BodyChildren, Diameter, Mass, Moon, OrbitSettings, Planet, Scale, SimPosition, Star, Velocity}, constants::{DAY_IN_SECONDS, M_TO_UNIT}, egui_input_block::BlockInputPlugin, lock_on::LockOn, physics::{apply_physics, SubSteps}, selection::SelectedEntity, setup::StartingTime, skybox::Cubemap};
+use crate::{body::{BodyChildren, Diameter, Mass, Moon, OrbitSettings, Planet, Scale, SimPosition, Star, Velocity}, constants::{DAY_IN_SECONDS, M_TO_UNIT, M_TO_AU}, egui_input_block::BlockInputPlugin, lock_on::LockOn, physics::{apply_physics, SubSteps}, selection::SelectedEntity, setup::StartingTime, skybox::Cubemap, apsis::ApsisBody, unit::format_length};
 use crate::billboard::BillboardSettings;
 use crate::body::BodyParent;
+use crate::constants::G;
 use crate::physics::Pause;
 use crate::SimState;
 use crate::speed::Speed;
+use crate::unit::format_seconds;
 
 #[derive(Resource, Reflect, Default)]
 pub struct SimTime(pub f32);
@@ -301,7 +303,7 @@ fn body_tree<R>(
 fn body_ui(
     mut egui_context: EguiContexts,
     mut commands: Commands,
-    mut query: Query<(&Name, Entity, &SimPosition, &Velocity, &Diameter, &mut OrbitSettings, &mut Mass, &Scale, &mut Transform, Option<&BodyChildren>, Option<&BodyParent>)>,
+    mut query: Query<(&Name, Entity, &SimPosition, &Velocity, &Diameter, &mut OrbitSettings, &mut Mass, &Scale, &mut Transform, Option<&mut ApsisBody>, Option<&BodyChildren>, Option<&BodyParent>)>,
     camera: Query<(&Camera, &Transform, Without<Velocity>)>,
     selected_entity: Res<SelectedEntity>,
     ui_state: Res<UiState>,
@@ -310,24 +312,24 @@ fn body_ui(
         return;
     }
     if let Some(entity) = selected_entity.entity {
-        let mut parent: Option<(&SimPosition, &Velocity, &Name)> = None;
-        let mut selected: Option<(&Name, Entity, &SimPosition, &Velocity, &Diameter, Mut<OrbitSettings>, Mut<Transform>, Mut<Mass>, &Scale, Option<&BodyChildren>)> = None;
+        let mut parent: Option<(&SimPosition, &Velocity, &Name, Mass)> = None;
+        let mut selected: Option<(&Name, Entity, &SimPosition, &Velocity, &Diameter, Mut<OrbitSettings>, Mut<Transform>, Mut<Mass>, Option<Mut<ApsisBody>>, &Scale, Option<&BodyChildren>)> = None;
         let mut s_children: Vec<Mut<OrbitSettings>> = vec![];
-        for (name, b_entity, pos, velocity, diameter, orbit, mass, scale, transform, children, maybe_parent) in query.iter_mut() {
+        for (name, b_entity, pos, velocity, diameter, orbit, mass, scale, transform, apsis, children, maybe_parent) in query.iter_mut() {
             if let Some(children) = children { //check for the parent of the selected entity
                 if children.0.contains(&entity) {
-                    parent = Some((pos, velocity, name));
+                    parent = Some((pos, velocity, name, mass.clone()));
                 }
             }
             if b_entity == entity { //check for the selected entity
-                selected = Some((name, b_entity, pos, velocity, diameter, orbit, transform, mass, scale, children));
+                selected = Some((name, b_entity, pos, velocity, diameter, orbit, transform, mass, apsis, scale, children));
             } else if let Some(parent_id) = maybe_parent { //check for potential children of the entity
                 if parent_id.0 == entity {
                     s_children.push(orbit)
                 }
             }
         }
-        if let Some((name, entity, pos, velocity, diameter, mut orbit, mut transform, mut mass, scale, _)) = selected {
+        if let Some((name, entity, pos, velocity, diameter, mut orbit, mut transform, mut mass, mut apsis, scale, _)) = selected {
             egui::SidePanel::right("body_panel")
                 .max_width(250.0)
                 .resizable(true)
@@ -369,7 +371,7 @@ fn body_ui(
                         });
                         transform.scale = Vec3::splat(n_scale * scale.0);
                         ui.label(
-                            RichText::new("Diameter")
+                            RichText::new("Equator Diameter")
                                 .size(16.0)
                                 .underline(),
                         );
@@ -380,11 +382,18 @@ fn body_ui(
 
                     // Velocity Orbit Velocity around parent
                     let actual_velocity = match &parent {
-                        Some((_, vel, _)) => (vel.0 - velocity.0).length() / 1000.0,
+                        Some((_, vel, _, _)) => (vel.0 - velocity.0).length() / 1000.0,
                         None => velocity.0.length() / 1000.0,
                     };
                     ui.label(RichText::new("Orbital Velocity").size(16.0).underline());
                     ui.label(format!("{:.3} km/s", actual_velocity));
+
+                    if let Some((p_pos, _, _, p_mass)) = parent {
+                        let distance = p_pos.0.distance(pos.0);
+                        let orbit_period = 2.0 * std::f64::consts::PI * f64::sqrt(f64::powf(distance, 3.0) / (G * (p_mass.0 + mass.0)));
+                        ui.label(RichText::new("Orbital Period").size(16.0).underline());
+                        ui.label(format!("{}", format_seconds(orbit_period)));
+                    }
 
                     ui.label(RichText::new("Distance to Camera").size(16.0).underline());
                     let (_, camera_pos, _) = camera.single();
@@ -392,13 +401,30 @@ fn body_ui(
                     ui.label(format!("{:.3} au", c_distance_in_au / 10000.0));
 
                     // Distance to parent
-                    if let Some((parent_pos, _, p_name)) = parent {
+                    if let Some((parent_pos, _, p_name, _)) = parent {
                         ui.label(RichText::new(format!("Distance to {}", p_name)).size(16.0).underline());
-                        let distance_in_km = parent_pos.0.distance(pos.0) / 10000.0;
-                        ui.label(format!("{:.3} km", distance_in_km));
-                        ui.label(format!("{:.3} au", distance_in_km * M_TO_UNIT));
+                        let distance_in_m = parent_pos.0.distance(pos.0);
+                        ui.label(format!("{}", format_length(distance_in_m as f32)));
+                        ui.label(format!("{:.3} au", distance_in_m * (M_TO_AU as f64)));
+                        
+                        if let Some(mut apsis) = apsis {
+                            //Apsis
+                            ui.label(RichText::new(format!("Perihelion ({})", p_name)).size(16.0).underline());
+                            ui.label(format!("{}", format_length(apsis.perihelion.distance)));
+                            ui.label(format!("{:.3} au", apsis.perihelion.distance * M_TO_AU));                        
+        
+                            ui.label(RichText::new(format!("Aphelion ({})", p_name)).size(16.0).underline());
+                            ui.label(format!("{}", format_length(apsis.aphelion.distance)));
+                            ui.label(format!("{:.3} au", apsis.aphelion.distance * M_TO_AU));
+                            if ui.button("Reset Apsides").clicked() {
+                               apsis.aphelion.distance = 0.0;
+                               apsis.perihelion.distance = 0.0; 
+                            }
+                            
+                            ui.checkbox(&mut orbit.draw_lines, "Draw Orbit lines");                            
+                        }
                     }
-                    ui.checkbox(&mut orbit.draw_lines, "Draw Orbit lines");
+                
                     if s_children.iter().count() > 0 {
                         let old_draw_children_orbits = s_children.iter().all(|orbit| {
                             orbit.draw_lines

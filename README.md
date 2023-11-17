@@ -34,7 +34,7 @@ You can get vector positions and velocity on the [Horizons System](https://ssd.j
 
 - For the Target Body, you can search for the body you want to add.
 
-- You have to make sure that all bodies were measured at the same time, so to make  sure: 
+- You have to make sure that all bodies were measured at the same time, so to make sure: 
   
   - Open the Horizon Ui
   
