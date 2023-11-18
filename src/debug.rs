@@ -31,7 +31,7 @@ fn debug_window(
         .open(&mut ui_state.show_debug)
         .show(egui_ctx.ctx_mut(), |ui| {
             if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
-                if let Some(value) = fps.value() {
+                if let Some(value) = fps.smoothed() {
                     // Update the value of the second section
                     ui.horizontal(|ui| {
                         ui.label(RichText::new("FPS: ").strong());                            
@@ -47,7 +47,7 @@ fn debug_window(
                 }
             }
             if let Some(frametime) = diagnostics.get(FrameTimeDiagnosticsPlugin::FRAME_TIME) {
-                if let Some(value) = frametime.value() {
+                if let Some(value) = frametime.smoothed() {
                     // Update the value of the second section
                     ui.horizontal(|ui| {
                         ui.label(RichText::new("Frametime: ").strong());                            
