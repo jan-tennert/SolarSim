@@ -387,12 +387,16 @@ fn body_ui(
                     };
                     ui.label(RichText::new("Orbital Velocity").size(16.0).underline());
                     ui.label(format!("{:.3} km/s", actual_velocity));
-
-                    if let Some((p_pos, _, _, p_mass)) = parent {
-                        let distance = p_pos.0.distance(pos.0);
-                        let orbit_period = 2.0 * std::f64::consts::PI * f64::sqrt(f64::powf(distance, 3.0) / (G * (p_mass.0 + mass.0)));
-                        ui.label(RichText::new("Orbital Period").size(16.0).underline());
-                        ui.label(format!("{}", format_seconds(orbit_period)));
+                    
+                    let mut new_apsis = None;
+                    if let Some((_, _, _, p_mass)) = parent {
+                        if let Some(apsis) = apsis {
+                            let distance = ((apsis.aphelion.distance + apsis.perihelion.distance) / 2.0) as f64;                           
+                            let orbit_period = 2.0 * std::f64::consts::PI * f64::sqrt(f64::powf(distance, 3.0) / (G * (p_mass.0 + mass.0)));
+                            ui.label(RichText::new("Orbital Period").size(16.0).underline());
+                            ui.label(format!("{}", format_seconds(orbit_period)));
+                            new_apsis = Some(apsis);
+                        }
                     }
 
                     ui.label(RichText::new("Distance to Camera").size(16.0).underline());
@@ -407,7 +411,7 @@ fn body_ui(
                         ui.label(format!("{}", format_length(distance_in_m as f32)));
                         ui.label(format!("{:.3} au", distance_in_m * (M_TO_AU as f64)));
                         
-                        if let Some(mut apsis) = apsis {
+                        if let Some(mut apsis) = new_apsis {
                             //Apsis
                             ui.label(RichText::new(format!("Perihelion ({})", p_name)).size(16.0).underline());
                             ui.label(format!("{}", format_length(apsis.perihelion.distance)));
