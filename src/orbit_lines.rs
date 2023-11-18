@@ -1,6 +1,6 @@
-use bevy::{prelude::{App, Entity, Gizmos, in_state, IntoSystemConfigs, Plugin, Query, Res, ResMut, Resource, Transform, Update, Vec3, With, Without, PostUpdate, PreUpdate}, time::{Time, Timer, TimerMode}};
+use bevy::{prelude::{App, Entity, Gizmos, in_state, IntoSystemConfigs, Plugin, Query, Res, ResMut, Resource, Transform, Update, Vec3, With, Without, PostUpdate, PreUpdate, Component}, time::{Time, Timer, TimerMode}};
 
-use crate::{body::{BodyChildren, Moon, OrbitSettings, Planet, SimPosition, Star}, constants::M_TO_UNIT, physics::apply_physics, SimState};
+use crate::{body::{BodyChildren, Moon, OrbitSettings, Planet, SimPosition, Star}, constants::M_TO_UNIT, physics::{apply_physics, SubSteps}, SimState, apsis::ApsisBody, speed::Speed};
 
 pub struct OrbitLinePlugin;
 
@@ -8,7 +8,6 @@ impl Plugin for OrbitLinePlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<OrbitOffset>()
-            .init_resource::<OffsetTimer>()
             .add_systems(PreUpdate, (update_lines.after(apply_physics), draw_orbit_line.after(update_lines), clean_orbit_lines.after(draw_orbit_line)).run_if(in_state(SimState::Simulation)));
     }
 }
@@ -16,37 +15,42 @@ impl Plugin for OrbitLinePlugin {
 #[derive(Resource, Default)]
 pub struct OrbitOffset(pub Vec3);
 
-#[derive(Resource)]
-struct OffsetTimer(Timer);
-
-impl Default for OffsetTimer {
-    fn default() -> Self {
-        Self(Timer::from_seconds(0.003, TimerMode::Repeating))
-    }
-}
+const MULTIPLIER: f32 = 0.00001;
 
 fn update_lines(
     mut planet_query: Query<(&mut OrbitSettings, &SimPosition, &BodyChildren, With<Planet>, Without<Moon>, Without<Star>)>,
     mut moon_query: Query<(Entity, &SimPosition, &mut OrbitSettings, With<Moon>, Without<Planet>, Without<Star>)>,
     time: Res<Time>,
-    mut timer: ResMut<OffsetTimer>
+    speed: Res<Speed>,
+    substeps: Res<SubSteps>,
 ) {
-    timer.0.tick(time.delta());
-    
-    if timer.0.finished() {
-        for (mut orbit, pos, _, _, _, _) in &mut planet_query {
-            if orbit.draw_lines {
+    for (mut orbit, pos, _, _, _, _) in &mut planet_query {
+        if orbit.draw_lines {
+            let speed = speed.0 as f32 * (substeps.0 as f32);
+            let max_step = (orbit.period as f32 / speed) * MULTIPLIER;
+            if orbit.step >= max_step {
                 orbit.lines.push((pos.0 * M_TO_UNIT).as_vec3());
+                orbit.step = 0.0;
+            } else {
+                orbit.step += time.delta_seconds();
             }
+            println!("{}", orbit.lines.iter().count())
         }
-        for (entity, pos, mut orbit, _, _, _) in &mut moon_query {
-            if orbit.draw_lines {
-                if let Some((_, p_pos, _, _, _, _)) = planet_query.iter().find(|(_, _, children, _, _, _)| {
-                    children.0.contains(&entity)
-                }) {
+    }
+    for (entity, pos, mut orbit, _, _, _) in &mut moon_query {
+        if orbit.draw_lines {
+            if let Some((_, p_pos, _, _, _, _)) = planet_query.iter().find(|(_, _, children, _, _, _)| {
+                children.0.contains(&entity)
+            }) {
+                let speed = speed.0 as f32 * (substeps.0 as f32);
+                let max_step = (orbit.period as f32 / speed) * MULTIPLIER;
+                if orbit.step >= max_step {
                     let raw_p_pos = (p_pos.0 * M_TO_UNIT).as_vec3();
                     let raw_pos = (pos.0 * M_TO_UNIT).as_vec3();
-                    orbit.lines.push(raw_pos - raw_p_pos);
+                    orbit.lines.push(raw_pos - raw_p_pos);   
+                    orbit.step = 0.0;
+                } else {
+                    orbit.step += time.delta_seconds();
                 }
             }
         }

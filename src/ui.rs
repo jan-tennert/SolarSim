@@ -434,9 +434,9 @@ fn body_ui(
                     if let Some((_, _, _, p_mass)) = parent {
                         if let Some(apsis) = apsis {
                             let distance = ((apsis.aphelion.distance + apsis.perihelion.distance) / 2.0) as f64;                           
-                            let orbit_period = 2.0 * std::f64::consts::PI * f64::sqrt(f64::powf(distance, 3.0) / (G * (p_mass.0 + mass.0)));
+                            orbit.period = 2.0 * std::f64::consts::PI * f64::sqrt(f64::powf(distance, 3.0) / (G * (p_mass.0 + mass.0)));
                             ui.label(RichText::new("Orbital Period").size(16.0).underline());
-                            ui.label(format!("{}", format_seconds(orbit_period)));
+                            ui.label(format!("{}", format_seconds(orbit.period)));
                             new_apsis = Some(apsis);
                         }
                     }

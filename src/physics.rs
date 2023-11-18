@@ -122,17 +122,17 @@ fn update_velocity_and_positions(
 ) {
     for (_, mass, mut acc, mut vel, _, _) in query.iter_mut() {
         acc.0 /= mass.0; //actually apply the force to the body
-        vel.0 += acc.0 * delta_time * speed.0 * 0.5; //apply 0.5 of the acceleration
+        vel.0 += acc.0 * delta_time * speed.0; //apply 0.5 of the acceleration
         *steps += 1;
     }
     let offset = match selected_entity.entity {
         Some(selected) => {
-            if let Ok((_, _, acc, mut vel, mut sim_pos, mut transform)) = query.get_mut(selected) {
+            if let Ok((_, _, _, vel, mut sim_pos, mut transform)) = query.get_mut(selected) {
                 sim_pos.0 += vel.0 * delta_time * speed.0; //this is the same step as below, but we are doing this first for the offset
                 let raw_translation = sim_pos.0 * M_TO_UNIT;
                 transform.translation = Vec3::ZERO; //the selected entity will always be at 0,0,0
                 *steps += 1;
-                vel.0 += acc.0 * delta_time * speed.0 * 0.5; //apply 0.5 of the acceleration a second time (the selected entity will be ignored in the loop below)
+        //        vel.0 += acc.0 * delta_time * speed.0 * 0.5; //apply 0.5 of the acceleration a second time (the selected entity will be ignored in the loop below)
                 -raw_translation 
             } else {
                 DVec3::ZERO 
@@ -140,7 +140,7 @@ fn update_velocity_and_positions(
         }
         None => DVec3::ZERO,
     };
-    for (entity, _, acc, mut vel, mut sim_pos, mut transform) in query.iter_mut() {
+    for (entity, _, _, vel, mut sim_pos, mut transform) in query.iter_mut() {
         if let Some(s_entity) = selected_entity.entity {
             if s_entity == entity {
                 continue;
@@ -150,7 +150,7 @@ fn update_velocity_and_positions(
         sim_pos.0 += vel.0 * delta_time * speed.0;
         let pos_without_offset = sim_pos.0.as_vec3() * M_TO_UNIT as f32;
         transform.translation = pos_without_offset + offset.as_vec3(); //apply offset
-        vel.0 += acc.0 * delta_time * speed.0 * 0.5; //apply 0.5 of the acceleration a second time
+    //    vel.0 += acc.0 * delta_time * speed.0 * 0.5; //apply 0.5 of the acceleration a second time
     }
     orbit_offset.0 = offset.as_vec3();
 }

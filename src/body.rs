@@ -40,15 +40,17 @@ pub struct OrbitSettings {
     
     pub color: Color,
     pub max_points: i32,
+    pub step: f32,
     pub lines: Vec<Vec3>,
-    pub draw_lines: bool
+    pub draw_lines: bool,
+    pub period: f64,
                          
 }
 
 impl Default for OrbitSettings {
     
     fn default() -> Self {
-        OrbitSettings { color: Color::GREEN, max_points: 3000, lines: vec![], draw_lines: false }
+        OrbitSettings { color: Color::GREEN, max_points: 3000, lines: vec![], draw_lines: false, step: 0.0, period: 0.0 }
     }
     
 }
