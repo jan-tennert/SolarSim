@@ -3,7 +3,7 @@ use bevy::{
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     prelude::{
         App, Camera, Color, Commands, DespawnRecursiveExt, Entity, GizmoConfig,
-        Input, IntoSystemConfigs, KeyCode, Mut, Name, NextState, Plugin, PointLight, Query, Res, ResMut, Resource, Transform, Vec3, Visibility, With, Without,
+        Input, IntoSystemConfigs, KeyCode, Mut, Name, NextState, Plugin, PointLight, Query, Res, ResMut, Resource, Transform, Vec3, Visibility, With, Without, default,
     },
     reflect::Reflect, time::Time, window::PresentMode,
 };
@@ -31,14 +31,22 @@ pub struct Light {
     pub shadows_enabled: bool,
 }
 
+#[derive(Reflect)]
+pub enum StepType {
+    SUBSTEPS,
+    TIMESTEPS    
+}
+
 #[derive(Resource, Reflect)]
 pub struct UiState {
     pub visible: bool,
+    pub step_type: StepType,
+    pub show_debug: bool,
 }
 
 impl Default for UiState {
     fn default() -> Self {
-        UiState { visible: true }
+        UiState { visible: true, step_type: StepType::SUBSTEPS, show_debug: false, }
     }
 }
 
@@ -70,7 +78,7 @@ pub fn time_ui(
     mut state: ResMut<NextState<SimState>>,
     starting_time: Res<StartingTime>,
     mut sub_steps: ResMut<SubSteps>,
-    ui_state: Res<UiState>,
+    mut ui_state: ResMut<UiState>,
     diagnostics: Res<DiagnosticsStore>,
 ) {
     if !ui_state.visible {
@@ -90,11 +98,23 @@ pub fn time_ui(
             ui.horizontal(|ui| {
                 ui.with_layout(egui::Layout::left_to_right(egui::Align::LEFT), |ui| {
                     ui.horizontal_centered(|ui| {
+                        let mut timestep_selected = match ui_state.step_type {
+                            StepType::SUBSTEPS => false,
+                            StepType::TIMESTEPS => true
+                        };
                         if ui.small_button("<<").clicked() {
-                            sub_steps.big_step_down();
+                            if timestep_selected {
+                                speed.big_step_down();
+                            } else {
+                                sub_steps.big_step_down();                                   
+                            }
                         }
                         if ui.small_button("<").clicked() || keys.just_pressed(KeyCode::Left) {
-                            sub_steps.small_step_down();
+                            if timestep_selected {
+                                speed.small_step_down();
+                            } else {
+                                sub_steps.small_step_down();                                   
+                            }
                         }
                         ui.label(format!(
                             "{} ({}/s)",
@@ -106,13 +126,24 @@ pub fn time_ui(
                             pause.0 = !pause.0;
                         }
                         if ui.small_button(">").clicked() || keys.just_pressed(KeyCode::Right) {
-                            sub_steps.small_step_up();
+                            if timestep_selected {
+                                speed.small_step_up();
+                            } else {
+                                sub_steps.small_step_up();                                   
+                            }
                         }
                         if ui.small_button(">>").clicked() {
-                            sub_steps.big_step_up();
+                            if timestep_selected {
+                                speed.big_step_up();
+                            } else {
+                                sub_steps.big_step_up();                                   
+                            }
                         }
                         //       ui.add_space(20.0);
-                        ui.label("Substeps per second");
+                        
+                        if ui.toggle_value(&mut !timestep_selected, "Substeps per second").clicked() {
+                            timestep_selected = false;
+                        }
                         let mut new_sub_steps = sub_steps.0.to_string();
                         if ui
                             .add(TextEdit::singleline(&mut new_sub_steps).desired_width(50.0))
@@ -123,7 +154,9 @@ pub fn time_ui(
                             }
                         }
                         //     ui.add_space(20.0);
-                        ui.label("Timestep in seconds");
+                        if ui.toggle_value(&mut timestep_selected, "Timestep in seconds").clicked() {
+                            timestep_selected = true;   
+                        }
                         let mut new_speed = speed.0.to_string();
                         if ui
                             .add(TextEdit::singleline(&mut new_speed).desired_width(50.0))
@@ -133,7 +166,13 @@ pub fn time_ui(
                                 speed.0 = new_speed_num;
                             }
                         }
-                        ui.label(format!("({})", speed.format(1)))
+                        ui.label(format!("({})", speed.format(1)));
+                        
+                        if timestep_selected {
+                            ui_state.step_type = StepType::TIMESTEPS
+                        } else {
+                            ui_state.step_type = StepType::SUBSTEPS
+                        }
                     });
                 });
 
@@ -200,7 +239,7 @@ pub fn system_ui(
     mut commands: Commands,
     mut cubemap: ResMut<Cubemap>,
     mut billboard: ResMut<BillboardSettings>,
-    ui_state: Res<UiState>,
+    mut ui_state: ResMut<UiState>,
 ) {
     if !ui_state.visible {
         return;
@@ -262,6 +301,9 @@ pub fn system_ui(
 
                 ui.checkbox(&mut config.aabb.draw_all, "Draw Outlines");
                 ui.checkbox(&mut billboard.show, "Show Body Names");
+                if ui.button("Open Debug Window").clicked() {
+                    ui_state.show_debug = true; 
+                }
                 ui.add_space(5.0);
                 ui.label("F10 - Hide Ui");
                 ui.label("F11 - Toggle Fullscreen");

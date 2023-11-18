@@ -1,3 +1,5 @@
+use std::time::{Instant, Duration};
+
 use bevy::app::{App, Plugin, Update};
 use bevy::math::{DVec3, Vec3};
 use bevy::prelude::{Entity, in_state, IntoSystemConfigs, Mut, Query, Res, ResMut, Resource, Time, Transform};
@@ -16,6 +18,7 @@ impl Plugin for PhysicsPlugin {
         app
             .init_resource::<Pause>()
             .init_resource::<SubSteps>()
+            .init_resource::<NBodyTime>()
             .register_type::<Velocity>()
             .register_type::<Acceleration>()
             .register_type::<Mass>()
@@ -30,6 +33,9 @@ pub struct Pause(pub bool);
 
 #[derive(Resource)]
 pub struct SubSteps(pub i32);
+
+#[derive(Resource, Default)]
+pub struct NBodyTime(pub Duration);
 
 impl Default for SubSteps {
     fn default() -> Self {
@@ -64,17 +70,21 @@ pub fn apply_physics(
     speed: Res<Speed>,
     selected_entity: Res<SelectedEntity>,
     mut orbit_offset: ResMut<OrbitOffset>,
-    sub_steps: Res<SubSteps>
+    sub_steps: Res<SubSteps>,
+    mut nbody_time: ResMut<NBodyTime>
 ) {
     if pause.0 {
         return;
     }
     let delta = time.delta_seconds() as f64;
+    let start = Instant::now();
     for _ in 0..sub_steps.0 {
         update_acceleration(&mut query);
-        update_velocity(&mut query, delta, &speed);
-        update_position(&mut query, delta, &speed, &selected_entity, &mut orbit_offset)
+        update_velocity(&mut query, delta, &speed, 0.5);
+        update_position(&mut query, delta, &speed, &selected_entity, &mut orbit_offset);
+        update_velocity(&mut query, delta, &speed, 0.5);
     }
+    nbody_time.0 = start.elapsed();
 }
 
 fn update_acceleration(
@@ -105,9 +115,10 @@ fn update_velocity(
     query: &mut Query<(Entity, &Mass, &mut Acceleration, &mut Velocity, &mut SimPosition, &mut Transform)>,
     delta_time: f64,
     speed: &Res<Speed>,
+    multiplier: f64
 ) {
     for (_, _, acc, mut vel, _, _) in query.iter_mut() {
-        vel.0 += acc.0 * delta_time * speed.0;
+        vel.0 += acc.0 * delta_time * speed.0 * multiplier;
     }
 }
 

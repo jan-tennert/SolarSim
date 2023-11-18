@@ -5,12 +5,15 @@ use bevy::app::{App, PluginGroup};
 use bevy::DefaultPlugins;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::{default, States};
+use bevy::render::RenderPlugin;
+use bevy::render::settings::{RenderCreation, WgpuSettings, Backends};
 use bevy::window::{PresentMode, Window, WindowPlugin};
 use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_billboard::plugin::BillboardPlugin;
 
 use camera::PanOrbitCameraPlugin;
+use debug::DebugPlugin;
 use diameter::DiameterPlugin;
 use input::InputPlugin;
 use loading::LoadingPlugin;
@@ -53,6 +56,7 @@ mod star_renderer;
 mod billboard;
 mod apsis;
 mod unit;
+mod debug;
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
 pub enum SimState {
@@ -76,9 +80,15 @@ fn main() {
                 }),
                 ..default()
             })
+            .set(RenderPlugin {
+                render_creation: RenderCreation::Automatic(WgpuSettings {
+                    backends: Some(Backends::VULKAN),
+                    ..default()
+                }),
+            })  
         )
         .add_plugins(EguiPlugin)
-    //    .add_plugins(WorldInspectorPlugin::new())
+     //   .add_plugins(WorldInspectorPlugin::new())
   //      .add_plugins(DefaultPickingPlugins)
         .add_plugins(LockOnPlugin)
         .add_plugins(SerializationPlugin)
@@ -86,6 +96,7 @@ fn main() {
         .add_plugins(BodyBillboardPlugin)
         .add_plugins(BillboardPlugin)
         .add_plugins(ApsisPlugin)
+        .add_plugins(DebugPlugin)
         //     .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(SetupPlugin)

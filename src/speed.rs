@@ -26,6 +26,22 @@ impl Speed {
         return format_seconds(speed_in_seconds);
     }
         
+    pub fn small_step_up(&mut self) {
+        self.0 *= 2.0; 
+    }
+        
+    pub fn big_step_up(&mut self) {
+        self.0 *= 10.0;
+    }
+        
+    pub fn small_step_down(&mut self) {
+        self.0 = f64::max(self.0 / 2.0, 1.0);
+    }
+        
+    pub fn big_step_down(&mut self) {
+        self.0 = f64::max(self.0 / 10.0, 1.0);
+    }
+        
 }
 
 impl Default for Speed {
