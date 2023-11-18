@@ -34,7 +34,6 @@ fn update_lines(
             } else {
                 orbit.step += time.delta_seconds();
             }
-            println!("{}", orbit.lines.iter().count())
         }
     }
     for (entity, pos, mut orbit, _, _, _) in &mut moon_query {
