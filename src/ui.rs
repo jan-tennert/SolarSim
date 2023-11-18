@@ -61,7 +61,7 @@ impl Plugin for UIPlugin {
             .add_plugins(BlockInputPlugin)
             .add_systems(
                 Update,
-                (system_ui.after(time_ui), body_ui.after(apply_physics), time_ui.after(body_ui)).run_if(in_state(SimState::Simulation)),
+                (system_ui.after(time_ui), body_ui.after(system_ui), time_ui.after(apply_physics)).run_if(in_state(SimState::Simulation)),
             );
     }
 }
@@ -305,8 +305,8 @@ pub fn system_ui(
                     ui_state.show_debug = true; 
                 }
                 ui.add_space(5.0);
-                ui.label("F10 - Hide Ui");
                 ui.label("F11 - Toggle Fullscreen");
+                ui.label("F10 - Hide Ui");
                 ui.label("Space - Pause");
                 ui.label("Left Arrow - 2x Speed");
                 ui.label("Right Arrow - 1/2 Speed");
@@ -356,7 +356,7 @@ fn body_ui(
     if let Some(entity) = selected_entity.entity {
         let mut parent: Option<(&SimPosition, &Velocity, &Name, Mass)> = None;
         let mut selected: Option<(&Name, Entity, &SimPosition, &Velocity, &Diameter, Mut<OrbitSettings>, Mut<Transform>, Mut<Mass>, Option<Mut<ApsisBody>>, &Scale, Option<&BodyChildren>)> = None;
-        let mut s_children: Vec<Mut<OrbitSettings>> = vec![];
+        let mut s_children: Vec<(Entity, Mut<OrbitSettings>)> = vec![];
         for (name, b_entity, pos, velocity, diameter, orbit, mass, scale, transform, apsis, children, maybe_parent) in query.iter_mut() {
             if let Some(children) = children { //check for the parent of the selected entity
                 if children.0.contains(&entity) {
@@ -367,11 +367,11 @@ fn body_ui(
                 selected = Some((name, b_entity, pos, velocity, diameter, orbit, transform, mass, apsis, scale, children));
             } else if let Some(parent_id) = maybe_parent { //check for potential children of the entity
                 if parent_id.0 == entity {
-                    s_children.push(orbit)
+                    s_children.push((b_entity, orbit))
                 }
             }
         }
-        if let Some((name, entity, pos, velocity, diameter, mut orbit, mut transform, mut mass, mut apsis, scale, _)) = selected {
+        if let Some((name, entity, pos, velocity, diameter, mut orbit, mut transform, mut mass, apsis, scale, _)) = selected {
             egui::SidePanel::right("body_panel")
                 .max_width(250.0)
                 .resizable(true)
@@ -455,11 +455,11 @@ fn body_ui(
                         
                         if let Some(mut apsis) = new_apsis {
                             //Apsis
-                            ui.label(RichText::new(format!("Perihelion ({})", p_name)).size(16.0).underline());
+                            ui.label(RichText::new(format!("Periapsis ({})", p_name)).size(16.0).underline());
                             ui.label(format!("{}", format_length(apsis.perihelion.distance)));
                             ui.label(format!("{:.3} au", apsis.perihelion.distance * M_TO_AU));                        
         
-                            ui.label(RichText::new(format!("Aphelion ({})", p_name)).size(16.0).underline());
+                            ui.label(RichText::new(format!("Apoapsis ({})", p_name)).size(16.0).underline());
                             ui.label(format!("{}", format_length(apsis.aphelion.distance)));
                             ui.label(format!("{:.3} au", apsis.aphelion.distance * M_TO_AU));
                             if ui.button("Reset Apsides").clicked() {
@@ -472,13 +472,13 @@ fn body_ui(
                     }
                 
                     if s_children.iter().count() > 0 {
-                        let old_draw_children_orbits = s_children.iter().all(|orbit| {
+                        let old_draw_children_orbits = s_children.iter().all(|(_, orbit)| {
                             orbit.draw_lines
                         });
                         let mut draw_children_orbits = old_draw_children_orbits;
                         ui.checkbox(&mut draw_children_orbits, "Draw Children Orbits");
                         if draw_children_orbits != old_draw_children_orbits {
-                            for orbit in s_children.iter_mut() {
+                            for (_, orbit) in s_children.iter_mut() {
                                 orbit.draw_lines = draw_children_orbits;
                             }
                         }
@@ -499,8 +499,13 @@ fn body_ui(
                     }
 
                     ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
+                        if ui.button("Delete Children").clicked() {
+                            for (entity, _) in s_children {
+                                commands.entity(entity).despawn_recursive();
+                            }
+                        }
                         if ui.button("Delete").clicked() {
-                            commands.entity(entity).despawn_recursive()
+                            commands.entity(entity).despawn_recursive();
                         }
                     });
                 });

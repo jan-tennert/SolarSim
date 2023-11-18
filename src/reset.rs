@@ -1,6 +1,6 @@
 use bevy::prelude::{App, Camera, Commands, DespawnRecursiveExt, Entity, NextState, OnEnter, OnExit, Plugin, Query, ResMut, Vec3, With, Without};
 
-use crate::{body::Mass, camera::{DEFAULT_CAM_RADIUS, PanOrbitCamera}, constants::{DEFAULT_SUB_STEPS, DEFAULT_TIMESTEP}, loading::LoadingState, physics::{Pause, SubSteps}, selection::SelectedEntity, setup::BodiesHandle, SimState, speed::Speed, ui::SimTime};
+use crate::{body::Mass, camera::{DEFAULT_CAM_RADIUS, PanOrbitCamera}, constants::{DEFAULT_SUB_STEPS, DEFAULT_TIMESTEP}, loading::LoadingState, physics::{Pause, SubSteps}, selection::SelectedEntity, setup::BodiesHandle, SimState, speed::Speed, ui::{SimTime, UiState, StepType}};
 
 pub struct ResetPlugin;
 
@@ -25,7 +25,8 @@ fn clean_up(
     mut sub_steps: ResMut<SubSteps>,
     mut loading_state: ResMut<LoadingState>,
     mut commands: Commands,
-    mut camera: Query<&mut PanOrbitCamera>
+    mut camera: Query<&mut PanOrbitCamera>,
+    mut ui_state: ResMut<UiState>
 ) {
     for (entity, _, _) in m_entities.iter() {
         commands.entity(entity).despawn_recursive()
@@ -40,6 +41,9 @@ fn clean_up(
     let mut cam = camera.single_mut();
     cam.focus = Vec3::ZERO;
     cam.radius = DEFAULT_CAM_RADIUS;
+    ui_state.visible = true;
+    ui_state.step_type = StepType::SUBSTEPS;
+    ui_state.show_debug = false;
 }
 
 fn switch_to_menu(

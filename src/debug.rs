@@ -1,11 +1,12 @@
 use bevy::app::{App, Plugin};
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
-use bevy::prelude::{Resource, Update, IntoSystemConfigs, in_state, Res, ResMut};
+use bevy::prelude::{Resource, Update, IntoSystemConfigs, in_state, Res, ResMut, Query};
 use bevy_egui::egui::RichText;
 use bevy_egui::{egui::{self, InnerResponse, Response, Ui}, EguiContexts};
 
 use crate::SimState;
-use crate::physics::NBodyTime;
+use crate::body::Mass;
+use crate::physics::{NBodyStats, SubSteps};
 use crate::ui::{system_ui, UiState};
 
 
@@ -23,9 +24,13 @@ impl Plugin for DebugPlugin {
 fn debug_window(
     mut egui_ctx: EguiContexts,
     mut ui_state: ResMut<UiState>,
-    nbody_time: Res<NBodyTime>,
+    nbody_stats: Res<NBodyStats>,
     diagnostics: Res<DiagnosticsStore>,
+    bodies: Query<&Mass>
 ) {
+    if !ui_state.visible {
+        return;
+    }
     egui::Window::new("Debug Information")
         .vscroll(true)
         .open(&mut ui_state.show_debug)
@@ -64,9 +69,18 @@ fn debug_window(
                     });
                 }
             }
+            let body_count = bodies.iter().count();
+            ui.horizontal(|ui| {
+                ui.label(RichText::new("Total amount of bodies: ").strong());                            
+                ui.label(format!("{:?}", body_count));
+            });
+            ui.horizontal(|ui| {
+                ui.label(RichText::new("N-Body steps / frame: ").strong());                            
+                ui.label(format!("{}", nbody_stats.steps));
+            });
             ui.horizontal(|ui| {
                 ui.label(RichText::new("N-Body calculation time: ").strong());                            
-                ui.label(format!("{:?}", nbody_time.0));
+                ui.label(format!("{:?}", nbody_stats.time));
             });
         });
 }

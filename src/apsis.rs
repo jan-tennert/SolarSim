@@ -71,8 +71,6 @@ fn update_apsis(
         }
         if let Some(p_pos) = parent {
             let new_distance = p_pos.0.distance(position.0) as f32;
-            let raw_p_pos = p_pos.0;
-            let raw_pos = position.0;
             //perihelion
             if apsis.perihelion.distance > new_distance || apsis.perihelion.distance == 0.0 {
                 apsis.perihelion.distance = new_distance;

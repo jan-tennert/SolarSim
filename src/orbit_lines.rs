@@ -21,7 +21,7 @@ struct OffsetTimer(Timer);
 
 impl Default for OffsetTimer {
     fn default() -> Self {
-        Self(Timer::from_seconds(0.005, TimerMode::Repeating))
+        Self(Timer::from_seconds(0.003, TimerMode::Repeating))
     }
 }
 
