@@ -58,32 +58,35 @@ fn update_lines(
 
 fn draw_orbit_line(
     offset: Res<OrbitOffset>,
-    planet_query: Query<(&OrbitSettings, &SimPosition, &BodyChildren, With<Planet>, Without<Moon>, Without<Star>)>,
-    moon_query: Query<(Entity, &OrbitSettings, With<Moon>, Without<Planet>, Without<Star>)>,
+    planet_query: Query<(&OrbitSettings, &SimPosition, &BodyChildren, &Transform, With<Planet>, Without<Moon>, Without<Star>)>,
+    moon_query: Query<(Entity, &OrbitSettings, &Transform, With<Moon>, Without<Planet>, Without<Star>)>,
     mut gizmos: Gizmos
 ) {
-    for (orbit, _, _, _, _, _) in &planet_query {
+    for (orbit, _, _, transform, _, _, _) in &planet_query {
         if orbit.draw_lines {
-            draw_lines(orbit, offset.0, &mut gizmos)
+            draw_lines(orbit, offset.0, &mut gizmos, transform.translation)
         }
     }
-    for (entity, orbit, _, _, _) in &moon_query {
+    for (entity, orbit, transform, _, _, _) in &moon_query {
         if orbit.draw_lines {
-            if let Some((_, p_pos, _, _, _, _)) = planet_query.iter().find(|(_, _, children, _, _, _)| {
+            if let Some((_, p_pos, _, _, _, _, _)) = planet_query.iter().find(|(_, _, children, _, _, _, _)| {
                 children.0.contains(&entity)
             }) {
                 let raw_p_pos = (p_pos.0 * M_TO_UNIT).as_vec3();
-                draw_lines(orbit, offset.0 + raw_p_pos, &mut gizmos)
+                draw_lines(orbit, offset.0 + raw_p_pos, &mut gizmos, transform.translation)
             }
         }
     }
 }
 
-pub fn draw_lines(orbit: &OrbitSettings, offset: Vec3, gizmos: &mut Gizmos) {
+pub fn draw_lines(orbit: &OrbitSettings, offset: Vec3, gizmos: &mut Gizmos, current_pos: Vec3) {
     for (index, first) in orbit.lines.iter().enumerate() {
         if let Some(second) = orbit.lines.get(index + 1) {
             gizmos.line(*first + offset, *second + offset, orbit.color);
         }
+    }
+    if let Some(last) = orbit.lines.last() {
+        gizmos.line(*last + offset, current_pos, orbit.color)   
     }
 }
 

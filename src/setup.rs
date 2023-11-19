@@ -253,7 +253,7 @@ pub fn setup_camera(
         PanOrbitCamera::default(),
         Skybox(skybox_handle.clone()),
         BloomSettings {
-            intensity: 0.4, // the default is 0.3,
+            intensity: 0.3, // the default is 0.3,
             ..default()
         }
     ));
