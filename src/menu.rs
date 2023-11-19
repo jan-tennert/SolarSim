@@ -38,7 +38,8 @@ enum MenuButtonType {
 struct MenuButton(pub MenuButtonType);
 
 fn spawn_menu(
-    mut commands: Commands
+    mut commands: Commands, 
+    asset_server: Res<AssetServer>
 ) {
     commands
         .spawn(NodeBundle {
@@ -50,8 +51,10 @@ fn spawn_menu(
                 flex_direction: FlexDirection::Column,
                 ..default()
             },
+            background_color: Color::WHITE.into(),
             ..default()
         })
+        .insert(UiImage::new(asset_server.load("images/background.png")))
         .with_children(|parent| {
             parent.spawn((
                 TextBundle::from_section(
@@ -59,7 +62,7 @@ fn spawn_menu(
                     TextStyle {
                         //font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                         font_size: 70.0,
-                        color: Color::GRAY,
+                        color: Color::WHITE,
                         ..default()
                     },
                 )
@@ -75,7 +78,7 @@ fn spawn_menu(
                     TextStyle {
                         //font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                         font_size: 20.0,
-                        color: Color::GRAY,
+                        color: Color::WHITE,
                         ..default()
                     },
                 )
@@ -98,7 +101,7 @@ fn spawn_menu(
                         margin: UiRect::bottom(Val::Px(30.)),
                         ..default()
                     },
-                    border_color: BorderColor(Color::BLACK),
+        //            border_color: BorderColor(Color::BLACK),
                     background_color: NORMAL_BUTTON.into(),
                     ..default()
                 })
@@ -125,7 +128,7 @@ fn spawn_menu(
                         align_items: AlignItems::Center,
                         ..default()
                     },
-                    border_color: BorderColor(Color::BLACK),
+               //     border_color: BorderColor(Color::BLACK),
                     background_color: NORMAL_BUTTON.into(),
                     ..default()
                 })
@@ -170,11 +173,11 @@ fn button_system(
             }
             Interaction::Hovered => {
                 *color = HOVERED_BUTTON.into();
-                border_color.0 = Color::WHITE;
+           //     border_color.0 = Color::WHITE;
             }
             Interaction::None => {
                 *color = NORMAL_BUTTON.into();
-                border_color.0 = Color::BLACK;
+          //      border_color.0 = Color::BLACK;
             }
         }
     }

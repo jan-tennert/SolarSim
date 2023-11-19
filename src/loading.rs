@@ -1,4 +1,4 @@
-use bevy::{app::{App, Plugin}, prelude::{BuildChildren, Color, Commands, default, Entity, in_state, IntoSystemConfigs, Label, NextState, NodeBundle, OnEnter, OnExit, Query, ResMut, Resource, TextBundle, Update}, text::TextStyle, ui::{AlignItems, JustifyContent, Node, Style, UiRect, Val}};
+use bevy::{app::{App, Plugin}, prelude::{BuildChildren, Res, Color, Commands, default, Entity, in_state, IntoSystemConfigs, Label, NextState, NodeBundle, OnEnter, OnExit, Query, ResMut, Resource, TextBundle, Update, AssetServer}, text::TextStyle, ui::{AlignItems, JustifyContent, Node, Style, UiRect, Val, UiImage}};
 
 use crate::SimState;
 
@@ -45,7 +45,8 @@ fn despawn_loading(
 }
 
 fn spawn_loading(
-    mut commands: Commands
+    mut commands: Commands,
+    asset_server: Res<AssetServer>
 ) {
     let mut parent = commands
         .spawn(NodeBundle {
@@ -56,17 +57,18 @@ fn spawn_loading(
                 align_items: AlignItems::Center,
                 ..default()
             },
-            background_color: Color::rgb(0.15, 0.15, 0.15).into(),
+            background_color: Color::WHITE.into(),
             ..default()
         });
+    parent.insert(UiImage::new(asset_server.load("images/background.png")));
     parent.with_children(|parent| {
         parent.spawn((
             TextBundle::from_section(
                 "Loading...",
                 TextStyle {
                     //font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                    font_size: 30.0,
-                    color: Color::GRAY,
+                    font_size: 50.0,
+                    color: Color::WHITE,
                     ..default()
                 },
             )
