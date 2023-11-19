@@ -4,12 +4,12 @@ use apsis::ApsisPlugin;
 use bevy::app::{App, PluginGroup};
 use bevy::DefaultPlugins;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
-use bevy::prelude::{default, States};
+use bevy::prelude::{default, States, NonSend, Query, Entity, Startup};
 use bevy::render::RenderPlugin;
 use bevy::render::settings::{RenderCreation, WgpuSettings, Backends};
 use bevy::window::{PresentMode, Window, WindowPlugin};
+use bevy::winit::WinitWindows;
 use bevy_egui::EguiPlugin;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_billboard::plugin::BillboardPlugin;
 
 use camera::PanOrbitCameraPlugin;
@@ -26,6 +26,7 @@ use skybox::SkyboxPlugin;
 use speed::SpeedPlugin;
 use star_renderer::StarRendererPlugin;
 use ui::UIPlugin;
+use winit::window::Icon;
 
 use crate::billboard::BodyBillboardPlugin;
 use crate::menu::MenuPlugin;
@@ -67,6 +68,31 @@ pub enum SimState {
     Reset,
     ExitToMainMenu
 }
+
+fn set_window_icon(
+    // we have to use `NonSend` here
+    windows: Query<(Entity, &Window)>,
+    w_windows: NonSend<WinitWindows>,
+) {
+    if let Ok((id,_)) = windows.get_single() {
+        let window = w_windows.get_window(id).unwrap();
+        // here we use the `image` crate to load our icon data from a png file
+        // this is not a very bevy-native solution, but it will do
+        let (icon_rgba, icon_width, icon_height) = {
+            let image = image::open("assets/images/icon.png")
+                .expect("Failed to open icon path")
+                .into_rgba8();
+            let (width, height) = image.dimensions();
+            let rgba = image.into_raw();
+            (rgba, width, height)
+        };
+    
+        let icon = Icon::from_rgba(icon_rgba, icon_width, icon_height).unwrap();
+    
+        window.set_window_icon(Some(icon));
+    }
+}
+
 
 fn main() {
     App::new()
@@ -116,5 +142,6 @@ fn main() {
     //    .add_plugins(ScreenDiagnosticsPlugin::default())
   //      .add_plugins(ScreenFrameDiagnosticsPlugin)
         .add_state::<SimState>()
+        .add_systems(Startup, set_window_icon)
         .run();
 }
