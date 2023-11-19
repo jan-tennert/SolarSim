@@ -1,4 +1,4 @@
-use bevy::{prelude::*};
+use bevy::{prelude::*, app::AppExit};
 use bevy_egui::*;
 use bevy_inspector_egui::egui::Frame;
 
@@ -10,20 +10,172 @@ impl Plugin for MenuPlugin {
 
     fn build(&self, app: &mut App) {
         app
-            .add_systems(Update, (main_menu).run_if(in_state(SimState::Menu)));
+            .add_systems(OnEnter(SimState::Menu), spawn_menu)
+            .add_systems(OnExit(SimState::Menu), despawn_menu)  
+            .add_systems(Update, (button_system).run_if(in_state(SimState::Menu)));
     }
 }
 
-fn main_menu(
-    mut contexts: EguiContexts,
-    mut state: ResMut<NextState<SimState>>
+const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
+const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
+
+fn despawn_menu(
+    mut commands: Commands,
+    nodes: Query<(Entity, &Node)>
 ) {
-    egui::CentralPanel::default().frame(Frame::none()).show(contexts.ctx_mut(), |ui| {
-        ui.with_layout(egui::Layout::from_main_dir_and_cross_align(egui::Direction::BottomUp, egui::Align::Center), |ui| {
-            ui.add_space(10.0);
-            if ui.button("Start Simulation").clicked() {
-                let _ = state.set(SimState::Loading);
-            }
+    for (entity, _) in &nodes {
+        commands.entity(entity).despawn();
+    }
+}
+
+enum MenuButtonType {
+    START,
+    EXIT
+}
+
+
+#[derive(Component)]
+struct MenuButton(pub MenuButtonType);
+
+fn spawn_menu(
+    mut commands: Commands
+) {
+    commands
+        .spawn(NodeBundle {
+            style: Style {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                flex_direction: FlexDirection::Column,
+                ..default()
+            },
+            ..default()
         })
-    });
+        .with_children(|parent| {
+            parent.spawn((
+                TextBundle::from_section(
+                    "Solar System Simulation",
+                    TextStyle {
+                        //font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                        font_size: 70.0,
+                        color: Color::GRAY,
+                        ..default()
+                    },
+                )
+                .with_style(Style {
+                    margin: UiRect::bottom(Val::Px(20.)),
+                    ..default()
+                }),
+                Label
+            ));
+            parent.spawn((
+                TextBundle::from_section(
+                    "by Jan Tennert",
+                    TextStyle {
+                        //font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                        font_size: 20.0,
+                        color: Color::GRAY,
+                        ..default()
+                    },
+                )
+                .with_style(Style {
+                    margin: UiRect::bottom(Val::Px(40.)),
+                    ..default()
+                }),
+                Label
+            ));
+            parent
+                .spawn(ButtonBundle {
+                    style: Style {
+                        width: Val::Px(150.0),
+                        height: Val::Px(65.0),
+                        border: UiRect::all(Val::Px(5.0)),
+                        // horizontally center child text
+                        justify_content: JustifyContent::Center,
+                        // vertically center child text
+                        align_items: AlignItems::Center,
+                        margin: UiRect::bottom(Val::Px(30.)),
+                        ..default()
+                    },
+                    border_color: BorderColor(Color::BLACK),
+                    background_color: NORMAL_BUTTON.into(),
+                    ..default()
+                })
+                .insert(MenuButton(MenuButtonType::START))
+                .with_children(|parent| {
+                    parent.spawn(TextBundle::from_section(
+                        "Start",
+                        TextStyle {
+                            font_size: 40.0,
+                            color: Color::rgb(0.9, 0.9, 0.9),
+                            ..default()
+                        },
+                    ));
+                });
+            parent
+                .spawn(ButtonBundle {
+                    style: Style {
+                        width: Val::Px(150.0),
+                        height: Val::Px(65.0),
+                        border: UiRect::all(Val::Px(5.0)),
+                        // horizontally center child text
+                        justify_content: JustifyContent::Center,
+                        // vertically center child text
+                        align_items: AlignItems::Center,
+                        ..default()
+                    },
+                    border_color: BorderColor(Color::BLACK),
+                    background_color: NORMAL_BUTTON.into(),
+                    ..default()
+                })
+                .insert(MenuButton(MenuButtonType::EXIT))
+                .with_children(|parent| {
+                    parent.spawn(TextBundle::from_section(
+                        "Exit",
+                        TextStyle {
+                            font_size: 40.0,
+                            color: Color::rgb(0.9, 0.9, 0.9),
+                            ..default()
+                        },
+                    ));
+                });
+        });
+}
+
+fn button_system(
+    mut interaction_query: Query<
+        (
+            &Interaction,
+            &mut BackgroundColor,
+            &mut BorderColor,
+            &MenuButton
+        ),
+        (Changed<Interaction>, With<Button>),
+    >,
+    mut state: ResMut<NextState<SimState>>,
+    mut exit: EventWriter<AppExit>
+) {
+    for (interaction, mut color, mut border_color, button) in &mut interaction_query {
+        match *interaction {
+            Interaction::Pressed => {
+                match button.0 {
+                    MenuButtonType::START => {
+                        let _ = state.set(SimState::Loading);
+                    }
+                    MenuButtonType::EXIT => {
+                        exit.send(AppExit);
+                    }
+                }
+            }
+            Interaction::Hovered => {
+                *color = HOVERED_BUTTON.into();
+                border_color.0 = Color::WHITE;
+            }
+            Interaction::None => {
+                *color = NORMAL_BUTTON.into();
+                border_color.0 = Color::BLACK;
+            }
+        }
+    }
 }
