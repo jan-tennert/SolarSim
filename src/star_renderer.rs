@@ -5,6 +5,7 @@ use bevy::scene::SceneInstance;
 
 use crate::body::Star;
 use crate::SimState;
+use crate::camera::pan_orbit_camera;
 
 const STAR_IMPOSTER_THRESHOLD: f32 = 4_000.0;
 pub const STAR_IMPOSTER_DIVIDER: f32 = 10000.0;
@@ -15,7 +16,7 @@ impl Plugin for StarRendererPlugin {
 
     fn build(&self, app: &mut App) {
         app
-            .add_systems(Update, change_sun_renderer.run_if(in_state(SimState::Simulation)));
+            .add_systems(Update, (change_sun_renderer.after(pan_orbit_camera)).run_if(in_state(SimState::Simulation)));
     }
 
 }
