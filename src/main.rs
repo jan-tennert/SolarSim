@@ -10,6 +10,7 @@ use bevy::render::settings::{RenderCreation, WgpuSettings, Backends};
 use bevy::window::{PresentMode, Window, WindowPlugin};
 use bevy::winit::WinitWindows;
 use bevy_egui::EguiPlugin;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_billboard::plugin::BillboardPlugin;
 
 use camera::PanOrbitCameraPlugin;
@@ -108,7 +109,7 @@ fn main() {
             })
             .set(RenderPlugin {
                 render_creation: RenderCreation::Automatic(WgpuSettings {
-                    backends: Some(Backends::VULKAN),
+              //      backends: Some(Backends::VULKAN),
                     ..default()
                 }),
             })  
