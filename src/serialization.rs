@@ -8,7 +8,7 @@ use bevy::asset::io::Reader;
 use bevy::prelude::{Asset, AssetApp};
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize, TypeUuid, TypePath, Clone, Asset)]
+#[derive(Debug, Deserialize, TypeUuid, TypePath, Asset, Clone)]
 #[uuid = "39cadc56-aa9c-4543-8640-a018b74b5052"]
 pub struct SimulationData {
     pub bodies: Vec<SerializedBody>,
@@ -22,7 +22,7 @@ pub struct SerializedBody {
     pub data: SerializedBodyData
 }
 
-#[derive(Debug, Deserialize, TypeUuid, TypePath, Clone)]
+#[derive(Debug, Deserialize, TypeUuid, TypePath, Clone, Copy)]
 #[uuid = "39cadc56-aa9c-4543-8640-a018b74b5052"]
 pub struct SerializedVec {
     pub x: f64,

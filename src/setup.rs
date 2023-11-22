@@ -5,7 +5,7 @@ use bevy::core_pipeline::bloom::BloomSettings;
 use bevy::core_pipeline::Skybox;
 use bevy::ecs::system::EntityCommands;
 use bevy::hierarchy::BuildChildren;
-use bevy::math::Vec3;
+use bevy::math::{Vec3, DVec3};
 use bevy::pbr::{PbrBundle, PointLight, PointLightBundle};
 use bevy::prelude::{Assets, Bundle, Camera, Camera3dBundle, ChildBuilder, Color, Commands, default, Entity, Handle, in_state, IntoSystemConfigs, Mesh, OnEnter, PerspectiveProjection, Projection, Res, ResMut, Resource, SceneBundle, shape, SpatialBundle, StandardMaterial, Startup, Transform, Update, Visibility};
 use bevy::scene::Scene;
@@ -18,7 +18,7 @@ use crate::camera::PanOrbitCamera;
 use crate::constants::M_TO_UNIT;
 use crate::loading::LoadingState;
 use crate::selection::SelectedEntity;
-use crate::serialization::SimulationData;
+use crate::serialization::{SimulationData, SerializedBody, SerializedVec};
 use crate::SimState;
 use crate::skybox::Cubemap;
 use crate::star_renderer::StarBillboard;
@@ -84,6 +84,8 @@ pub fn setup_planets(
         if selected_entity.entity.is_none() {
             selected_entity.change_entity(star_id);
         }
+        
+        //planets vector for adding BodyChildren later
         let mut planets: Vec<Entity> = vec![];
         star.insert(PointLightBundle {
             point_light: PointLight {
@@ -96,19 +98,39 @@ pub fn setup_planets(
             },
             ..default()
         });
+        
+        //add the star's components
         apply_body(BodyBundle::from(entry.clone()), Star::default(), &assets, &mut star, &mut meshes, &mut materials,360.0 * ((s_index + 1) as f32 / stars as f32), true);
+        
+        //planet count in star system for coloring later
         let planet_count = entry.children.iter().count();
         
+        //collect the planets in a new vector and sort them by the length of the position
+        let mut star_children = entry.children.iter().collect::<Vec<_>>();
+        sort_bodies(&mut star_children, DVec3::ZERO);
+
         //iterate through the planets
-        for (p_index, planet_entry) in entry.children.iter().enumerate() {
+        for (p_index, planet_entry) in star_children.iter().enumerate() {
             let mut planet = star.commands().spawn(SpatialBundle::default());
             let planet_id = planet.id();
-            let mut moons: Vec<Entity> = vec![];
-            apply_body(BodyBundle::from(planet_entry.clone()), Planet, &assets, &mut planet, &mut meshes, &mut materials,360.0 * ((p_index + 1) as f32 / planet_count as f32), false);
             
+            //moon vector for adding BodyChildren later
+            let mut moons: Vec<Entity> = vec![];
+            
+            //dereferenced planet entry (rust wants this in a new variable for some reason)
+            let de_planet_entry = *planet_entry;
+            
+            //add the planet's components
+            apply_body(BodyBundle::from(de_planet_entry.clone()), Planet, &assets, &mut planet, &mut meshes, &mut materials,360.0 * ((p_index + 1) as f32 / planet_count as f32), false);
             //for the tree-based ui later
             planets.push(planet_id);
+            
+            //moon count for coloring later
             let moon_count = planet_entry.children.iter().count();
+                
+            //collect the moons in a new vector and sort them by the distance to the parent
+            let mut planet_children = de_planet_entry.children.iter().collect::<Vec<_>>();
+            sort_bodies(&mut planet_children, -serialized_vec_to_vec(de_planet_entry.clone().data.starting_position));
             
             //iterate through the moons
             for (m_index, moon_entry) in planet_entry.children.iter().enumerate() {
@@ -116,6 +138,8 @@ pub fn setup_planets(
 
                 //for the tree-based ui later                
                 moons.push(moon.id());
+                
+                //add the moon's components
                 apply_body(BodyBundle::from(moon_entry.clone()), Moon, &assets, &mut moon, &mut meshes, &mut materials, 360.0 * ((m_index + 1) as f32 / moon_count as f32), false);
                 moon.insert(BodyParent(planet_id));
             }
@@ -127,6 +151,23 @@ pub fn setup_planets(
     }
     bodies_handle.spawned = true;
     loading_state.loaded_bodies = true;
+}
+
+fn sort_bodies(
+    bodies: &mut Vec<&SerializedBody>,
+    offset: DVec3,
+) {
+    bodies.sort_by(|body1, body2| {
+        let pos1 = serialized_vec_to_vec(body1.data.starting_position) + offset;
+        let pos2 = serialized_vec_to_vec(body2.data.starting_position) + offset;
+        pos1.length().partial_cmp(&pos2.length()).unwrap()
+    });
+}
+
+fn serialized_vec_to_vec(
+    serialized_vec: SerializedVec
+) -> DVec3 {
+    DVec3::new(serialized_vec.x, serialized_vec.y, serialized_vec.z)
 }
 
 fn apply_body(
