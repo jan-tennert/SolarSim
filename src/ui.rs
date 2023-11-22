@@ -14,7 +14,7 @@ use bevy_inspector_egui::egui::{RichText, TextEdit};
 use chrono::{Days, NaiveDateTime};
 
 //use crate::fps::Fps;
-use crate::{body::{BodyChildren, Diameter, Mass, Moon, OrbitSettings, Planet, Scale, SimPosition, Star, Velocity}, constants::{DAY_IN_SECONDS, M_TO_UNIT, M_TO_AU}, egui_input_block::BlockInputPlugin, lock_on::LockOn, physics::{apply_physics, SubSteps}, selection::SelectedEntity, setup::StartingTime, skybox::Cubemap, apsis::ApsisBody, unit::format_length};
+use crate::{body::{BodyChildren, Diameter, Mass, Moon, OrbitSettings, Planet, Scale, SimPosition, Star, Velocity, RotationSpeed}, constants::{DAY_IN_SECONDS, M_TO_UNIT, M_TO_AU}, egui_input_block::BlockInputPlugin, lock_on::LockOn, physics::{apply_physics, SubSteps}, selection::SelectedEntity, setup::StartingTime, skybox::Cubemap, apsis::ApsisBody, unit::format_length, rotation::RotationPlugin};
 use crate::billboard::BillboardSettings;
 use crate::body::BodyParent;
 use crate::constants::G;
@@ -345,7 +345,7 @@ fn body_tree<R>(
 fn body_ui(
     mut egui_context: EguiContexts,
     mut commands: Commands,
-    mut query: Query<(&Name, Entity, &SimPosition, &Velocity, &Diameter, &mut OrbitSettings, &mut Mass, &Scale, &mut Transform, Option<&mut ApsisBody>, Option<&BodyChildren>, Option<&BodyParent>)>,
+    mut query: Query<(&Name, Entity, &SimPosition, &Velocity, &RotationSpeed, &Diameter, &mut OrbitSettings, &mut Mass, &Scale, &mut Transform, Option<&mut ApsisBody>, Option<&BodyChildren>, Option<&BodyParent>)>,
     camera: Query<(&Camera, &Transform, Without<Velocity>)>,
     selected_entity: Res<SelectedEntity>,
     ui_state: Res<UiState>,
@@ -355,23 +355,23 @@ fn body_ui(
     }
     if let Some(entity) = selected_entity.entity {
         let mut parent: Option<(&SimPosition, &Velocity, &Name, Mass)> = None;
-        let mut selected: Option<(&Name, Entity, &SimPosition, &Velocity, &Diameter, Mut<OrbitSettings>, Mut<Transform>, Mut<Mass>, Option<Mut<ApsisBody>>, &Scale, Option<&BodyChildren>)> = None;
+        let mut selected: Option<(&Name, Entity, &SimPosition, &Velocity, &RotationSpeed, &Diameter, Mut<OrbitSettings>, Mut<Transform>, Mut<Mass>, Option<Mut<ApsisBody>>, &Scale, Option<&BodyChildren>)> = None;
         let mut s_children: Vec<(Entity, Mut<OrbitSettings>)> = vec![];
-        for (name, b_entity, pos, velocity, diameter, orbit, mass, scale, transform, apsis, children, maybe_parent) in query.iter_mut() {
+        for (name, b_entity, pos, velocity, rotation_speed, diameter, orbit, mass, scale, transform, apsis, children, maybe_parent) in query.iter_mut() {
             if let Some(children) = children { //check for the parent of the selected entity
                 if children.0.contains(&entity) {
                     parent = Some((pos, velocity, name, mass.clone()));
                 }
             }
             if b_entity == entity { //check for the selected entity
-                selected = Some((name, b_entity, pos, velocity, diameter, orbit, transform, mass, apsis, scale, children));
+                selected = Some((name, b_entity, pos, velocity, rotation_speed, diameter, orbit, transform, mass, apsis, scale, children));
             } else if let Some(parent_id) = maybe_parent { //check for potential children of the entity
                 if parent_id.0 == entity {
                     s_children.push((b_entity, orbit))
                 }
             }
         }
-        if let Some((name, entity, pos, velocity, diameter, mut orbit, mut transform, mut mass, apsis, scale, _)) = selected {
+        if let Some((name, entity, pos, velocity, rotation_speed, diameter, mut orbit, mut transform, mut mass, apsis, scale, _)) = selected {
             egui::SidePanel::right("body_panel")
                 .max_width(250.0)
                 .resizable(true)
@@ -440,6 +440,9 @@ fn body_ui(
                             new_apsis = Some(apsis);
                         }
                     }
+                    
+                    ui.label(RichText::new("Rotation Period").size(16.0).underline());
+                    ui.label(format!("{}", format_seconds(rotation_speed.0 * 60.0)));
 
                     ui.label(RichText::new("Distance to Camera").size(16.0).underline());
                     let (_, camera_pos, _) = camera.single();

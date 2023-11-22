@@ -286,7 +286,7 @@ pub fn setup_camera(
                 ..default()
             }),
             camera: Camera {
-                hdr: false,
+                hdr: true,
                 ..default()
             },
             ..default()
