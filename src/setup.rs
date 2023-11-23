@@ -11,7 +11,7 @@ use bevy::prelude::{Assets, Bundle, Camera, Camera3dBundle, ChildBuilder, Color,
 use bevy::scene::Scene;
 use bevy::text::{TextAlignment, TextSection, TextStyle};
 use bevy_mod_billboard::{BillboardLockAxisBundle, BillboardTextBundle};
-use crate::apsis::{ApsisType, ApsisBody};
+use crate::apsis::ApsisBody;
 
 use crate::body::{BodyBundle, BodyChildren, BodyParent, Moon, OrbitSettings, Planet, SceneHandle, Star};
 use crate::camera::PanOrbitCamera;
@@ -79,6 +79,9 @@ pub fn setup_planets(
     
     //iterate through the stars
     for (s_index, entry) in data.bodies.iter().enumerate() {
+        if !entry.data.simulate {
+            continue;
+        }
         let mut star = commands.spawn(SpatialBundle::default());
         let star_id = star.id();
         if selected_entity.entity.is_none() {
@@ -111,6 +114,9 @@ pub fn setup_planets(
 
         //iterate through the planets
         for (p_index, planet_entry) in star_children.iter().enumerate() {
+            if !planet_entry.data.simulate {
+                continue;
+            }
             let mut planet = star.commands().spawn(SpatialBundle::default());
             let planet_id = planet.id();
             
@@ -134,6 +140,9 @@ pub fn setup_planets(
             
             //iterate through the moons
             for (m_index, moon_entry) in planet_entry.children.iter().enumerate() {
+                if !moon_entry.data.simulate {
+                    continue;
+                }
                 let mut moon = planet.commands().spawn(SpatialBundle::default());
 
                 //for the tree-based ui later                

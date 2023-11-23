@@ -49,6 +49,7 @@ pub struct SerializedBodyData {
     pub diameter: f64,
     pub rotation_speed: f64,
     pub axial_tilt: f32,
+    pub simulate: bool,
 }
 
 #[derive(Default)]

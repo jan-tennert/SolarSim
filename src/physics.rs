@@ -132,7 +132,7 @@ fn update_velocity_and_positions(
                 let raw_translation = sim_pos.0 * M_TO_UNIT;
                 transform.translation = Vec3::ZERO; //the selected entity will always be at 0,0,0
                 *steps += 1;
-        //        vel.0 += acc.0 * delta_time * speed.0 * 0.5; //apply 0.5 of the acceleration a second time (the selected entity will be ignored in the loop below)
+           //     vel.0 += acc.0 * delta_time * speed.0 * 0.5; //apply 0.5 of the acceleration a second time (the selected entity will be ignored in the loop below)
                 -raw_translation 
             } else {
                 DVec3::ZERO 
@@ -150,7 +150,7 @@ fn update_velocity_and_positions(
         sim_pos.0 += vel.0 * delta_time * speed.0;
         let pos_without_offset = sim_pos.0.as_vec3() * M_TO_UNIT as f32;
         transform.translation = pos_without_offset + offset.as_vec3(); //apply offset
-    //    vel.0 += acc.0 * delta_time * speed.0 * 0.5; //apply 0.5 of the acceleration a second time
+     //   vel.0 += acc.0 * delta_time * speed.0 * 0.5; //apply 0.5 of the acceleration a second time
     }
     orbit_offset.0 = offset.as_vec3();
 }
