@@ -141,7 +141,7 @@ pub fn time_ui(
                         }
                         //       ui.add_space(20.0);
                         
-                        if ui.toggle_value(&mut !timestep_selected, "Substeps per second").clicked() {
+                        if ui.toggle_value(&mut !timestep_selected, "Substeps per frame").clicked() {
                             timestep_selected = false;
                         }
                         let mut new_sub_steps = sub_steps.0.to_string();
