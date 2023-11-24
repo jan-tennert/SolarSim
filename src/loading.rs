@@ -120,7 +120,7 @@ fn update_progress(
     loading_state: Res<LoadingState>
 ) {
     let new_text = if loading_state.scaled_bodies_count > 0 {
-        format!("Scaling bodies: {}/{}", loading_state.scaled_bodies_count, loading_state.total_bodies)
+        format!("Loading and scaling bodies: {}/{}", loading_state.scaled_bodies_count, loading_state.total_bodies)
     } else {
         format!("Spawning bodies")
     };
