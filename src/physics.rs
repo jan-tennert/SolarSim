@@ -125,9 +125,11 @@ fn update_velocity_and_positions(
         vel.0 += acc.0 * delta_time * speed.0; //apply 0.5 of the acceleration
         *steps += 1;
     }
-    let offset = match selected_entity.entity {
+    let offset = match selected_entity.entity { //if orbit_offset.enabled is true, we calculate the new position of the selected entity first and then move it to 0,0,0 and add the actual position to all other bodies
         Some(selected) => {
-            if let Ok((_, _, _, vel, mut sim_pos, mut transform)) = query.get_mut(selected) {
+            if !orbit_offset.enabled {
+                DVec3::ZERO
+            } else if let Ok((_, _, _, vel, mut sim_pos, mut transform)) = query.get_mut(selected) {
                 sim_pos.0 += vel.0 * delta_time * speed.0; //this is the same step as below, but we are doing this first for the offset
                 let raw_translation = sim_pos.0 * M_TO_UNIT;
                 transform.translation = Vec3::ZERO; //the selected entity will always be at 0,0,0
@@ -141,9 +143,11 @@ fn update_velocity_and_positions(
         None => DVec3::ZERO,
     };
     for (entity, _, _, vel, mut sim_pos, mut transform) in query.iter_mut() {
-        if let Some(s_entity) = selected_entity.entity {
-            if s_entity == entity {
-                continue;
+        if orbit_offset.enabled {
+            if let Some(s_entity) = selected_entity.entity {
+                if s_entity == entity {
+                    continue;
+                }
             }
         }
         *steps += 1;
@@ -152,5 +156,9 @@ fn update_velocity_and_positions(
         transform.translation = pos_without_offset + offset.as_vec3(); //apply offset
      //   vel.0 += acc.0 * delta_time * speed.0 * 0.5; //apply 0.5 of the acceleration a second time
     }
-    orbit_offset.0 = offset.as_vec3();
+    if orbit_offset.enabled {
+        orbit_offset.value = offset.as_vec3();   
+    } else {
+        orbit_offset.value = Vec3::ZERO
+    }
 }

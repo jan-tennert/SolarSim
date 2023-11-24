@@ -12,8 +12,24 @@ impl Plugin for OrbitLinePlugin {
     }
 }
 
-#[derive(Resource, Default)]
-pub struct OrbitOffset(pub Vec3);
+#[derive(Resource)]
+pub struct OrbitOffset {
+    
+    pub value: Vec3,
+    pub enabled: bool,
+    
+}
+
+impl Default for OrbitOffset {
+    
+    fn default() -> Self {
+        OrbitOffset {
+            value: Vec3::ZERO,
+            enabled: true,
+        }
+    }
+    
+}
 
 const MULTIPLIER: f32 = 0.00001;
 
@@ -64,7 +80,7 @@ fn draw_orbit_line(
 ) {
     for (orbit, _, _, transform, _, _, _) in &planet_query {
         if orbit.draw_lines {
-            draw_lines(orbit, offset.0, &mut gizmos, transform.translation)
+            draw_lines(orbit, offset.value, &mut gizmos, transform.translation)
         }
     }
     for (entity, orbit, transform, _, _, _) in &moon_query {
@@ -73,7 +89,7 @@ fn draw_orbit_line(
                 children.0.contains(&entity)
             }) {
                 let raw_p_pos = (p_pos.0 * M_TO_UNIT).as_vec3();
-                draw_lines(orbit, offset.0 + raw_p_pos, &mut gizmos, transform.translation)
+                draw_lines(orbit, offset.value + raw_p_pos, &mut gizmos, transform.translation)
             }
         }
     }

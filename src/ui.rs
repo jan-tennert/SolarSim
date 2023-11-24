@@ -5,7 +5,7 @@ use bevy::{
         App, Camera, Color, Commands, DespawnRecursiveExt, Entity, GizmoConfig,
         Input, IntoSystemConfigs, KeyCode, Mut, Name, NextState, Plugin, PointLight, Query, Res, ResMut, Resource, Transform, Vec3, Visibility, With, Without, default,
     },
-    reflect::Reflect, time::Time, window::PresentMode,
+    reflect::Reflect, time::Time, window::PresentMode, math::DVec3,
 };
 use bevy::app::Update;
 use bevy::prelude::{in_state, Window};
@@ -14,7 +14,7 @@ use bevy_inspector_egui::egui::{RichText, TextEdit};
 use chrono::{Days, NaiveDateTime};
 
 //use crate::fps::Fps;
-use crate::{body::{BodyChildren, Diameter, Mass, Moon, OrbitSettings, Planet, Scale, SimPosition, Star, Velocity, RotationSpeed}, constants::{DAY_IN_SECONDS, M_TO_UNIT, M_TO_AU}, egui_input_block::BlockInputPlugin, lock_on::LockOn, physics::{apply_physics, SubSteps}, selection::SelectedEntity, setup::StartingTime, skybox::Cubemap, apsis::ApsisBody, unit::format_length, rotation::RotationPlugin};
+use crate::{body::{BodyChildren, Diameter, Mass, Moon, OrbitSettings, Planet, Scale, SimPosition, Star, Velocity, RotationSpeed}, constants::{DAY_IN_SECONDS, M_TO_UNIT, M_TO_AU}, egui_input_block::BlockInputPlugin, lock_on::LockOn, physics::{apply_physics, SubSteps}, selection::SelectedEntity, setup::StartingTime, skybox::Cubemap, apsis::ApsisBody, unit::format_length, rotation::RotationPlugin, orbit_lines::OrbitOffset, camera::PanOrbitCamera};
 use crate::billboard::BillboardSettings;
 use crate::body::BodyParent;
 use crate::constants::G;
@@ -235,16 +235,17 @@ pub fn system_ui(
     mut state: ResMut<NextState<SimState>>,
     mut selected_entity: ResMut<SelectedEntity>,
     mut config: ResMut<GizmoConfig>,
-    mut camera: Query<(Entity, &mut Camera, Option<&Skybox>)>,
+    mut camera: Query<(Entity, &mut Camera, &mut PanOrbitCamera, Option<&Skybox>)>,
     mut commands: Commands,
     mut cubemap: ResMut<Cubemap>,
     mut billboard: ResMut<BillboardSettings>,
     mut ui_state: ResMut<UiState>,
+    mut orbit_offset: ResMut<OrbitOffset>
 ) {
     if !ui_state.visible {
         return;
     }
-    if let Ok((entity, mut camera, skybox)) = camera.get_single_mut() {
+    if let Ok((entity, mut camera, mut pan, skybox)) = camera.get_single_mut() {
         egui::SidePanel::left("system_panel")
             .default_width(400.0)
             .resizable(true)
@@ -301,6 +302,11 @@ pub fn system_ui(
 
                 ui.checkbox(&mut config.aabb.draw_all, "Draw Outlines");
                 ui.checkbox(&mut billboard.show, "Show Body Names");
+                if ui.checkbox(&mut orbit_offset.enabled, "Offset body to zero").changed() {
+                    if orbit_offset.enabled {
+                        pan.focus = Vec3::ZERO;
+                    }
+                }
                 if ui.button("Open Debug Window").clicked() {
                     ui_state.show_debug = true; 
                 }

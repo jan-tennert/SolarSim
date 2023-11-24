@@ -1,4 +1,4 @@
-use bevy::{app::{App, Plugin}, prelude::{BuildChildren, Res, Color, Commands, default, Entity, in_state, IntoSystemConfigs, Label, NextState, NodeBundle, OnEnter, OnExit, Query, ResMut, Resource, TextBundle, Update, AssetServer}, text::TextStyle, ui::{AlignItems, JustifyContent, Node, Style, UiRect, Val, UiImage}};
+use bevy::{app::{App, Plugin}, prelude::{BuildChildren, Res, Color, Commands, default, Entity, in_state, IntoSystemConfigs, Label, NextState, NodeBundle, OnEnter, OnExit, Query, ResMut, Resource, TextBundle, Update, AssetServer, Component, With}, text::{TextStyle, Text}, ui::{AlignItems, JustifyContent, Node, Style, UiRect, Val, UiImage, FlexDirection}};
 
 use crate::SimState;
 
@@ -10,15 +10,20 @@ impl Plugin for LoadingPlugin {
             .init_resource::<LoadingState>()
             .add_systems(OnEnter(SimState::Loading), spawn_loading)
             .add_systems(OnExit(SimState::Loading), despawn_loading)
-            .add_systems(Update, (loading_system).run_if(in_state(SimState::Loading)));
+            .add_systems(Update, (loading_system, update_progress).run_if(in_state(SimState::Loading)));
     }
 }
+
+#[derive(Component, Default)]
+pub struct ProgressMarker;
 
 #[derive(Resource, Default)]
 pub struct LoadingState {
     
     pub loaded_bodies: bool,
     pub scaled_bodies: bool,
+    pub scaled_bodies_count: i32,
+    pub total_bodies: i32,
 
 }
 
@@ -27,6 +32,8 @@ impl LoadingState {
     pub fn reset(&mut self) {
         self.loaded_bodies = false;
         self.scaled_bodies = false;
+        self.scaled_bodies_count = 0;
+        self.total_bodies = 0;
     }
     
     pub fn is_done(&self) -> bool {
@@ -55,6 +62,7 @@ fn spawn_loading(
                 height: Val::Percent(100.0),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
+                flex_direction: FlexDirection::Column,
                 ..default()
             },
             background_color: Color::WHITE.into(),
@@ -78,6 +86,23 @@ fn spawn_loading(
             }),
             Label
         ));
+        parent.spawn((
+            TextBundle::from_section(
+                "Spawning bodies",
+                TextStyle {
+                    //font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                    font_size: 30.0,
+                    color: Color::WHITE,
+                    ..default()
+                },
+            )
+            .with_style(Style {
+                margin: UiRect::all(Val::Px(5.)),
+                ..default()
+            }),
+            Label,
+            ProgressMarker
+        ));
     });
 }
 
@@ -87,5 +112,22 @@ fn loading_system(
 ) {
     if loading_state.is_done() {
         sim_state.set(SimState::Simulation)
+    }
+}
+
+fn update_progress(
+    mut marker: Query<&mut Text, With<ProgressMarker>>,
+    loading_state: Res<LoadingState>
+) {
+    let new_text = if loading_state.scaled_bodies_count > 0 {
+        format!("Scaling bodies: {}/{}", loading_state.scaled_bodies_count, loading_state.total_bodies)
+    } else {
+        format!("Spawning bodies")
+    };
+    if let Ok(mut text) = marker.get_single_mut() {
+        let old_text = text.sections.first_mut().unwrap();
+        if old_text.value != new_text {
+            old_text.value = new_text;
+        }
     }
 }

@@ -1,10 +1,11 @@
 use bevy::app::{App, Plugin, Update};
-use bevy::prelude::{Entity, in_state, IntoSystemConfigs, Query, ResMut, Resource, Transform, With};
+use bevy::prelude::{Entity, in_state, IntoSystemConfigs, Query, ResMut, Resource, Transform, With, Res};
 
 use crate::body::{Diameter, Mass, Star};
 use crate::camera::PanOrbitCamera;
 use crate::constants::M_TO_UNIT;
 use crate::SimState;
+use crate::orbit_lines::OrbitOffset;
 
 const SELECTION_MULTIPLIER: f64 = 3.0;
 
@@ -40,16 +41,21 @@ impl SelectedEntity {
 pub fn apply_camera_to_selection(
     bodies: Query<(Entity, &Transform, &Diameter, With<Mass>, Option<&Star>)>,
     mut camera: Query<&mut PanOrbitCamera>,
-    mut selected_entity: ResMut<SelectedEntity>
+    mut selected_entity: ResMut<SelectedEntity>,
+    orbit_offset: Res<OrbitOffset>
 ) {
     if let Some(entity) = selected_entity.entity {
         if let Err(_) = bodies.get(entity) {
              selected_entity.entity = None;
         } else if !selected_entity.changed_focus {
             let (_, _, diameter, _, _) = bodies.get(entity).unwrap();
-            let mut cam = camera.single_mut();
+            let mut cam = camera.single_mut();            
             cam.radius = (diameter.num * M_TO_UNIT * SELECTION_MULTIPLIER) as f32;
             selected_entity.changed_focus = true;
+        }
+        if !orbit_offset.enabled {
+            let mut cam = camera.single_mut();
+            cam.focus = bodies.get(entity).unwrap().1.translation;         
         }
     } else {
         if let Some((entity, _, _, _, _)) = bodies.iter().find(|(_, _, _, _, maybe_star)| {

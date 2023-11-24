@@ -109,7 +109,7 @@ fn main() {
             })
             .set(RenderPlugin {
                 render_creation: RenderCreation::Automatic(WgpuSettings {
-              //      backends: Some(Backends::VULKAN),
+                    backends: Some(Backends::VULKAN),
                     ..default()
                 }),
             })  

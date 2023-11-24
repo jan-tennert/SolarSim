@@ -40,7 +40,7 @@ fn apply_real_diameter(
                 let m = meshes.iter_many(spawner.iter_instance_entities(**scene));
                 let mut min = Vec3A::splat(f32::MAX);
                 let mut max = Vec3A::splat(f32::MIN);
-               for (g_transform, maybe_abb) in m {
+                for (g_transform, maybe_abb) in m {
                     if let Some(aabb) = maybe_abb {
                         let sphere = Sphere {
                             center: Vec3A::from(g_transform.transform_point(Vec3::from(aabb.center))),
@@ -55,6 +55,7 @@ fn apply_real_diameter(
                 transform.scale = Vec3::splat((diameter.num * M_TO_UNIT) as f32) / (Vec3::from(aabb.half_extents));
                 scale.0 = transform.scale.x;
                 diameter.applied = true;
+                loading_state.scaled_bodies_count += 1;
             }
         }
     }

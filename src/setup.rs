@@ -69,6 +69,7 @@ pub fn setup_planets(
     if bodies_handle.spawned {
         return;
     }
+    let mut total_count = 0;
     let bodies = bodies_asset.get(&bodies_handle.handle);
     if bodies.cloned().is_none() {
         return;
@@ -76,6 +77,7 @@ pub fn setup_planets(
     let data = bodies.unwrap();
     starting_time.0 = data.starting_time_millis;
     let stars = data.bodies.iter().count();  
+    total_count += stars;
     
     //iterate through the stars
     for (s_index, entry) in data.bodies.iter().enumerate() {
@@ -107,6 +109,7 @@ pub fn setup_planets(
         
         //planet count in star system for coloring later
         let planet_count = entry.children.iter().count();
+        total_count += planet_count;
         
         //collect the planets in a new vector and sort them by the length of the position
         let mut star_children = entry.children.iter().collect::<Vec<_>>();
@@ -133,6 +136,7 @@ pub fn setup_planets(
             
             //moon count for coloring later
             let moon_count = planet_entry.children.iter().count();
+            total_count += moon_count;
                 
             //collect the moons in a new vector and sort them by the distance to the parent
             let mut planet_children = de_planet_entry.children.iter().collect::<Vec<_>>();
@@ -156,10 +160,10 @@ pub fn setup_planets(
             planet.insert(BodyChildren(moons));
         }  
         star.insert(BodyChildren(planets));
-  
     }
     bodies_handle.spawned = true;
     loading_state.loaded_bodies = true;
+    loading_state.total_bodies = total_count as i32;
 }
 
 fn sort_bodies(

@@ -35,6 +35,7 @@ fn axial_tilt(
             if let Ok((mut transform, _, _)) = scenes.get_mut(*child) {
                 transform.rotate_x((90.0 as f32).to_radians());
                 tilt.applied = true;
+                break;
             }
         }
     }
