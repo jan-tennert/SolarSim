@@ -10,7 +10,7 @@ impl Plugin for LoadingPlugin {
             .init_resource::<LoadingState>()
             .add_systems(OnEnter(SimState::Loading), spawn_loading)
             .add_systems(OnExit(SimState::Loading), despawn_loading)
-            .add_systems(Update, (loading_system, update_progress).run_if(in_state(SimState::Loading)));
+            .add_systems(Update, (loading_system, update_progress.before(loading_system)).run_if(in_state(SimState::Loading)));
     }
 }
 
