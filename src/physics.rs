@@ -85,11 +85,11 @@ pub fn apply_physics(
     let delta = time.delta_seconds() as f64;
     let start = Instant::now();
     nbody_stats.steps = 0;
-    for i in 0..sub_steps.0 {
-        let start_step = Instant::now();      
+    for _ in 0..sub_steps.0 {
+        let start_step = Instant::now();                
         update_acceleration(&mut query, &mut nbody_stats.steps);
-        update_velocity_and_positions(&mut query, delta, &speed, &mut nbody_stats.steps, &selected_entity, &mut orbit_offset, i == sub_steps.0 - 1);
-        nbody_stats.step_time = start_step.elapsed();
+        update_velocity_and_positions(&mut query, delta, &speed, &mut nbody_stats.steps, &selected_entity, &mut orbit_offset);
+        nbody_stats.step_time = start_step.elapsed();                                              
     }
     nbody_stats.time = start.elapsed();
 }
@@ -98,13 +98,13 @@ fn update_acceleration(
     query: &mut Query<(Entity, &Mass, &mut Acceleration, &mut Velocity, &mut SimPosition, &mut Transform)>,
     steps: &mut i32,
 ) {
-    let mut other_bodies: Vec<(&Mass, Mut<Acceleration>, Mut<SimPosition>)> = Vec::new();
+    let mut other_bodies: Vec<(&Mass, Mut<Acceleration>, Mut<SimPosition>)> = Vec::with_capacity(query.iter().count());
     for (_, mass, mut acc, _, sim_pos, _) in query.iter_mut() {
         acc.0 = DVec3::ZERO;
         for (other_mass, ref mut other_acc, other_sim_pos) in other_bodies.iter_mut() {
-            let r_sq = (sim_pos.0 - other_sim_pos.0).length_squared() as f64;
-            let force_direction = DVec3::from((other_sim_pos.0 - sim_pos.0).normalize()); // Calculate the direction vector  
-            
+            let distance = sim_pos.0 - other_sim_pos.0;
+            let r_sq = distance.length_squared();
+            let force_direction = distance.normalize();
             let force_magnitude = G * mass.0 * other_mass.0 / r_sq;
             let force = force_direction * force_magnitude;
             acc.0 += force;
@@ -122,7 +122,6 @@ fn update_velocity_and_positions(
     steps: &mut i32,
     selected_entity: &Res<SelectedEntity>,
     orbit_offset: &mut ResMut<OrbitOffset>,
-    is_last_step: bool
 ) {
     let offset = match selected_entity.entity { //if orbit_offset.enabled is true, we calculate the new position of the selected entity first and then move it to 0,0,0 and add the actual position to all other bodies
         Some(selected) => {
@@ -154,16 +153,12 @@ fn update_velocity_and_positions(
         vel.0 += acc.0 * delta_time * speed.0;
         *steps += 1;
         sim_pos.0 += vel.0 * delta_time * speed.0;
-        if is_last_step {
-            let pos_without_offset = sim_pos.0.as_vec3() * M_TO_UNIT as f32;
-            transform.translation = pos_without_offset + offset.as_vec3(); //apply offset   
-        }
+        let pos_without_offset = sim_pos.0.as_vec3() * M_TO_UNIT as f32;
+        transform.translation = pos_without_offset + offset.as_vec3(); //apply offset   
     }
-    if is_last_step {
-         if orbit_offset.enabled {
-            orbit_offset.value = offset.as_vec3();   
-        } else {
-            orbit_offset.value = Vec3::ZERO
-        }
+    if orbit_offset.enabled {
+        orbit_offset.value = offset.as_vec3();   
+    } else {
+        orbit_offset.value = Vec3::ZERO
     }
 }
