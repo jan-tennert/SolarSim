@@ -38,6 +38,7 @@ pub struct SubSteps(pub i32);
 pub struct NBodyStats {
     
     pub time: Duration,
+    pub step_time: Duration,
     pub steps: i32
              
 }
@@ -84,9 +85,11 @@ pub fn apply_physics(
     let delta = time.delta_seconds() as f64;
     let start = Instant::now();
     nbody_stats.steps = 0;
-    for _ in 0..sub_steps.0 {
+    for i in 0..sub_steps.0 {
+        let start_step = Instant::now();      
         update_acceleration(&mut query, &mut nbody_stats.steps);
-        update_velocity_and_positions(&mut query, delta, &speed, &mut nbody_stats.steps, &selected_entity, &mut orbit_offset);
+        update_velocity_and_positions(&mut query, delta, &speed, &mut nbody_stats.steps, &selected_entity, &mut orbit_offset, i == sub_steps.0 - 1);
+        nbody_stats.step_time = start_step.elapsed();
     }
     nbody_stats.time = start.elapsed();
 }
@@ -119,22 +122,19 @@ fn update_velocity_and_positions(
     steps: &mut i32,
     selected_entity: &Res<SelectedEntity>,
     orbit_offset: &mut ResMut<OrbitOffset>,
+    is_last_step: bool
 ) {
-    for (_, mass, mut acc, mut vel, _, _) in query.iter_mut() {
-        acc.0 /= mass.0; //actually apply the force to the body
-        vel.0 += acc.0 * delta_time * speed.0; //apply 0.5 of the acceleration
-        *steps += 1;
-    }
     let offset = match selected_entity.entity { //if orbit_offset.enabled is true, we calculate the new position of the selected entity first and then move it to 0,0,0 and add the actual position to all other bodies
         Some(selected) => {
             if !orbit_offset.enabled {
                 DVec3::ZERO
-            } else if let Ok((_, _, _, vel, mut sim_pos, mut transform)) = query.get_mut(selected) {
+            } else if let Ok((_, mass, mut acc, mut vel, mut sim_pos, mut transform)) = query.get_mut(selected) {
+                acc.0 /= mass.0; //actually apply the force to the body
+                vel.0 += acc.0 * delta_time * speed.0;
                 sim_pos.0 += vel.0 * delta_time * speed.0; //this is the same step as below, but we are doing this first for the offset
                 let raw_translation = sim_pos.0 * M_TO_UNIT;
                 transform.translation = Vec3::ZERO; //the selected entity will always be at 0,0,0
                 *steps += 1;
-           //     vel.0 += acc.0 * delta_time * speed.0 * 0.5; //apply 0.5 of the acceleration a second time (the selected entity will be ignored in the loop below)
                 -raw_translation 
             } else {
                 DVec3::ZERO 
@@ -142,7 +142,7 @@ fn update_velocity_and_positions(
         }
         None => DVec3::ZERO,
     };
-    for (entity, _, _, vel, mut sim_pos, mut transform) in query.iter_mut() {
+    for (entity, mass, mut acc, mut vel, mut sim_pos, mut transform) in query.iter_mut() {
         if orbit_offset.enabled {
             if let Some(s_entity) = selected_entity.entity {
                 if s_entity == entity {
@@ -150,15 +150,20 @@ fn update_velocity_and_positions(
                 }
             }
         }
+        acc.0 /= mass.0; //actually apply the force to the body
+        vel.0 += acc.0 * delta_time * speed.0;
         *steps += 1;
         sim_pos.0 += vel.0 * delta_time * speed.0;
-        let pos_without_offset = sim_pos.0.as_vec3() * M_TO_UNIT as f32;
-        transform.translation = pos_without_offset + offset.as_vec3(); //apply offset
-     //   vel.0 += acc.0 * delta_time * speed.0 * 0.5; //apply 0.5 of the acceleration a second time
+        if is_last_step {
+            let pos_without_offset = sim_pos.0.as_vec3() * M_TO_UNIT as f32;
+            transform.translation = pos_without_offset + offset.as_vec3(); //apply offset   
+        }
     }
-    if orbit_offset.enabled {
-        orbit_offset.value = offset.as_vec3();   
-    } else {
-        orbit_offset.value = Vec3::ZERO
+    if is_last_step {
+         if orbit_offset.enabled {
+            orbit_offset.value = offset.as_vec3();   
+        } else {
+            orbit_offset.value = Vec3::ZERO
+        }
     }
 }

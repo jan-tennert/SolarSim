@@ -79,7 +79,11 @@ fn debug_window(
                 ui.label(format!("{}", nbody_stats.steps));
             });
             ui.horizontal(|ui| {
-                ui.label(RichText::new("N-Body calculation time: ").strong());                            
+                ui.label(RichText::new("N-Body step calculation time: ").strong());                            
+                ui.label(format!("{:?}", nbody_stats.step_time));
+            });
+            ui.horizontal(|ui| {
+                ui.label(RichText::new("N-Body total calculation time: ").strong());                            
                 ui.label(format!("{:?}", nbody_stats.time));
             });
         });

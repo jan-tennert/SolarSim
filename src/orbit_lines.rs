@@ -1,6 +1,6 @@
 use bevy::{prelude::{App, Entity, Gizmos, in_state, IntoSystemConfigs, Plugin, Query, Res, ResMut, Resource, Transform, Update, Vec3, With, Without, PostUpdate, PreUpdate, Component}, time::{Time, Timer, TimerMode}};
 
-use crate::{body::{BodyChildren, Moon, OrbitSettings, Planet, SimPosition, Star}, constants::M_TO_UNIT, physics::{apply_physics, SubSteps}, SimState, apsis::ApsisBody, speed::Speed};
+use crate::{body::{BodyChildren, Moon, OrbitSettings, Planet, SimPosition, Star}, constants::M_TO_UNIT, physics::{apply_physics, SubSteps, Pause}, SimState, apsis::ApsisBody, speed::Speed};
 
 pub struct OrbitLinePlugin;
 
@@ -31,7 +31,7 @@ impl Default for OrbitOffset {
     
 }
 
-const MULTIPLIER: f32 = 0.00001;
+const MULTIPLIER: f32 = 0.0001;
 
 fn update_lines(
     mut planet_query: Query<(&mut OrbitSettings, &SimPosition, &BodyChildren, With<Planet>, Without<Moon>, Without<Star>)>,
@@ -39,7 +39,11 @@ fn update_lines(
     time: Res<Time>,
     speed: Res<Speed>,
     substeps: Res<SubSteps>,
+    pause: Res<Pause>
 ) {
+    if pause.0 {
+        return;
+    }
     for (mut orbit, pos, _, _, _, _) in &mut planet_query {
         if orbit.draw_lines {
             let speed = speed.0 as f32 * (substeps.0 as f32);

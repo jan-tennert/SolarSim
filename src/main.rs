@@ -109,13 +109,13 @@ fn main() {
             })
             .set(RenderPlugin {
                 render_creation: RenderCreation::Automatic(WgpuSettings {
-                    backends: Some(Backends::VULKAN),
+              //      backends: Some(Backends::VULKAN),
                     ..default()
                 }),
             })  
         )
         .add_plugins(EguiPlugin)
-     //   .add_plugins(WorldInspectorPlugin::new())
+    //    .add_plugins(WorldInspectorPlugin::new())
   //      .add_plugins(DefaultPickingPlugins)
         .add_plugins(LockOnPlugin)
         .add_plugins(SerializationPlugin)
