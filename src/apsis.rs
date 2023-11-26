@@ -38,13 +38,13 @@ pub enum ApsisType {
 }
 
 fn update_apsis(
-    stars: Query<(&SimPosition, &BodyChildren, With<Star>, Without<Moon>, Without<Planet>)>,
-    mut planets: Query<(Entity, &SimPosition, &mut ApsisBody, &BodyChildren, With<Planet>, Without<Star>, Without<Moon>)>,
-    mut moons: Query<(Entity, &SimPosition, &mut ApsisBody, With<Moon>, Without<Star>, Without<Planet>)>
+    stars: Query<(&SimPosition, &BodyChildren), (With<Star>, Without<Moon>, Without<Planet>)>,
+    mut planets: Query<(Entity, &SimPosition, &mut ApsisBody, &BodyChildren), (With<Planet>, Without<Star>, Without<Moon>)>,
+    mut moons: Query<(Entity, &SimPosition, &mut ApsisBody), (With<Moon>, Without<Star>, Without<Planet>)>
 ) {
-    for (entity, position, mut apsis, _, _, _, _) in &mut planets {
+    for (entity, position, mut apsis, _) in &mut planets {
         let mut parent = None;
-        for (s_pos, s_child, _, _, _) in &stars {
+        for (s_pos, s_child) in &stars {
             if s_child.0.contains(&entity) {
                 parent = Some(s_pos);
                 break;
@@ -61,9 +61,9 @@ fn update_apsis(
             } 
         }
     }
-    for (entity, position, mut apsis, _, _, _) in &mut moons {
+    for (entity, position, mut apsis) in &mut moons {
         let mut parent = None;
-        for (_, s_pos, _, s_child, _, _, _) in &planets {
+        for (_, s_pos, _, s_child) in &planets {
             if s_child.0.contains(&entity) {
                 parent = Some(s_pos);
                 break;

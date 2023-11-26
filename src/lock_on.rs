@@ -23,8 +23,8 @@ pub struct LockOn {
 
 fn lock_on(
     lock_on: Res<LockOn>,
-    mut query: Query<(Entity, &Transform, Option<&BodyChildren>, Without<Camera>)>,
-    mut camera: Query<(&Camera, &mut Transform, Without<Mass>, Without<BodyChildren>)>,
+    mut query: Query<(Entity, &Transform, Option<&BodyChildren>), Without<Camera>>,
+    mut camera: Query<(&Camera, &mut Transform), (Without<Mass>, Without<BodyChildren>)>,
     selected_entity: Res<SelectedEntity>
 ) {
     if !lock_on.enabled {
@@ -32,7 +32,7 @@ fn lock_on(
     }
     if let Some(s_entity) = selected_entity.entity {
         let mut parent: Option<&Transform> = None;
-        for (_, transform, children, _) in query.iter_mut() {
+        for (_, transform, children) in query.iter_mut() {
             if let Some(children) = children {
                 if children.0.contains(&s_entity) {
                     parent = Some(transform);
@@ -40,7 +40,7 @@ fn lock_on(
             } 
         }
         if let Some(p_transform) = parent {
-            let (_, mut c_transform, _, _) = camera.single_mut();   
+            let (_, mut c_transform) = camera.single_mut();   
             c_transform.look_at(p_transform.translation, Vec3::X);
         }
     }       

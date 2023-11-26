@@ -208,7 +208,8 @@ pub fn system_ui(
         &Name,
         &BodyChildren,
         Entity,
-        &mut Visibility,
+        &mut Visibility
+    ), (
         With<Star>,
         Without<Planet>,
         Without<Planet>
@@ -217,7 +218,8 @@ pub fn system_ui(
         &Name,
         &BodyChildren,
         Entity,
-        &mut Visibility,
+        &mut Visibility
+    ),(
         With<Planet>,
         Without<Star>,
         Without<Moon>
@@ -225,7 +227,8 @@ pub fn system_ui(
     mut moon_query: Query<(
         &Name,
         Entity,
-        &mut Visibility,
+        &mut Visibility
+    ),(
         With<Moon>,
         Without<Planet>,
         Without<Star>
@@ -251,17 +254,17 @@ pub fn system_ui(
             .resizable(true)
             .show(egui_context.ctx_mut(), |ui| {
                 ui.heading("Bodies");
-                for (s_name, s_children, s_entity, _, _, _, _) in &mut star_query {
+                for (s_name, s_children, s_entity, _) in &mut star_query {
                     let s_old_selected = selected_entity.entity == Some(s_entity);
                     let mut s_selected = s_old_selected;
                     body_tree(ui, &mut s_selected, s_name, true, |ui| {
                         for planet_child in &s_children.0 {
-                            if let Ok((p_name, p_children, p_entity, _, _, _, _)) = planet_query.get_mut(*planet_child) {
+                            if let Ok((p_name, p_children, p_entity, _)) = planet_query.get_mut(*planet_child) {
                                 let p_old_selected = selected_entity.entity == Some(p_entity);
                                 let mut p_selected = p_old_selected;
                                 body_tree(ui, &mut p_selected, p_name, false, |ui| {
                                     for moon_child in &p_children.0 {
-                                        if let Ok((m_name, m_entity, _, _, _, _)) = moon_query.get_mut(*moon_child) {
+                                        if let Ok((m_name, m_entity, _)) = moon_query.get_mut(*moon_child) {
                                             let m_old_selected = selected_entity.entity == Some(m_entity);
                                             let mut m_selected = m_old_selected;
                                             ui.horizontal(|ui| {

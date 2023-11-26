@@ -25,14 +25,14 @@ impl Plugin for RotationPlugin {
 
 fn axial_tilt(
     mut query: Query<(&mut AxialTilt, &Children)>,
-    mut scenes: Query<(&mut Transform, With<SceneInstance>, Without<Star>)>,
+    mut scenes: Query<&mut Transform, (With<SceneInstance>, Without<Star>)>,
 ) {
     for (mut tilt, children) in &mut query {
         if tilt.applied {
             continue;
         }
         for child in children.iter() {
-            if let Ok((mut transform, _, _)) = scenes.get_mut(*child) {
+            if let Ok(mut transform) = scenes.get_mut(*child) {
                 transform.rotate_x((90.0 as f32).to_radians());
                 tilt.applied = true;
                 break;
@@ -43,7 +43,7 @@ fn axial_tilt(
 
 fn rotate_bodies(
     query: Query<(&RotationSpeed, &Diameter, &Children)>,
-    mut scenes: Query<(&mut Transform, With<SceneInstance>)>,
+    mut scenes: Query<&mut Transform, With<SceneInstance>>,
     time: Res<Time>,
     speed: Res<Speed>,
     sub_steps: Res<SubSteps>,
@@ -61,7 +61,7 @@ fn rotate_bodies(
             
            // transform.rotate_axis(axis.axis.unwrap(), 2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
             for child in children.iter() {
-                if let Ok((mut transform, _)) = scenes.get_mut(*child) {
+                if let Ok(mut transform) = scenes.get_mut(*child) {
                     transform.rotate_z(2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
                 }
             }

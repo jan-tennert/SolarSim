@@ -25,23 +25,23 @@ impl Plugin for StarRendererPlugin {
 pub struct StarBillboard;
 
 fn change_sun_renderer(
-    camera: Query<(&Transform, &Camera, Without<Star>, Without<StarBillboard>)>,
-    mut stars: Query<(&Transform, &Children, Without<Camera>, Without<StarBillboard>)>,
-    mut star_billboards: Query<(&mut Transform, &mut Visibility, &Parent, With<StarBillboard>, Without<Camera>, Without<Star>)>,
-    mut scenes: Query<(&SceneInstance, &mut Visibility, Without<StarBillboard>, Without<Star>)>,
+    camera: Query<(&Transform, &Camera), (Without<Star>, Without<StarBillboard>)>,
+    mut stars: Query<(&Transform, &Children), (Without<Camera>, Without<StarBillboard>)>,
+    mut star_billboards: Query<(&mut Transform, &mut Visibility, &Parent), (With<StarBillboard>, Without<Camera>, Without<Star>)>,
+    mut scenes: Query<(&SceneInstance, &mut Visibility), (Without<StarBillboard>, Without<Star>)>,
 ) {
-    let (c_transform, camera, _, _) = camera.single();
-    for (transform, children, _, _) in &mut stars {
+    let (c_transform, camera) = camera.single();
+    for (transform, children) in &mut stars {
         let distance = c_transform.translation.distance(transform.translation);
         for child in children.iter() {
-            if let Ok((_, mut visibility, _ , _)) = scenes.get_mut(*child) {
+            if let Ok((_, mut visibility)) = scenes.get_mut(*child) {
                 if distance > STAR_IMPOSTER_THRESHOLD && camera.hdr {
                     *visibility = Visibility::Hidden;
                 } else {
                     *visibility = Visibility::Visible;
                 }
             }
-            if let Ok((_, mut visibility, _, _, _, _)) = star_billboards.get_mut(*child) {
+            if let Ok((_, mut visibility, _)) = star_billboards.get_mut(*child) {
                 if distance > STAR_IMPOSTER_THRESHOLD && camera.hdr {
                     *visibility = Visibility::Visible;
                 } else {
@@ -51,8 +51,8 @@ fn change_sun_renderer(
         }
     }
 
-    for (mut b_transform, _, parent, _, _, _) in &mut star_billboards {
-        let (transform, _, _, _) = stars.get(**parent).unwrap();
+    for (mut b_transform, _, parent) in &mut star_billboards {
+        let (transform, _) = stars.get(**parent).unwrap();
         let distance = c_transform.translation.distance(transform.translation);
         b_transform.look_at(-c_transform.translation, Vec3::Y);
         b_transform.scale = Vec3::splat(distance / STAR_IMPOSTER_DIVIDER);

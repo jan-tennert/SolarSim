@@ -1,8 +1,11 @@
+use std::collections::VecDeque;
 use std::time::{Instant, Duration};
 
 use bevy::app::{App, Plugin, Update};
+use bevy::diagnostic::{DiagnosticId, Diagnostics, RegisterDiagnostic, Diagnostic};
 use bevy::math::{DVec3, Vec3};
 use bevy::prelude::{Entity, in_state, IntoSystemConfigs, Mut, Query, Res, ResMut, Resource, Time, Transform};
+use bevy::reflect::List;
 
 use crate::body::{Acceleration, Mass, OrbitSettings, SimPosition, Velocity};
 use crate::constants::{DEFAULT_SUB_STEPS, G, M_TO_UNIT};
@@ -24,6 +27,8 @@ impl Plugin for PhysicsPlugin {
             .register_type::<Mass>()
             .register_type::<SimPosition>()
             .register_type::<OrbitSettings>()
+            .register_diagnostic(Diagnostic::new(NBODY_STEP_TIME, "nbody_step_time", 10))
+            .register_diagnostic(Diagnostic::new(NBODY_TOTAL_TIME, "nbody_total_time", 10))
             .add_systems(Update, (apply_physics).run_if(in_state(SimState::Simulation)));
     }
 }
@@ -37,8 +42,6 @@ pub struct SubSteps(pub i32);
 #[derive(Resource, Default)]
 pub struct NBodyStats {
     
-    pub time: Duration,
-    pub step_time: Duration,
     pub steps: i32
              
 }
@@ -69,6 +72,12 @@ impl SubSteps {
       
 }
 
+pub const NBODY_TOTAL_TIME: DiagnosticId =
+    DiagnosticId::from_u128(337040787172757619024841343456040760896);
+    
+pub const NBODY_STEP_TIME: DiagnosticId =
+    DiagnosticId::from_u128(337040787171757619024831343456040760892);
+
 pub fn apply_physics(
     mut query: Query<(Entity, &Mass, &mut Acceleration, &mut Velocity, &mut SimPosition, &mut Transform)>,
     pause: Res<Pause>,
@@ -77,7 +86,8 @@ pub fn apply_physics(
     selected_entity: Res<SelectedEntity>,
     mut orbit_offset: ResMut<OrbitOffset>,
     sub_steps: Res<SubSteps>,
-    mut nbody_stats: ResMut<NBodyStats>
+    mut nbody_stats: ResMut<NBodyStats>,
+    mut diagnostics: Diagnostics
 ) {
     if pause.0 {
         return;
@@ -89,9 +99,9 @@ pub fn apply_physics(
         let start_step = Instant::now();                
         update_acceleration(&mut query, &mut nbody_stats.steps);
         update_velocity_and_positions(&mut query, delta, &speed, &mut nbody_stats.steps, &selected_entity, &mut orbit_offset);
-        nbody_stats.step_time = start_step.elapsed();                                              
+        diagnostics.add_measurement(NBODY_STEP_TIME, || start_step.elapsed().as_nanos() as f64);
     }
-    nbody_stats.time = start.elapsed();
+    diagnostics.add_measurement(NBODY_TOTAL_TIME, || start.elapsed().as_nanos() as f64);
 }
 
 fn update_acceleration(

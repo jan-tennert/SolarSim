@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use bevy::app::{App, Plugin};
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::{Resource, Update, IntoSystemConfigs, in_state, Res, ResMut, Query};
@@ -6,7 +8,7 @@ use bevy_egui::{egui::{self, InnerResponse, Response, Ui}, EguiContexts};
 
 use crate::SimState;
 use crate::body::Mass;
-use crate::physics::{NBodyStats, SubSteps};
+use crate::physics::{NBodyStats, SubSteps, NBODY_TOTAL_TIME, NBODY_STEP_TIME};
 use crate::ui::{system_ui, UiState};
 
 
@@ -78,13 +80,23 @@ fn debug_window(
                 ui.label(RichText::new("N-Body steps / frame: ").strong());                            
                 ui.label(format!("{}", nbody_stats.steps));
             });
-            ui.horizontal(|ui| {
-                ui.label(RichText::new("N-Body step calculation time: ").strong());                            
-                ui.label(format!("{:?}", nbody_stats.step_time));
-            });
-            ui.horizontal(|ui| {
-                ui.label(RichText::new("N-Body total calculation time: ").strong());                            
-                ui.label(format!("{:?}", nbody_stats.time));
-            });
+            if let Some(frametime) = diagnostics.get(NBODY_STEP_TIME) {
+                if let Some(value) = frametime.average() {
+                    // Update the value of the second section
+                    ui.horizontal(|ui| {
+                        ui.label(RichText::new("N-Body step calculation time: ").strong());                            
+                        ui.label(format!("{:?}", Duration::from_nanos(value as u64)));
+                    });
+                }
+            }
+            if let Some(frametime) = diagnostics.get(NBODY_TOTAL_TIME) {
+                if let Some(value) = frametime.average() {
+                    // Update the value of the second section
+                    ui.horizontal(|ui| {
+                        ui.label(RichText::new("N-Body total calculation time: ").strong());                            
+                        ui.label(format!("{:?}", Duration::from_nanos(value as u64)));
+                    });
+                }
+            }
         });
 }
