@@ -41,6 +41,9 @@ fn axial_tilt(
         for child in children.iter() {
             if let Ok(mut transform) = scenes.get_mut(*child) {
                 transform.rotate_x(PI / 2.0);
+                let tilted = Quat::from_axis_angle(Vec3::X, tilt.num.to_radians()) * Vec3::Z;
+                transform.rotate_x(tilt.num.to_radians());
+                tilt.axis = Some(tilted);
                 tilt.applied = true;
                 break;
             }
@@ -66,10 +69,10 @@ fn rotate_bodies(
             let rotation_duration = rotation_speed.0 * 60.0;
             let rotations_per_day = DAY_IN_SECONDS / (rotation_duration as f32);
             
-           // transform.rotate_axis(axis.axis.unwrap(), 2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
             for child in children.iter() {
                 if let Ok(mut transform) = scenes.get_mut(*child) {
-                    transform.rotate_z(2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
+                //    transform.rotate_z(2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
+                    transform.rotate_axis(tilt.axis.unwrap(), 2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
                 }
             }
             
