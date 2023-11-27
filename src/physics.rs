@@ -112,9 +112,9 @@ fn update_acceleration(
     for (_, mass, mut acc, _, sim_pos, _) in query.iter_mut() {
         acc.0 = DVec3::ZERO;
         for (other_mass, ref mut other_acc, other_sim_pos) in other_bodies.iter_mut() {
-            let distance = sim_pos.0 - other_sim_pos.0;
+            let distance = other_sim_pos.0 - sim_pos.0;
             let r_sq = distance.length_squared();
-            let force_direction = distance.normalize();
+            let force_direction = distance.normalize(); // Calculate the direction vector  
             let force_magnitude = G * mass.0 * other_mass.0 / r_sq;
             let force = force_direction * force_magnitude;
             acc.0 += force;

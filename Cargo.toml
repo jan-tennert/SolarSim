@@ -9,7 +9,7 @@ edition = "2021"
 opt-level = 1
 
 [profile.dev.package."*"]
-opt-level = 3
+opt-level = 3 
 
 [build-dependencies]
 embed-resource = "1.6.3"

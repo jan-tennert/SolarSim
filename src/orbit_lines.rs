@@ -8,7 +8,7 @@ impl Plugin for OrbitLinePlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<OrbitOffset>()
-            .add_systems(PreUpdate, (update_lines.after(apply_physics), draw_orbit_line.after(update_lines), clean_orbit_lines.after(draw_orbit_line)).run_if(in_state(SimState::Simulation)));
+            .add_systems(PreUpdate, (update_lines.after(apply_physics), draw_orbit_line.after(update_lines)).run_if(in_state(SimState::Simulation)));
     }
 }
 
@@ -49,7 +49,7 @@ fn update_lines(
             let speed = speed.0 as f32 * (substeps.0 as f32);
             let max_step = (orbit.period as f32 / speed) * MULTIPLIER;
             if orbit.step >= max_step {
-                orbit.lines.push((pos.0 * M_TO_UNIT).as_vec3());
+                orbit.lines.push_back((pos.0 * M_TO_UNIT).as_vec3());
                 orbit.step = 0.0;
             } else {
                 orbit.step += time.delta_seconds();
@@ -66,7 +66,7 @@ fn update_lines(
                 if orbit.step >= max_step {
                     let raw_p_pos = (p_pos.0 * M_TO_UNIT).as_vec3();
                     let raw_pos = (pos.0 * M_TO_UNIT).as_vec3();
-                    orbit.lines.push(raw_pos - raw_p_pos);   
+                    orbit.lines.push_back(raw_pos - raw_p_pos);   
                     orbit.step = 0.0;
                 } else {
                     orbit.step += time.delta_seconds();
@@ -105,26 +105,7 @@ pub fn draw_lines(orbit: &OrbitSettings, offset: Vec3, gizmos: &mut Gizmos, curr
             gizmos.line(*first + offset, *second + offset, orbit.color);
         }
     }
-    if let Some(last) = orbit.lines.last() {
+    if let Some(last) = orbit.lines.iter().last() {
         gizmos.line(*last + offset, current_pos, orbit.color)   
-    }
-}
-
-fn clean_orbit_lines(
-    mut bodies: Query<(&mut OrbitSettings, &Transform)>,
-) {
-    for (mut orbit, _) in &mut bodies {
-        if orbit.draw_lines {
-            let amount = orbit.lines.len() as i32;
-            if amount > orbit.max_points {
-                while orbit.lines.len() as i32 >= orbit.max_points {
-                    orbit.lines.remove(0);
-                }
-            }
-        } else {
-            if !orbit.lines.is_empty() {
-                orbit.lines.clear();
-            }
-        }
     }
 }

@@ -504,11 +504,11 @@ fn body_ui(
                     });
 
                     ui.label("Max Orbit Points");
-                    ui.add(egui::DragValue::new(&mut orbit.max_points).speed(1.0));
+                   // ui.add(egui::DragValue::new(&mut orbit.max_points).speed(1.0));
 
-                    if orbit.max_points < 1 {
-                        orbit.max_points = 1;
-                    }
+                  //  if orbit.max_points < 1 {
+                 //       orbit.max_points = 1;
+                //    }
 
                     ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
                         if ui.button("Delete Children").clicked() {
