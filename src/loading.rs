@@ -24,6 +24,7 @@ pub struct LoadingState {
     pub scaled_bodies: bool,
     pub scaled_bodies_count: i32,
     pub total_bodies: i32,
+    pub tilted_bodies: bool,
 
 }
 
@@ -32,12 +33,13 @@ impl LoadingState {
     pub fn reset(&mut self) {
         self.loaded_bodies = false;
         self.scaled_bodies = false;
+        self.tilted_bodies = false;
         self.scaled_bodies_count = 0;
         self.total_bodies = 0;
     }
     
     pub fn is_done(&self) -> bool {
-        return self.loaded_bodies && self.scaled_bodies;
+        return self.loaded_bodies && self.scaled_bodies && self.tilted_bodies;
     }
     
 }
@@ -119,10 +121,12 @@ fn update_progress(
     mut marker: Query<&mut Text, With<ProgressMarker>>,
     loading_state: Res<LoadingState>
 ) {
-    let new_text = if loading_state.scaled_bodies_count > 0 {
+    let new_text = if loading_state.scaled_bodies_count > 0 && !loading_state.scaled_bodies {
         format!("Loading and scaling bodies: {}/{}", loading_state.scaled_bodies_count, loading_state.total_bodies)
+    } else if !loading_state.loaded_bodies {
+        "Spawning bodies".to_string()
     } else {
-        format!("Spawning bodies")
+        "Rotating bodies".to_string()
     };
     if let Ok(mut text) = marker.get_single_mut() {
         let old_text = text.sections.first_mut().unwrap();
