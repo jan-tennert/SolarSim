@@ -479,7 +479,14 @@ fn body_ui(
                                apsis.perihelion.distance = 0.0; 
                             }
                             
-                            ui.checkbox(&mut orbit.draw_lines, "Draw Orbit lines");                            
+                            let mut new_draw_lines = orbit.draw_lines;
+                            ui.checkbox(&mut new_draw_lines, "Draw Orbit lines");     
+                            if new_draw_lines != orbit.draw_lines {
+                                orbit.draw_lines = new_draw_lines;
+                                if !new_draw_lines {
+                                    orbit.lines.clear();
+                                }   
+                            }
                         }
                     }
                 
@@ -492,6 +499,9 @@ fn body_ui(
                         if draw_children_orbits != old_draw_children_orbits {
                             for (_, orbit) in s_children.iter_mut() {
                                 orbit.draw_lines = draw_children_orbits;
+                                if !draw_children_orbits {
+                                    orbit.lines.clear();   
+                                }
                             }
                         }
                     }
@@ -503,11 +513,12 @@ fn body_ui(
                         orbit.color = Color::rgb(rgb[0], rgb[1], rgb[2]);
                     });
 
-                    ui.label("Max Orbit Points");
-                   // ui.add(egui::DragValue::new(&mut orbit.max_points).speed(1.0));
+               //     ui.label("Max Orbit Points");
+              //      let mut old_length = orbit.lines.capacity();
+                //    ui.add(egui::DragValue::new(&mut old_length).speed(1.0));
 
-                  //  if orbit.max_points < 1 {
-                 //       orbit.max_points = 1;
+                 //   if old_length != orbit.lines.capacity() {
+                //        orbit.lines.resize(old_length, Vec3::ZERO);
                 //    }
 
                     ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
