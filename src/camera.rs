@@ -1,9 +1,9 @@
 use bevy::{
-    input::mouse::{MouseMotion, MouseWheel},
+    input::{mouse::{MouseMotion, MouseWheel}, touch::TouchPhase},
     prelude::{
         App, Component, EventReader, in_state, Input, IntoSystemConfigs, Mat3, MouseButton, Plugin, Projection,
         Quat, Query, Res,
-        ResMut, Transform, Update, Vec2, Vec3
+        ResMut, Transform, Update, Vec2, Vec3, TouchInput, Local
     },
     reflect::Reflect, window::Window,
 };
@@ -48,8 +48,10 @@ pub fn pan_orbit_camera(
     mut ev_motion: EventReader<MouseMotion>,
     mut ev_scroll: EventReader<MouseWheel>,
     input_mouse: Res<Input<MouseButton>>,
+    mut touches: EventReader<TouchInput>,
     mut query: Query<(&mut PanOrbitCamera, &mut Transform, &Projection)>,
-    mut lock_on: ResMut<LockOn>
+    mut lock_on: ResMut<LockOn>,
+    mut last_position: Local<Option<Vec2>>,
 ) {
     // change input mapping for orbit and panning here
     let orbit_button = MouseButton::Left;
@@ -59,7 +61,19 @@ pub fn pan_orbit_camera(
     let mut rotation_move = Vec2::ZERO;
     let mut scroll = 0.0;
     let mut orbit_button_changed = false;
+    let window = windows.single();
 
+    for touch in touches.read() {
+        match touch.phase {
+            TouchPhase::Started => {
+                last_position.replace(touch.position);
+            }
+            TouchPhase::Moved => {
+                rotation_move += (touch.position - last_position.unwrap_or(touch.position)) * 0.05;    
+            }
+            _ => {}
+        }
+    }
     if input_mouse.pressed(orbit_button) {
         lock_on.enabled = false;
         for ev in ev_motion.read() {

@@ -4,10 +4,10 @@ use apsis::ApsisPlugin;
 use bevy::app::{App, PluginGroup};
 use bevy::DefaultPlugins;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
-use bevy::prelude::{default, States, NonSend, Query, Entity, Startup, bevy_main};
+use bevy::prelude::{default, States, NonSend, Query, Entity, Startup, bevy_main, Commands, With, Resource};
 use bevy::render::RenderPlugin;
 use bevy::render::settings::{RenderCreation, WgpuSettings, Backends};
-use bevy::window::{PresentMode, Window, WindowPlugin};
+use bevy::window::{PresentMode, Window, WindowPlugin, WindowMode, PrimaryWindow};
 use bevy::winit::WinitWindows;
 use bevy_egui::EguiPlugin;
 use bevy_mod_billboard::plugin::BillboardPlugin;
@@ -102,6 +102,8 @@ fn main() {
                 primary_window: Some(Window {
                     title: "Solar System Simulation (Jan Tennert)".to_string(),
                     present_mode: PresentMode::AutoVsync,
+                    resizable: false,
+                    mode: WindowMode::BorderlessFullscreen,
                     ..default()
                 }),
                 ..default()
@@ -139,9 +141,56 @@ fn main() {
         .add_plugins(RotationPlugin)
         .add_plugins(FrameTimeDiagnosticsPlugin::default())
         .add_plugins(DiameterPlugin)
+        .add_systems(Startup, calculate_layout)
     //    .add_plugins(ScreenDiagnosticsPlugin::default())
   //      .add_plugins(ScreenFrameDiagnosticsPlugin)
         .add_state::<SimState>()
    //     .add_systems(Startup, set_window_icon)
         .run();
+}
+
+
+pub fn calculate_layout(
+    mut commands: Commands,
+    windows: NonSend<WinitWindows>,
+    primary_window: Query<Entity, With<PrimaryWindow>>,
+) {
+    let primary_entity = primary_window.single();
+    let primary = windows.get_window(primary_entity).unwrap();
+    let inner = primary.inner_size();
+    let scale = primary.scale_factor();
+
+    let content_rect = if cfg!(target_os = "android") {
+        use winit::platform::android::WindowExtAndroid;
+        let content_rect = primary.content_rect();
+        let content = ContentRect {
+            bottom: (inner.height as f32 - content_rect.bottom as f32) / scale as f32,
+            left: content_rect.left as f32 / scale as f32,
+            right: (inner.width as f32 - content_rect.right as f32) / scale as f32,
+            top: content_rect.top as f32 / scale as f32,
+        };
+
+        content
+    } else {
+        ContentRect {
+            bottom: 0.,
+            left: 0.,
+            right: 0.,
+            top: 0.,
+        }
+    };
+    commands.insert_resource(Layout { content_rect });
+}
+
+#[derive(Resource)]
+pub struct Layout {
+    pub(crate) content_rect: ContentRect,
+}
+
+#[derive(Debug)]
+pub struct ContentRect {
+    pub top: f32,
+    pub bottom: f32,
+    pub right: f32,
+    pub left: f32,
 }

@@ -7,9 +7,11 @@ use bevy::ecs::system::EntityCommands;
 use bevy::hierarchy::BuildChildren;
 use bevy::math::{Vec3, DVec3};
 use bevy::pbr::{PbrBundle, PointLight, PointLightBundle};
-use bevy::prelude::{Assets, Bundle, Camera, Camera3dBundle, ChildBuilder, Color, Commands, default, Entity, Handle, in_state, IntoSystemConfigs, Mesh, OnEnter, PerspectiveProjection, Projection, Res, ResMut, Resource, SceneBundle, shape, SpatialBundle, StandardMaterial, Startup, Transform, Update, Visibility};
+use bevy::prelude::{Assets, Bundle, Camera, Camera3dBundle, ChildBuilder, Color, Commands, default, Entity, Handle, in_state, IntoSystemConfigs, Mesh, OnEnter, PerspectiveProjection, Projection, Res, ResMut, Resource, SceneBundle, shape, SpatialBundle, StandardMaterial, Startup, Transform, Update, Visibility, NonSend, With, Query};
 use bevy::scene::Scene;
 use bevy::text::{TextAlignment, TextSection, TextStyle};
+use bevy::window::PrimaryWindow;
+use bevy::winit::WinitWindows;
 use bevy_mod_billboard::{BillboardLockAxisBundle, BillboardTextBundle};
 use crate::apsis::ApsisBody;
 
@@ -299,7 +301,7 @@ pub fn setup_camera(
                 ..default()
             }),
             camera: Camera {
-                hdr: true,
+                hdr: false,
                 ..default()
             },
             ..default()
