@@ -1,0 +1,15 @@
+android:
+  gradle: false
+  # this assets configuration is currently only used without gradle!
+  assets:
+    - "assets/textures"
+    - "assets/models"
+   # - "assets/shaders"
+    - "assets/images"
+    - "assets/bodies.sim"
+  #icon: "ios-src/Assets.xcassets/AppIcon.appiconset/icon_1024x1024.png"
+  #manifest:
+  #  package: "me.nikl.bevygame" # Todo
+  #  version_code: 3 # Todo you should start at 1
+  #  application:
+  #    label: "Bevy game" # Todo

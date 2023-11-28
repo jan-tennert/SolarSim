@@ -4,13 +4,12 @@ use apsis::ApsisPlugin;
 use bevy::app::{App, PluginGroup};
 use bevy::DefaultPlugins;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
-use bevy::prelude::{default, States, NonSend, Query, Entity, Startup};
+use bevy::prelude::{default, States, NonSend, Query, Entity, Startup, bevy_main};
 use bevy::render::RenderPlugin;
 use bevy::render::settings::{RenderCreation, WgpuSettings, Backends};
 use bevy::window::{PresentMode, Window, WindowPlugin};
 use bevy::winit::WinitWindows;
 use bevy_egui::EguiPlugin;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_billboard::plugin::BillboardPlugin;
 
 use camera::PanOrbitCameraPlugin;
@@ -94,7 +93,7 @@ fn set_window_icon(
     }
 }
 
-
+#[bevy_main]
 fn main() {
     App::new()
      //   .add_plugins(DefaultPlugins)
@@ -114,8 +113,8 @@ fn main() {
                 }),
             })  
         )
-    //    .add_plugins(EguiPlugin)
-        .add_plugins(WorldInspectorPlugin::new())
+        .add_plugins(EguiPlugin)
+    //    .add_plugins(WorldInspectorPlugin::new())
   //      .add_plugins(DefaultPickingPlugins)
         .add_plugins(LockOnPlugin)
         .add_plugins(SerializationPlugin)
@@ -143,6 +142,6 @@ fn main() {
     //    .add_plugins(ScreenDiagnosticsPlugin::default())
   //      .add_plugins(ScreenFrameDiagnosticsPlugin)
         .add_state::<SimState>()
-        .add_systems(Startup, set_window_icon)
+   //     .add_systems(Startup, set_window_icon)
         .run();
 }

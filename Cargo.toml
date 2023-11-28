@@ -19,12 +19,30 @@ embed-resource = "1.6.3"
 bevy = { version = "0.12" }
 bevy_easings = "0.12.2"
 #bevy_panorbit_camera = { git = "https://github.com/jan-tennert/bevy_panorbit_camera", rev = "7e3c3f8" }
-bevy-inspector-egui = { version = "0.21", default-features = false }
+bevy-inspector-egui = { git = "https://github.com/jan-tennert/bevy-inspector-egui", rev = "f8c809a" }
 #bevy_mod_picking = "0.15"
-bevy_egui = "0.23"
+bevy_egui = { version = "0.23", default-features = false, features = ["open_url", "default_fonts"] }
 chrono = "0.4.23"
 serde_json = "1.0.107"
 serde = { version = "1.0.189", features = ["derive"] }
 winit = "0.28.7"
 image = "0.24.7"
 bevy_mod_billboard = { git = "https://github.com/robtfm/bevy_mod_billboard/", branch = "bevy12" }
+
+[lib]
+name = "simulation"
+crate-type = ["staticlib", "cdylib"]
+
+[package.metadata.android]
+package = "io.github.jan.simulation"
+apk_name = "simulation"
+# This strips debug symbols from the shared libraries, drastically reducing APK size. If you need them, remove the option.
+strip = "strip"
+build_targets = ["aarch64-linux-android", "armv7-linux-androideabi"]
+
+[package.metadata.android.sdk]
+target_sdk_version = 31
+
+[package.metadata.android.application]
+icon = "@mipmap/ic_launcher"
+label = "Simulation"
