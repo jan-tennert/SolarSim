@@ -123,10 +123,10 @@ fn update_progress(
 ) {
     let new_text = if loading_state.scaled_bodies_count > 0 && !loading_state.scaled_bodies {
         format!("Loading and scaling bodies: {}/{}", loading_state.scaled_bodies_count, loading_state.total_bodies)
-    } else if !loading_state.loaded_bodies {
-        "Spawning bodies".to_string()
-    } else {
+    } else if loading_state.loaded_bodies && loading_state.scaled_bodies {
         "Rotating bodies".to_string()
+    } else {
+        "Spawning bodies".to_string()
     };
     if let Ok(mut text) = marker.get_single_mut() {
         let old_text = text.sections.first_mut().unwrap();

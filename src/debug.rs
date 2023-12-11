@@ -34,7 +34,6 @@ fn debug_window(
         return;
     }
     egui::Window::new("Debug Information")
-        .vscroll(true)
         .open(&mut ui_state.show_debug)
         .show(egui_ctx.ctx_mut(), |ui| {
             if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {

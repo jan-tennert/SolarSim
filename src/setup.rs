@@ -108,7 +108,7 @@ pub fn setup_planets(
         apply_body(BodyBundle::from(entry.clone()), Star::default(), &assets, &mut star, &mut meshes, &mut materials,360.0 * ((s_index + 1) as f32 / stars as f32), true);
         
         //planet count in star system for coloring later
-        let planet_count = entry.children.iter().count();
+        let planet_count = entry.children.iter().filter(|p| p.data.simulate).count();
         total_count += planet_count;
         
         //collect the planets in a new vector and sort them by the length of the position
@@ -135,7 +135,7 @@ pub fn setup_planets(
             planets.push(planet_id);
             
             //moon count for coloring later
-            let moon_count = planet_entry.children.iter().count();
+            let moon_count = planet_entry.children.iter().filter(|m| m.data.simulate).count();
             total_count += moon_count;
                 
             //collect the moons in a new vector and sort them by the distance to the parent

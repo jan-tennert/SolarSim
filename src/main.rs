@@ -14,6 +14,7 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_billboard::plugin::BillboardPlugin;
 
 use camera::PanOrbitCameraPlugin;
+use constellation::ConstellationPlugin;
 use debug::DebugPlugin;
 use diameter::DiameterPlugin;
 use input::InputPlugin;
@@ -59,6 +60,7 @@ mod billboard;
 mod apsis;
 mod unit;
 mod debug;
+mod constellation;
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
 pub enum SimState {
@@ -124,6 +126,7 @@ fn main() {
         .add_plugins(BillboardPlugin)
         .add_plugins(ApsisPlugin)
         .add_plugins(DebugPlugin)
+        .add_plugins(ConstellationPlugin)
         //     .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(SetupPlugin)

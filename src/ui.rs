@@ -42,11 +42,12 @@ pub struct UiState {
     pub visible: bool,
     pub step_type: StepType,
     pub show_debug: bool,
+    pub show_constellation: bool
 }
 
 impl Default for UiState {
     fn default() -> Self {
-        UiState { visible: true, step_type: StepType::SUBSTEPS, show_debug: false, }
+        UiState { visible: true, step_type: StepType::SUBSTEPS, show_debug: false, show_constellation: false }
     }
 }
 
@@ -309,6 +310,9 @@ pub fn system_ui(
                     if orbit_offset.enabled {
                         pan.focus = Vec3::ZERO;
                     }
+                }
+                if ui.button("Open Constellation Tool").clicked() {
+                    ui_state.show_constellation = true; 
                 }
                 if ui.button("Open Debug Window").clicked() {
                     ui_state.show_debug = true; 

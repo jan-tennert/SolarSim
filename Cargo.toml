@@ -27,4 +27,4 @@ serde_json = "1.0.107"
 serde = { version = "1.0.189", features = ["derive"] }
 winit = "0.28.7"
 image = "0.24.7"
-bevy_mod_billboard = { git = "https://github.com/robtfm/bevy_mod_billboard/", branch = "bevy12" }
+bevy_mod_billboard = "0.5.1"

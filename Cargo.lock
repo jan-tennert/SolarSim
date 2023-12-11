@@ -840,11 +840,13 @@ dependencies = [
 
 [[package]]
 name = "bevy_mod_billboard"
-version = "0.4.1"
-source = "git+https://github.com/robtfm/bevy_mod_billboard/?branch=bevy12#99154fa88a3b5380ef778626d367158218b9b5d9"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "661ea549adc9e90e1f38ce9a4937e1c153c785ce588037bb156b9fe7e03a984d"
 dependencies = [
  "bevy",
  "bitflags 2.4.0",
+ "smallvec",
 ]
 
 [[package]]
