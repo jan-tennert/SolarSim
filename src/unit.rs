@@ -7,17 +7,21 @@ pub fn format_seconds(seconds: f64) -> String {
         let minutes = seconds / 60.0;
         return format!("{:.2} min", minutes);
     } else if seconds < 86400.0 {
-        let hours = seconds / 3600.0;
-        return format!("{:.2} hours", hours);
+        let hours = (seconds as i32) / 3600;
+        let minutes = (seconds % 3600.0) as i32 / 60;
+        return format!("{} hours {} minutes", hours, minutes);
     } else if seconds < 2592000.0 {
-        let days = seconds / 86400.0;
-        return format!("{:.2} days", days);
+        let days = (seconds as i32) / 86400;
+        let remaining_hours = (seconds % 86400.0) as i32 / 3600;
+        return format!("{} days {} hours", days, remaining_hours);
     } else if seconds < 31536000.0 {
-        let months = seconds / 2592000.0;
-        return format!("{:.2} months", months);
+        let months = (seconds as i32) / 2592000;
+        let remaining_days = (seconds % 2592000.0) as i32 / 386400;
+        return format!("{} months {} days", months, remaining_days);
     } else {
-        let years = seconds / 31536000.0;
-        return format!("{:.2} years", years);
+        let years = (seconds as i32) / 31536000;
+        let remaining_months = (seconds % 31536000.0) as i32 / 2592000;
+        return format!("{} years {} months", years, remaining_months);
     }
 }
 

@@ -437,7 +437,12 @@ fn body_ui(
                         None => velocity.0.length() / 1000.0,
                     };
                     ui.label(RichText::new("Orbital Velocity").size(16.0).underline());
-                    ui.label(format!("{:.3} km/s", actual_velocity));
+                    ui.horizontal(|ui| {
+                        ui.label(format!("{:.3} km/s", actual_velocity));
+                        if actual_velocity < 8.0 {
+                            ui.label(format!("({:.3} km/h)", actual_velocity * 3600.0));
+                        }
+                    });
                     
                     let mut new_apsis = None;
                     if let Some((_, _, _, p_mass)) = parent {
