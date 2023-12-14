@@ -16,6 +16,7 @@ use bevy_mod_billboard::plugin::BillboardPlugin;
 use camera::PanOrbitCameraPlugin;
 use debug::DebugPlugin;
 use diameter::DiameterPlugin;
+use direction::DirectionPlugin;
 use input::InputPlugin;
 use loading::LoadingPlugin;
 use lock_on::LockOnPlugin;
@@ -59,6 +60,8 @@ mod billboard;
 mod apsis;
 mod unit;
 mod debug;
+mod direction;
+mod arrows;
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
 pub enum SimState {
@@ -115,7 +118,7 @@ fn main() {
             })  
         )
         .add_plugins(EguiPlugin)
-      //  .add_plugins(WorldInspectorPlugin::new())
+   //     .add_plugins(WorldInspectorPlugin::new())
   //      .add_plugins(DefaultPickingPlugins)
         .add_plugins(LockOnPlugin)
         .add_plugins(SerializationPlugin)
@@ -125,6 +128,7 @@ fn main() {
         .add_plugins(ApsisPlugin)
         .add_plugins(DebugPlugin)
         //     .add_plugins(PanOrbitCameraPlugin)
+        .add_plugins(DirectionPlugin)
         .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(SetupPlugin)
         .add_plugins(PhysicsPlugin)

@@ -43,7 +43,10 @@ pub struct OrbitSettings {
     pub color: Color,
     pub step: f32,
     pub lines: VecDeque<Vec3>,
+    pub force_direction: DVec3,
     pub draw_lines: bool,
+    pub display_force: bool,
+    pub display_velocity: bool,
     pub period: f64,
                          
 }
@@ -51,7 +54,7 @@ pub struct OrbitSettings {
 impl Default for OrbitSettings {
     
     fn default() -> Self {
-        OrbitSettings { color: Color::GREEN, lines: VecDeque::with_capacity(3000), draw_lines: false, step: 0.0, period: 0.0 }
+        OrbitSettings { color: Color::GREEN, lines: VecDeque::with_capacity(3000), force_direction: DVec3::ZERO, draw_lines: false, step: 0.0, period: 0.0, display_force: false, display_velocity: false }
     }
     
 }

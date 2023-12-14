@@ -2,10 +2,11 @@ use bevy::app::{App, Plugin, Update};
 use bevy::prelude::{Entity, in_state, IntoSystemConfigs, Query, ResMut, Resource, Transform, With, Res};
 
 use crate::body::{Diameter, Mass, Star};
-use crate::camera::PanOrbitCamera;
+use crate::camera::{PanOrbitCamera, pan_orbit_camera};
 use crate::constants::M_TO_UNIT;
 use crate::SimState;
 use crate::orbit_lines::OrbitOffset;
+use crate::physics::apply_physics;
 
 const SELECTION_MULTIPLIER: f64 = 3.0;
 
@@ -16,7 +17,7 @@ impl Plugin for SelectionPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<SelectedEntity>()
-            .add_systems(Update, (apply_camera_to_selection).run_if(in_state(SimState::Simulation)));
+            .add_systems(Update, (apply_camera_to_selection.after(apply_physics).before(pan_orbit_camera)).run_if(in_state(SimState::Simulation)));
     }
 
 }

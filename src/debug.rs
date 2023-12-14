@@ -8,6 +8,7 @@ use bevy_egui::{egui::{self, InnerResponse, Response, Ui}, EguiContexts};
 
 use crate::SimState;
 use crate::body::Mass;
+use crate::camera::PanOrbitCamera;
 use crate::physics::{NBodyStats, SubSteps, NBODY_TOTAL_TIME, NBODY_STEP_TIME};
 use crate::ui::{system_ui, UiState};
 
@@ -28,11 +29,13 @@ fn debug_window(
     mut ui_state: ResMut<UiState>,
     nbody_stats: Res<NBodyStats>,
     diagnostics: Res<DiagnosticsStore>,
-    bodies: Query<&Mass>
+    bodies: Query<&Mass>,
+    camera: Query<&PanOrbitCamera>
 ) {
     if !ui_state.visible {
         return;
     }
+    let cam = camera.single();
     egui::Window::new("Debug Information")
         .open(&mut ui_state.show_debug)
         .show(egui_ctx.ctx_mut(), |ui| {
@@ -97,5 +100,13 @@ fn debug_window(
                     });
                 }
             }
+            ui.horizontal(|ui| {
+                ui.label(RichText::new("Camera focus: ").strong());                            
+                ui.label(format!("{}", cam.focus));
+            });
+            ui.horizontal(|ui| {
+                ui.label(RichText::new("Camera radius: ").strong());                            
+                ui.label(format!("{}", cam.radius));
+            });
         });
 }

@@ -79,7 +79,7 @@ pub const NBODY_STEP_TIME: DiagnosticId =
     DiagnosticId::from_u128(337040787171757619024831343456040760892);
 
 pub fn apply_physics(
-    mut query: Query<(Entity, &Mass, &mut Acceleration, &mut Velocity, &mut SimPosition, &mut Transform)>,
+    mut query: Query<(Entity, &Mass, &mut Acceleration, &mut OrbitSettings, &mut Velocity, &mut SimPosition, &mut Transform)>,
     pause: Res<Pause>,
     time: Res<Time>,
     speed: Res<Speed>,
@@ -105,11 +105,11 @@ pub fn apply_physics(
 }
 
 fn update_acceleration(
-    query: &mut Query<(Entity, &Mass, &mut Acceleration, &mut Velocity, &mut SimPosition, &mut Transform)>,
+    query: &mut Query<(Entity, &Mass, &mut Acceleration, &mut OrbitSettings, &mut Velocity, &mut SimPosition, &mut Transform)>,
     steps: &mut i32,
 ) {
     let mut other_bodies: Vec<(&Mass, Mut<Acceleration>, Mut<SimPosition>)> = Vec::with_capacity(query.iter().count());
-    for (_, mass, mut acc, _, sim_pos, _) in query.iter_mut() {
+    for (_, mass, mut acc, _, _, sim_pos, _) in query.iter_mut() {
         acc.0 = DVec3::ZERO;
         for (other_mass, ref mut other_acc, other_sim_pos) in other_bodies.iter_mut() {
             let distance = other_sim_pos.0 - sim_pos.0;
@@ -126,7 +126,7 @@ fn update_acceleration(
 }
 
 fn update_velocity_and_positions(
-    query: &mut Query<(Entity, &Mass, &mut Acceleration, &mut Velocity, &mut SimPosition, &mut Transform)>,
+    query: &mut Query<(Entity, &Mass, &mut Acceleration, &mut OrbitSettings, &mut Velocity, &mut SimPosition, &mut Transform)>,
     delta_time: f64,
     speed: &Res<Speed>,
     steps: &mut i32,
@@ -137,7 +137,8 @@ fn update_velocity_and_positions(
         Some(selected) => {
             if !orbit_offset.enabled {
                 DVec3::ZERO
-            } else if let Ok((_, mass, mut acc, mut vel, mut sim_pos, mut transform)) = query.get_mut(selected) {
+            } else if let Ok((_, mass, mut acc, mut orbit_s, mut vel, mut sim_pos, mut transform)) = query.get_mut(selected) {
+                orbit_s.force_direction = acc.0;
                 acc.0 /= mass.0; //actually apply the force to the body
                 vel.0 += acc.0 * delta_time * speed.0;
                 sim_pos.0 += vel.0 * delta_time * speed.0; //this is the same step as below, but we are doing this first for the offset
@@ -151,7 +152,7 @@ fn update_velocity_and_positions(
         }
         None => DVec3::ZERO,
     };
-    for (entity, mass, mut acc, mut vel, mut sim_pos, mut transform) in query.iter_mut() {
+    for (entity, mass, mut acc, _, mut vel, mut sim_pos, mut transform) in query.iter_mut() {
         if orbit_offset.enabled {
             if let Some(s_entity) = selected_entity.entity {
                 if s_entity == entity {

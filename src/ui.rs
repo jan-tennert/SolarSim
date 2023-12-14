@@ -512,6 +512,9 @@ fn body_ui(
                         ui.color_edit_button_rgb(&mut rgb);
                         orbit.color = Color::rgb(rgb[0], rgb[1], rgb[2]);
                     });
+                    
+                    ui.checkbox(&mut orbit.display_force, "Display force arrow");
+                    ui.checkbox(&mut orbit.display_velocity, "Display velocity arrow");                    
 
                //     ui.label("Max Orbit Points");
               //      let mut old_length = orbit.lines.capacity();
