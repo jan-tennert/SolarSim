@@ -22,7 +22,7 @@ fn display_force_and_velocity(
 ) {
     for (transform, _, orbit, diameter, velocity) in &planet_query {
         if orbit.display_force {
-            gizmos.arrow(transform.translation, transform.translation + (orbit.force_direction.normalize() * (diameter.num * M_TO_UNIT)).as_vec3(), Color::BLUE);
+            gizmos.arrow(transform.translation, transform.translation + (orbit.force_direction * (diameter.num * M_TO_UNIT)).as_vec3(), Color::BLUE);
         }
         if orbit.display_velocity {
             gizmos.arrow(transform.translation, transform.translation +(velocity.0.normalize() * (diameter.num * M_TO_UNIT)).as_vec3(), Color::RED);
@@ -30,7 +30,7 @@ fn display_force_and_velocity(
     }
     for (entity, transform, orbit, diameter, velocity) in &moon_query {
         if orbit.display_force {
-            gizmos.arrow(transform.translation, transform.translation +(orbit.force_direction.normalize() * (diameter.num * M_TO_UNIT)).as_vec3(), Color::BLUE);
+            gizmos.arrow(transform.translation, transform.translation +(orbit.force_direction * (diameter.num * M_TO_UNIT)).as_vec3(), Color::BLUE);
         }
         if orbit.display_velocity {
             if let Some((_, _, _, _, vel)) = planet_query.iter().find(|(_, ch, _, _, _)| ch.0.contains(&entity)) {

@@ -1,4 +1,4 @@
-use std::time::Instant;
+use std::{time::Instant, collections::VecDeque};
 
 use bevy::{prelude::{App, Entity, Gizmos, in_state, IntoSystemConfigs, Plugin, Query, Res, ResMut, Resource, Transform, Update, Vec3, With, Without, PostUpdate, PreUpdate, Component}, time::{Time, Timer, TimerMode}};
 
@@ -52,6 +52,7 @@ fn update_lines(
             let max_step = (orbit.period as f32 / speed) * MULTIPLIER;
             if orbit.step >= max_step {
                 orbit.lines.push_back((pos.0 * M_TO_UNIT).as_vec3());
+              //  insert_at_nearest_distance(&mut orbit.lines, (pos.0 * M_TO_UNIT).as_vec3());
                 orbit.step = 0.0;
             } else {
                 orbit.step += time.delta_seconds();
@@ -69,6 +70,7 @@ fn update_lines(
                     let raw_p_pos = (p_pos.0 * M_TO_UNIT).as_vec3();
                     let raw_pos = (pos.0 * M_TO_UNIT).as_vec3();
                     orbit.lines.push_back(raw_pos - raw_p_pos);   
+                    //insert_at_nearest_distance(&mut orbit.lines, raw_pos - raw_p_pos);
                     orbit.step = 0.0;
                 } else {
                     orbit.step += time.delta_seconds();

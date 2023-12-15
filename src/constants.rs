@@ -1,5 +1,5 @@
 pub const G: f64 = 6.67430e-11_f64; //gravitational constant
-pub const M_TO_UNIT: f64 = 6.684587e-8_f64;
+pub const M_TO_UNIT: f64 = 0.0000001;
 pub const M_TO_AU: f32 = 6.684587e-12_f32;
 
 pub const HOUR_IN_SECONDS: f32 = 60.0 * 60.0;

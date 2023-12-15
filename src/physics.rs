@@ -90,6 +90,7 @@ pub fn apply_physics(
     mut diagnostics: Diagnostics
 ) {
     if pause.0 {
+        change_selection_without_update(&mut query, &selected_entity, &mut orbit_offset); //allows switching bodies while paused
         return;
     }
     let delta = time.delta_seconds() as f64;
@@ -125,6 +126,43 @@ fn update_acceleration(
     }
 }
 
+fn change_selection_without_update(
+    query: &mut Query<(Entity, &Mass, &mut Acceleration, &mut OrbitSettings, &mut Velocity, &mut SimPosition, &mut Transform)>,
+    selected_entity: &Res<SelectedEntity>,
+    orbit_offset: &mut ResMut<OrbitOffset>,
+) {
+    let offset = match selected_entity.entity { //if orbit_offset.enabled is true, we calculate the new position of the selected entity first and then move it to 0,0,0 and add the actual position to all other bodies
+        Some(selected) => {
+            if !orbit_offset.enabled {
+                DVec3::ZERO
+            } else if let Ok((_, _, _, _, _, sim_pos, mut transform)) = query.get_mut(selected) {
+                let raw_translation = sim_pos.0 * M_TO_UNIT;
+                transform.translation = Vec3::ZERO; //the selected entity will always be at 0,0,0
+                -raw_translation 
+            } else {
+                DVec3::ZERO 
+            }
+        }
+        None => DVec3::ZERO,
+    };
+    for (entity, _, _, _, _, sim_pos, mut transform) in query.iter_mut() {
+        if orbit_offset.enabled {
+            if let Some(s_entity) = selected_entity.entity {
+                if s_entity == entity {
+                    continue;
+                }
+            }
+        }
+        let pos_without_offset = sim_pos.0.as_vec3() * M_TO_UNIT as f32;
+        transform.translation = pos_without_offset + offset.as_vec3(); //apply offset   
+    }
+    if orbit_offset.enabled {
+        orbit_offset.value = offset.as_vec3();   
+    } else {
+        orbit_offset.value = Vec3::ZERO
+    }
+}
+
 fn update_velocity_and_positions(
     query: &mut Query<(Entity, &Mass, &mut Acceleration, &mut OrbitSettings, &mut Velocity, &mut SimPosition, &mut Transform)>,
     delta_time: f64,
@@ -138,7 +176,7 @@ fn update_velocity_and_positions(
             if !orbit_offset.enabled {
                 DVec3::ZERO
             } else if let Ok((_, mass, mut acc, mut orbit_s, mut vel, mut sim_pos, mut transform)) = query.get_mut(selected) {
-                orbit_s.force_direction = acc.0;
+                orbit_s.force_direction = acc.0.normalize();
                 acc.0 /= mass.0; //actually apply the force to the body
                 vel.0 += acc.0 * delta_time * speed.0;
                 sim_pos.0 += vel.0 * delta_time * speed.0; //this is the same step as below, but we are doing this first for the offset
@@ -152,7 +190,7 @@ fn update_velocity_and_positions(
         }
         None => DVec3::ZERO,
     };
-    for (entity, mass, mut acc, _, mut vel, mut sim_pos, mut transform) in query.iter_mut() {
+    for (entity, mass, mut acc, mut orbit_s, mut vel, mut sim_pos, mut transform) in query.iter_mut() {
         if orbit_offset.enabled {
             if let Some(s_entity) = selected_entity.entity {
                 if s_entity == entity {
@@ -160,6 +198,7 @@ fn update_velocity_and_positions(
                 }
             }
         }
+        orbit_s.force_direction = acc.0.normalize();
         acc.0 /= mass.0; //actually apply the force to the body
         vel.0 += acc.0 * delta_time * speed.0;
         *steps += 1;

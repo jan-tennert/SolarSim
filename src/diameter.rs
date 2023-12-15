@@ -52,7 +52,7 @@ fn apply_real_diameter(
                     }
                 }
                 let aabb = Aabb::from_min_max(Vec3::from(min), Vec3::from(max));
-                transform.scale = Vec3::splat((diameter.num * M_TO_UNIT / 2.0) as f32) / (Vec3::from(aabb.half_extents)); //not dividing by 2 for the diameter makes them to big which doesn't work with satellites very close to their planet
+                transform.scale = Vec3::splat((diameter.num * M_TO_UNIT / 1.7) as f32) / (Vec3::from(aabb.half_extents)); //not dividing by 1.7 for the diameter makes them to big which doesn't work with satellites very close to their planet
                 scale.0 = transform.scale.x;
                 diameter.applied = true;
                 loading_state.scaled_bodies_count += 1;
