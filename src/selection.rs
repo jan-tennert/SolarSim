@@ -8,7 +8,7 @@ use crate::orbit_lines::OrbitOffset;
 use crate::physics::apply_physics;
 use crate::SimState;
 
-const SELECTION_MULTIPLIER: f64 = 3.0;
+const SELECTION_MULTIPLIER: f32 = 3.0;
 
 pub struct SelectionPlugin;
 
@@ -51,7 +51,7 @@ pub fn apply_camera_to_selection(
         } else if !selected_entity.changed_focus {
             let (_, _, diameter, _, _) = bodies.get(entity).unwrap();
             let mut cam = camera.single_mut();            
-            cam.radius = (diameter.num * M_TO_UNIT * SELECTION_MULTIPLIER) as f32;
+            cam.radius = (diameter.num * SELECTION_MULTIPLIER) as f32;
             selected_entity.changed_focus = true;
         }
         if !orbit_offset.enabled {

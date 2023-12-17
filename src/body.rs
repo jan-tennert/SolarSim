@@ -4,6 +4,7 @@ use bevy::core::Name;
 use bevy::math::{DVec3, Vec3};
 use bevy::prelude::{Bundle, Color, Component, default, Entity, Handle, Reflect, Scene, Transform};
 
+use crate::constants::M_TO_UNIT;
 use crate::serialization::SerializedBody;
 
 #[derive(Component, Clone, Default, Reflect, Copy)]
@@ -74,7 +75,7 @@ pub struct SimPosition(pub DVec3);
 #[derive(Component, Reflect, Clone, Default)]
 pub struct Diameter {
     
-    pub num: f64,
+    pub num: f32,
     pub applied: bool
     
 }
@@ -125,7 +126,7 @@ impl From<SerializedBody> for BodyBundle {
             name: Name::new(value.data.name),
             model_path: ModelPath(format!("models/{}#Scene0", value.data.model_path)),
             diameter: Diameter {
-                num: value.data.diameter * 1000.0,
+                num: (value.data.diameter * 1000.0 * M_TO_UNIT) as f32,
                 ..default()
             },
             axial_tilt: AxialTilt {

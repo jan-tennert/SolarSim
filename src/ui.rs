@@ -14,7 +14,7 @@ use bevy_inspector_egui::egui::{RichText, TextEdit};
 use chrono::{Days, NaiveDateTime};
 
 //use crate::fps::Fps;
-use crate::{apsis::ApsisBody, body::{BodyChildren, Diameter, Mass, Moon, OrbitSettings, Planet, RotationSpeed, Scale, SimPosition, Star, Velocity}, camera::PanOrbitCamera, constants::{DAY_IN_SECONDS, M_TO_AU}, egui_input_block::BlockInputPlugin, lock_on::LockOn, orbit_lines::OrbitOffset, physics::{apply_physics, SubSteps}, selection::SelectedEntity, setup::StartingTime, skybox::Cubemap, unit::format_length};
+use crate::{apsis::ApsisBody, body::{BodyChildren, Diameter, Mass, Moon, OrbitSettings, Planet, RotationSpeed, Scale, SimPosition, Star, Velocity}, camera::PanOrbitCamera, constants::{DAY_IN_SECONDS, M_TO_AU, M_TO_UNIT}, egui_input_block::BlockInputPlugin, lock_on::LockOn, orbit_lines::OrbitOffset, physics::{apply_physics, SubSteps}, selection::SelectedEntity, setup::StartingTime, skybox::Cubemap, unit::format_length};
 use crate::billboard::BillboardSettings;
 use crate::body::BodyParent;
 use crate::constants::G;
@@ -426,7 +426,7 @@ fn body_ui(
                                 .size(16.0)
                                 .underline(),
                         );
-                        let scaled_diameter = (diameter.num as f32) * n_scale;
+                        let scaled_diameter = (diameter.num / M_TO_UNIT as f32) * n_scale;
                         ui.label(format!("{} km", scaled_diameter / 1000.0));
                     }
 

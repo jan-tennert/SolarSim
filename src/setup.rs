@@ -237,7 +237,7 @@ fn spawn_imposter(
     materials: &mut ResMut<Assets<StandardMaterial>>,
 ) {
     parent.spawn(PbrBundle {
-        mesh: meshes.add(shape::Circle::new(((bundle.diameter.num * M_TO_UNIT) as f32) * 3.0).into()),
+        mesh: meshes.add(shape::Circle::new(bundle.diameter.num  * 3.0).into()),
         material: materials.add(Color::rgb(30.0, 30.0, 0.0).into()),
         visibility: Visibility::Hidden,
         ..default()
