@@ -148,6 +148,9 @@ fn change_selection_without_update(
         }
         None => DVec3::ZERO,
     };
+    if offset.as_vec3() == orbit_offset.value {
+        return;
+    }
     for (entity, _, _, _, _, sim_pos, mut transform, _, _, _) in query.iter_mut() {
         if orbit_offset.enabled {
             if let Some(s_entity) = selected_entity.entity {
