@@ -1,18 +1,18 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use apsis::ApsisPlugin;
 use bevy::app::{App, PluginGroup};
 use bevy::DefaultPlugins;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
-use bevy::prelude::{default, States, NonSend, Query, Entity, Startup};
+use bevy::prelude::{default, Entity, NonSend, Query, Startup, States};
 use bevy::render::RenderPlugin;
-use bevy::render::settings::{RenderCreation, WgpuSettings, Backends};
+use bevy::render::settings::{RenderCreation, WgpuSettings};
 use bevy::window::{PresentMode, Window, WindowPlugin};
 use bevy::winit::WinitWindows;
 use bevy_egui::EguiPlugin;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_billboard::plugin::BillboardPlugin;
+use winit::window::Icon;
 
+use apsis::ApsisPlugin;
 use camera::PanOrbitCameraPlugin;
 use debug::DebugPlugin;
 use diameter::DiameterPlugin;
@@ -28,7 +28,6 @@ use skybox::SkyboxPlugin;
 use speed::SpeedPlugin;
 use star_renderer::StarRendererPlugin;
 use ui::UIPlugin;
-use winit::window::Icon;
 
 use crate::billboard::BodyBillboardPlugin;
 use crate::menu::MenuPlugin;

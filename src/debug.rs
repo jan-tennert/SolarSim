@@ -2,16 +2,15 @@ use std::time::Duration;
 
 use bevy::app::{App, Plugin};
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
-use bevy::prelude::{Resource, Update, IntoSystemConfigs, in_state, Res, ResMut, Query};
+use bevy::prelude::{in_state, IntoSystemConfigs, Query, Res, ResMut, Update};
+use bevy_egui::{egui::{self}, EguiContexts};
 use bevy_egui::egui::RichText;
-use bevy_egui::{egui::{self, InnerResponse, Response, Ui}, EguiContexts};
 
-use crate::SimState;
 use crate::body::Mass;
 use crate::camera::PanOrbitCamera;
-use crate::physics::{NBodyStats, SubSteps, NBODY_TOTAL_TIME, NBODY_STEP_TIME};
+use crate::physics::{NBODY_STEP_TIME, NBODY_TOTAL_TIME, NBodyStats};
+use crate::SimState;
 use crate::ui::{system_ui, UiState};
-
 
 pub struct DebugPlugin;
 

@@ -1,8 +1,6 @@
-use bevy::{app::{App, Plugin}, math::Vec3A, prelude::{Entity, Children, GlobalTransform, Handle, in_state, IntoSystemConfigs, Mesh, Query, Res, ResMut, Transform, Update, Vec3, With, Gizmos, Color, Without}, render::primitives::{Aabb, Sphere}, scene::{SceneInstance, SceneSpawner}};
-use bevy::prelude::AssetServer;
+use bevy::{app::{App, Plugin}, prelude::{Color, Entity, Gizmos, in_state, IntoSystemConfigs, Query, Transform, Update, With}};
 
-use crate::{body::{Diameter, Scale, OrbitSettings, Velocity, Planet, Moon, BodyChildren}, constants::M_TO_UNIT, loading::LoadingState, SimState, arrows::ArrowGizmos, camera::{PanOrbitCamera, pan_orbit_camera}, physics::apply_physics};
-use crate::body::SceneHandle;
+use crate::{arrows::ArrowGizmos, body::{BodyChildren, Diameter, Moon, OrbitSettings, Planet, Velocity}, camera::pan_orbit_camera, constants::M_TO_UNIT, SimState};
 
 pub struct DirectionPlugin;
 

@@ -2,16 +2,16 @@ use std::f32::consts::PI;
 
 use bevy::app::{App, Plugin};
 use bevy::hierarchy::Children;
-use bevy::prelude::{Entity, in_state, IntoSystemConfigs, Quat, Query, Res, Transform, Update, Vec3, With, Without, ResMut};
+use bevy::prelude::{in_state, IntoSystemConfigs, Quat, Query, Res, ResMut, Transform, Update, Vec3, With, Without};
 use bevy::scene::SceneInstance;
 use bevy::time::Time;
 
-use crate::body::{AxialTilt, BodyChildren, Diameter, Moon, Planet, RotationSpeed, Star};
+use crate::body::{AxialTilt, Diameter, RotationSpeed, Star};
 use crate::constants::DAY_IN_SECONDS;
 use crate::loading::LoadingState;
 use crate::physics::{Pause, SubSteps};
-use crate::SimState;
 use crate::setup::setup_planets;
+use crate::SimState;
 use crate::speed::Speed;
 
 pub struct RotationPlugin;

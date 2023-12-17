@@ -1,4 +1,4 @@
-use bevy::prelude::{Gizmos, Vec3, Color, Quat};
+use bevy::prelude::{Color, Gizmos, Quat, Vec3};
 
 pub struct ArrowBuilder<'a, 's> {
     gizmos: &'a mut Gizmos<'s>,

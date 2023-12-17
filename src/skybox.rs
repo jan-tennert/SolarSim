@@ -2,9 +2,9 @@ use bevy::{
     asset::LoadState,
     prelude::*,
     render::
-        render_resource::{
+    render_resource::{
         TextureViewDescriptor, TextureViewDimension,
-        },
+    },
 };
 use bevy::core_pipeline::Skybox;
 use bevy::prelude::Plugin;

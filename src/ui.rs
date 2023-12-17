@@ -3,9 +3,9 @@ use bevy::{
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     prelude::{
         App, Camera, Color, Commands, DespawnRecursiveExt, Entity, GizmoConfig,
-        Input, IntoSystemConfigs, KeyCode, Mut, Name, NextState, Plugin, PointLight, Query, Res, ResMut, Resource, Transform, Vec3, Visibility, With, Without, default,
+        Input, IntoSystemConfigs, KeyCode, Mut, Name, NextState, Plugin, PointLight, Query, Res, ResMut, Resource, Transform, Vec3, Visibility, With, Without,
     },
-    reflect::Reflect, time::Time, window::PresentMode, math::DVec3,
+    reflect::Reflect, time::Time, window::PresentMode,
 };
 use bevy::app::Update;
 use bevy::prelude::{in_state, Window};
@@ -14,7 +14,7 @@ use bevy_inspector_egui::egui::{RichText, TextEdit};
 use chrono::{Days, NaiveDateTime};
 
 //use crate::fps::Fps;
-use crate::{body::{BodyChildren, Diameter, Mass, Moon, OrbitSettings, Planet, Scale, SimPosition, Star, Velocity, RotationSpeed}, constants::{DAY_IN_SECONDS, M_TO_UNIT, M_TO_AU}, egui_input_block::BlockInputPlugin, lock_on::LockOn, physics::{apply_physics, SubSteps}, selection::SelectedEntity, setup::StartingTime, skybox::Cubemap, apsis::ApsisBody, unit::format_length, rotation::RotationPlugin, orbit_lines::OrbitOffset, camera::PanOrbitCamera};
+use crate::{apsis::ApsisBody, body::{BodyChildren, Diameter, Mass, Moon, OrbitSettings, Planet, RotationSpeed, Scale, SimPosition, Star, Velocity}, camera::PanOrbitCamera, constants::{DAY_IN_SECONDS, M_TO_AU}, egui_input_block::BlockInputPlugin, lock_on::LockOn, orbit_lines::OrbitOffset, physics::{apply_physics, SubSteps}, selection::SelectedEntity, setup::StartingTime, skybox::Cubemap, unit::format_length};
 use crate::billboard::BillboardSettings;
 use crate::body::BodyParent;
 use crate::constants::G;

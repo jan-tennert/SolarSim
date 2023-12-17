@@ -1,4 +1,4 @@
-use bevy::{app::{App, Plugin}, prelude::{BuildChildren, Res, Color, Commands, default, Entity, in_state, IntoSystemConfigs, Label, NextState, NodeBundle, OnEnter, OnExit, Query, ResMut, Resource, TextBundle, Update, AssetServer, Component, With}, text::{TextStyle, Text}, ui::{AlignItems, JustifyContent, Node, Style, UiRect, Val, UiImage, FlexDirection}};
+use bevy::{app::{App, Plugin}, prelude::{AssetServer, BuildChildren, Color, Commands, Component, default, Entity, in_state, IntoSystemConfigs, Label, NextState, NodeBundle, OnEnter, OnExit, Query, Res, ResMut, Resource, TextBundle, Update, With}, text::{Text, TextStyle}, ui::{AlignItems, FlexDirection, JustifyContent, Node, Style, UiImage, UiRect, Val}};
 
 use crate::SimState;
 

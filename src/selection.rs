@@ -1,12 +1,12 @@
 use bevy::app::{App, Plugin, Update};
-use bevy::prelude::{Entity, in_state, IntoSystemConfigs, Query, ResMut, Resource, Transform, With, Res};
+use bevy::prelude::{Entity, in_state, IntoSystemConfigs, Query, Res, ResMut, Resource, Transform, With};
 
 use crate::body::{Diameter, Mass, Star};
-use crate::camera::{PanOrbitCamera, pan_orbit_camera};
+use crate::camera::{pan_orbit_camera, PanOrbitCamera};
 use crate::constants::M_TO_UNIT;
-use crate::SimState;
 use crate::orbit_lines::OrbitOffset;
 use crate::physics::apply_physics;
+use crate::SimState;
 
 const SELECTION_MULTIPLIER: f64 = 3.0;
 

@@ -1,7 +1,6 @@
-use bevy::{prelude::{App, Component, Plugin, Reflect, Vec3, Query, Entity, Children, Res, With, Without, Update, IntoSystemConfigs, in_state, Visibility, Transform, Commands, Color, SpatialBundle, Name, default, BuildChildren, ResMut}, math::DVec3, text::{TextSection, TextStyle, TextAlignment}};
-use bevy_mod_billboard::{text::BillboardTextBounds, BillboardLockAxisBundle, BillboardTextBundle};
-use bevy::text::Text;
-use crate::{body::{SimPosition, BodyChildren, Planet, Star, Moon, OrbitSettings, BodyParent}, SimState, physics::apply_physics, constants::M_TO_UNIT, setup::setup_planets, loading::LoadingState, orbit_lines::OrbitOffset};
+use bevy::{math::DVec3, prelude::{App, Component, Entity, in_state, IntoSystemConfigs, Plugin, Query, Reflect, Update, With, Without}};
+
+use crate::{body::{BodyChildren, Moon, Planet, SimPosition, Star}, physics::apply_physics, SimState};
 
 pub struct ApsisPlugin;
 
