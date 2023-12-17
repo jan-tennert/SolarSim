@@ -1,6 +1,6 @@
-use bevy::{app::{App, Plugin}, prelude::{AssetServer, BuildChildren, Color, Commands, Component, default, Entity, in_state, IntoSystemConfigs, Label, NextState, NodeBundle, OnEnter, OnExit, Query, Res, ResMut, Resource, TextBundle, Update, With}, text::{Text, TextStyle}, ui::{AlignItems, FlexDirection, JustifyContent, Node, Style, UiImage, UiRect, Val}};
+use bevy::{app::{App, Plugin}, prelude::{AssetServer, BuildChildren, Color, Commands, Component, default, Entity, in_state, IntoSystemConfigs, Label, NextState, NodeBundle, OnEnter, OnExit, Query, Res, ResMut, Resource, TextBundle, Update, With, Visibility, Has}, text::{Text, TextStyle}, ui::{AlignItems, FlexDirection, JustifyContent, Node, Style, UiImage, UiRect, Val}};
 
-use crate::SimState;
+use crate::{SimState, menu::BackgroundImage};
 
 pub struct LoadingPlugin;
 
@@ -46,31 +46,23 @@ impl LoadingState {
 
 fn despawn_loading(
     mut commands: Commands,
-    nodes: Query<(Entity, &Node)>
+    mut nodes: Query<(Entity, &mut Visibility, Has<BackgroundImage>), With<Node>>
 ) {
-    for (entity, _) in &nodes {
-        commands.entity(entity).despawn();
+    for (entity, mut visibilty, is_background) in &mut nodes {
+        if !is_background {
+            commands.entity(entity).despawn();
+        } else {
+            *visibilty = Visibility::Hidden;
+        }
     }
 }
 
 fn spawn_loading(
     mut commands: Commands,
-    asset_server: Res<AssetServer>
+    mut parent: Query<(Entity, &mut Visibility), With<BackgroundImage>>
 ) {
-    let mut parent = commands
-        .spawn(NodeBundle {
-            style: Style {
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                flex_direction: FlexDirection::Column,
-                ..default()
-            },
-            background_color: Color::WHITE.into(),
-            ..default()
-        });
-    parent.insert(UiImage::new(asset_server.load("images/background.png")));
+    let (background, mut b_visibility) = parent.get_single_mut().unwrap();
+    let mut parent = commands.entity(background);
     parent.with_children(|parent| {
         parent.spawn((
             TextBundle::from_section(
@@ -106,6 +98,7 @@ fn spawn_loading(
             ProgressMarker
         ));
     });
+    *b_visibility = Visibility::Visible;
 }
 
 fn loading_system(

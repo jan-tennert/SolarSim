@@ -9,6 +9,7 @@ use bevy::render::settings::{RenderCreation, WgpuSettings};
 use bevy::window::{PresentMode, Window, WindowPlugin};
 use bevy::winit::WinitWindows;
 use bevy_egui::EguiPlugin;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_billboard::plugin::BillboardPlugin;
 use winit::window::Icon;
 
@@ -116,8 +117,8 @@ fn main() {
                 }),
             })  
         )
-        .add_plugins(EguiPlugin)
-   //     .add_plugins(WorldInspectorPlugin::new())
+   //     .add_plugins(EguiPlugin)
+        .add_plugins(WorldInspectorPlugin::new())
   //      .add_plugins(DefaultPickingPlugins)
         .add_plugins(LockOnPlugin)
         .add_plugins(SerializationPlugin)

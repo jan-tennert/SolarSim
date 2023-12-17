@@ -10,6 +10,7 @@ impl Plugin for MenuPlugin {
         app
             .add_systems(OnEnter(SimState::Menu), spawn_menu)
             .add_systems(OnExit(SimState::Menu), despawn_menu)  
+            .add_systems(Startup, setup_background)
             .add_systems(Update, (button_system).run_if(in_state(SimState::Menu)));
     }
 }
@@ -17,12 +18,17 @@ impl Plugin for MenuPlugin {
 const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
 const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
 
+#[derive(Component)]
+pub struct BackgroundImage;
+
 fn despawn_menu(
     mut commands: Commands,
-    nodes: Query<(Entity, &Node)>
+    mut nodes: Query<(Entity, Has<BackgroundImage>), With<Node>>
 ) {
-    for (entity, _) in &nodes {
-        commands.entity(entity).despawn();
+    for (entity, is_background) in &mut nodes {
+        if !is_background {
+            commands.entity(entity).despawn();
+        }
     }
 }
 
@@ -35,7 +41,7 @@ enum MenuButtonType {
 #[derive(Component)]
 struct MenuButton(pub MenuButtonType);
 
-fn spawn_menu(
+fn setup_background(  
     mut commands: Commands, 
     asset_server: Res<AssetServer>
 ) {
@@ -53,7 +59,16 @@ fn spawn_menu(
             ..default()
         })
         .insert(UiImage::new(asset_server.load("images/background.png")))
-        .with_children(|parent| {
+        .insert(BackgroundImage);
+}
+
+fn spawn_menu(
+    mut commands: Commands, 
+    mut parent: Query<Entity, With<BackgroundImage>>
+) {
+    let mut parent = commands.entity(parent.get_single_mut().unwrap());
+
+    parent.with_children(|parent| {
             parent.spawn((
                 TextBundle::from_section(
                     "Solar System Simulation",
