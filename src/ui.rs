@@ -3,9 +3,9 @@ use bevy::{
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     prelude::{
         App, Camera, Color, Commands, DespawnRecursiveExt, Entity, GizmoConfig,
-        Input, IntoSystemConfigs, KeyCode, Mut, Name, NextState, Plugin, PointLight, Query, Res, ResMut, Resource, Transform, Vec3, Visibility, With, Without, default,
+        Input, IntoSystemConfigs, KeyCode, Mut, Name, NextState, Plugin, PointLight, Query, Res, ResMut, Resource, Transform, Vec3, Visibility, With, Without,
     },
-    reflect::Reflect, time::Time, window::PresentMode, math::DVec3,
+    reflect::Reflect, time::Time, window::PresentMode,
 };
 use bevy::app::Update;
 use bevy::prelude::{in_state, Window};
@@ -14,7 +14,7 @@ use bevy_inspector_egui::egui::{RichText, TextEdit};
 use chrono::{Days, NaiveDateTime};
 
 //use crate::fps::Fps;
-use crate::{body::{BodyChildren, Diameter, Mass, Moon, OrbitSettings, Planet, Scale, SimPosition, Star, Velocity, RotationSpeed}, constants::{DAY_IN_SECONDS, M_TO_UNIT, M_TO_AU}, egui_input_block::BlockInputPlugin, lock_on::LockOn, physics::{apply_physics, SubSteps}, selection::SelectedEntity, setup::StartingTime, skybox::Cubemap, apsis::ApsisBody, unit::format_length, rotation::RotationPlugin, orbit_lines::OrbitOffset, camera::PanOrbitCamera};
+use crate::{apsis::ApsisBody, body::{BodyChildren, Diameter, Mass, Moon, OrbitSettings, Planet, RotationSpeed, Scale, SimPosition, Star, Velocity}, camera::PanOrbitCamera, constants::{DAY_IN_SECONDS, M_TO_AU, M_TO_UNIT}, egui_input_block::BlockInputPlugin, lock_on::LockOn, orbit_lines::OrbitOffset, physics::{apply_physics, SubSteps}, selection::SelectedEntity, setup::StartingTime, skybox::Cubemap, unit::format_length};
 use crate::billboard::BillboardSettings;
 use crate::body::BodyParent;
 use crate::constants::G;
@@ -41,12 +41,12 @@ pub enum StepType {
 pub struct UiState {
     pub visible: bool,
     pub step_type: StepType,
-    pub show_debug: bool,
+    pub show_debug: bool
 }
 
 impl Default for UiState {
     fn default() -> Self {
-        UiState { visible: true, step_type: StepType::SUBSTEPS, show_debug: false, }
+        UiState { visible: true, step_type: StepType::SUBSTEPS, show_debug: false}
     }
 }
 
@@ -426,7 +426,7 @@ fn body_ui(
                                 .size(16.0)
                                 .underline(),
                         );
-                        let scaled_diameter = (diameter.num as f32) * n_scale;
+                        let scaled_diameter = (diameter.num / M_TO_UNIT as f32) * n_scale;
                         ui.label(format!("{} km", scaled_diameter / 1000.0));
                     }
 
@@ -437,7 +437,12 @@ fn body_ui(
                         None => velocity.0.length() / 1000.0,
                     };
                     ui.label(RichText::new("Orbital Velocity").size(16.0).underline());
-                    ui.label(format!("{:.3} km/s", actual_velocity));
+                    ui.horizontal(|ui| {
+                        ui.label(format!("{:.3} km/s", actual_velocity));
+                        if actual_velocity < 8.0 {
+                            ui.label(format!("({:.3} km/h)", actual_velocity * 3600.0));
+                        }
+                    });
                     
                     let mut new_apsis = None;
                     if let Some((_, _, _, p_mass)) = parent {
@@ -512,6 +517,9 @@ fn body_ui(
                         ui.color_edit_button_rgb(&mut rgb);
                         orbit.color = Color::rgb(rgb[0], rgb[1], rgb[2]);
                     });
+                    
+                    ui.checkbox(&mut orbit.display_force, "Display force arrow");
+                    ui.checkbox(&mut orbit.display_velocity, "Display velocity arrow");                    
 
                //     ui.label("Max Orbit Points");
               //      let mut old_length = orbit.lines.capacity();

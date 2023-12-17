@@ -16,7 +16,7 @@ embed-resource = "1.6.3"
 
 [dependencies]
 #bevy = { git = "https://github.com/bevyengine/bevy", branch = "release-0.11.3", features = ["dynamic_linking"] } 
-bevy = { version = "0.12" }
+bevy = { version = "0.12.1" }
 bevy_easings = "0.12.2"
 #bevy_panorbit_camera = { git = "https://github.com/jan-tennert/bevy_panorbit_camera", rev = "7e3c3f8" }
 bevy-inspector-egui = { git = "https://github.com/jan-tennert/bevy-inspector-egui", rev = "f8c809a" }
@@ -27,7 +27,7 @@ serde_json = "1.0.107"
 serde = { version = "1.0.189", features = ["derive"] }
 winit = "0.28.7"
 image = "0.24.7"
-bevy_mod_billboard = { git = "https://github.com/robtfm/bevy_mod_billboard/", branch = "bevy12" }
+bevy_mod_billboard = "0.5.1"
 
 [lib]
 name = "simulation"

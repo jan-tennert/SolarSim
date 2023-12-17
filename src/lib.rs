@@ -1,20 +1,21 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use apsis::ApsisPlugin;
 use bevy::app::{App, PluginGroup};
 use bevy::DefaultPlugins;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
-use bevy::prelude::{default, States, NonSend, Query, Entity, Startup, bevy_main, Commands, With, Resource};
+use bevy::prelude::{default, Entity, NonSend, Query, Startup, States};
 use bevy::render::RenderPlugin;
-use bevy::render::settings::{RenderCreation, WgpuSettings, Backends};
-use bevy::window::{PresentMode, Window, WindowPlugin, WindowMode, PrimaryWindow};
+use bevy::render::settings::{RenderCreation, WgpuSettings};
+use bevy::window::{PresentMode, Window, WindowPlugin};
 use bevy::winit::WinitWindows;
 use bevy_egui::EguiPlugin;
 use bevy_mod_billboard::plugin::BillboardPlugin;
 
+use apsis::ApsisPlugin;
 use camera::PanOrbitCameraPlugin;
 use debug::DebugPlugin;
 use diameter::DiameterPlugin;
+use direction::DirectionPlugin;
 use input::InputPlugin;
 use loading::LoadingPlugin;
 use lock_on::LockOnPlugin;
@@ -26,7 +27,6 @@ use skybox::SkyboxPlugin;
 use speed::SpeedPlugin;
 use star_renderer::StarRendererPlugin;
 use ui::UIPlugin;
-use winit::window::Icon;
 
 use crate::billboard::BodyBillboardPlugin;
 use crate::menu::MenuPlugin;
@@ -58,6 +58,8 @@ mod billboard;
 mod apsis;
 mod unit;
 mod debug;
+mod direction;
+mod arrows;
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
 pub enum SimState {
@@ -116,7 +118,7 @@ fn main() {
             })  
         )
         .add_plugins(EguiPlugin)
-    //    .add_plugins(WorldInspectorPlugin::new())
+   //     .add_plugins(WorldInspectorPlugin::new())
   //      .add_plugins(DefaultPickingPlugins)
         .add_plugins(LockOnPlugin)
         .add_plugins(SerializationPlugin)
@@ -126,6 +128,7 @@ fn main() {
         .add_plugins(ApsisPlugin)
         .add_plugins(DebugPlugin)
         //     .add_plugins(PanOrbitCameraPlugin)
+        .add_plugins(DirectionPlugin)
         .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(SetupPlugin)
         .add_plugins(PhysicsPlugin)

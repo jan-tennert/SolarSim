@@ -1,8 +1,6 @@
-use std::time::Instant;
+use bevy::{prelude::{App, Entity, Gizmos, in_state, IntoSystemConfigs, Plugin, PreUpdate, Query, Res, Resource, Transform, Vec3, With, Without}, time::Time};
 
-use bevy::{prelude::{App, Entity, Gizmos, in_state, IntoSystemConfigs, Plugin, Query, Res, ResMut, Resource, Transform, Update, Vec3, With, Without, PostUpdate, PreUpdate, Component}, time::{Time, Timer, TimerMode}};
-
-use crate::{body::{BodyChildren, Moon, OrbitSettings, Planet, SimPosition, Star}, constants::M_TO_UNIT, physics::{apply_physics, SubSteps, Pause}, SimState, apsis::ApsisBody, speed::Speed};
+use crate::{body::{BodyChildren, Moon, OrbitSettings, Planet, SimPosition, Star}, constants::M_TO_UNIT, physics::{apply_physics, Pause, SubSteps}, SimState, speed::Speed};
 
 pub struct OrbitLinePlugin;
 
@@ -52,6 +50,7 @@ fn update_lines(
             let max_step = (orbit.period as f32 / speed) * MULTIPLIER;
             if orbit.step >= max_step {
                 orbit.lines.push_back((pos.0 * M_TO_UNIT).as_vec3());
+              //  insert_at_nearest_distance(&mut orbit.lines, (pos.0 * M_TO_UNIT).as_vec3());
                 orbit.step = 0.0;
             } else {
                 orbit.step += time.delta_seconds();
@@ -69,6 +68,7 @@ fn update_lines(
                     let raw_p_pos = (p_pos.0 * M_TO_UNIT).as_vec3();
                     let raw_pos = (pos.0 * M_TO_UNIT).as_vec3();
                     orbit.lines.push_back(raw_pos - raw_p_pos);   
+                    //insert_at_nearest_distance(&mut orbit.lines, raw_pos - raw_p_pos);
                     orbit.step = 0.0;
                 } else {
                     orbit.step += time.delta_seconds();

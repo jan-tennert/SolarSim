@@ -4,6 +4,7 @@ use bevy::core::Name;
 use bevy::math::{DVec3, Vec3};
 use bevy::prelude::{Bundle, Color, Component, default, Entity, Handle, Reflect, Scene, Transform};
 
+use crate::constants::M_TO_UNIT;
 use crate::serialization::SerializedBody;
 
 #[derive(Component, Clone, Default, Reflect, Copy)]
@@ -43,7 +44,10 @@ pub struct OrbitSettings {
     pub color: Color,
     pub step: f32,
     pub lines: VecDeque<Vec3>,
+    pub force_direction: DVec3,
     pub draw_lines: bool,
+    pub display_force: bool,
+    pub display_velocity: bool,
     pub period: f64,
                          
 }
@@ -51,7 +55,7 @@ pub struct OrbitSettings {
 impl Default for OrbitSettings {
     
     fn default() -> Self {
-        OrbitSettings { color: Color::GREEN, lines: VecDeque::with_capacity(3000), draw_lines: false, step: 0.0, period: 0.0 }
+        OrbitSettings { color: Color::GREEN, lines: VecDeque::with_capacity(3000), force_direction: DVec3::ZERO, draw_lines: false, step: 0.0, period: 0.0, display_force: false, display_velocity: false }
     }
     
 }
@@ -71,7 +75,7 @@ pub struct SimPosition(pub DVec3);
 #[derive(Component, Reflect, Clone, Default)]
 pub struct Diameter {
     
-    pub num: f64,
+    pub num: f32,
     pub applied: bool
     
 }
@@ -122,7 +126,7 @@ impl From<SerializedBody> for BodyBundle {
             name: Name::new(value.data.name),
             model_path: ModelPath(format!("models/{}#Scene0", value.data.model_path)),
             diameter: Diameter {
-                num: value.data.diameter * 1000.0,
+                num: (value.data.diameter * 1000.0 * M_TO_UNIT) as f32,
                 ..default()
             },
             axial_tilt: AxialTilt {

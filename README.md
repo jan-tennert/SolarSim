@@ -1,6 +1,8 @@
 # Simulation
 
-https://github.com/jan-tennert/Simulation/assets/26686035/ab70ad3b-345e-4983-938c-0800984fc955
+![image](https://github.com/jan-tennert/Simulation/assets/26686035/041ff013-afc2-407d-be22-de5806878d08)
+![image](https://github.com/jan-tennert/Simulation/assets/26686035/45124abd-f053-4b41-9bf9-16a9db9f7ae7)
+
 
 A complete simulation of our solar system made with [Bevy](https://bevyengine.org/) with many features including:
 

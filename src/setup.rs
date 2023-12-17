@@ -5,7 +5,7 @@ use bevy::core_pipeline::bloom::BloomSettings;
 use bevy::core_pipeline::Skybox;
 use bevy::ecs::system::EntityCommands;
 use bevy::hierarchy::BuildChildren;
-use bevy::math::{Vec3, DVec3};
+use bevy::math::{DVec3, Vec3};
 use bevy::pbr::{PbrBundle, PointLight, PointLightBundle};
 use bevy::prelude::{Assets, Bundle, Camera, Camera3dBundle, ChildBuilder, Color, Commands, default, Entity, Handle, in_state, IntoSystemConfigs, Mesh, OnEnter, PerspectiveProjection, Projection, Res, ResMut, Resource, SceneBundle, shape, SpatialBundle, StandardMaterial, Startup, Transform, Update, Visibility, NonSend, With, Query};
 use bevy::scene::Scene;
@@ -13,14 +13,14 @@ use bevy::text::{TextAlignment, TextSection, TextStyle};
 use bevy::window::PrimaryWindow;
 use bevy::winit::WinitWindows;
 use bevy_mod_billboard::{BillboardLockAxisBundle, BillboardTextBundle};
-use crate::apsis::ApsisBody;
 
+use crate::apsis::ApsisBody;
 use crate::body::{BodyBundle, BodyChildren, BodyParent, Moon, OrbitSettings, Planet, SceneHandle, Star};
 use crate::camera::PanOrbitCamera;
 use crate::constants::M_TO_UNIT;
 use crate::loading::LoadingState;
 use crate::selection::SelectedEntity;
-use crate::serialization::{SimulationData, SerializedBody, SerializedVec};
+use crate::serialization::{SerializedBody, SerializedVec, SimulationData};
 use crate::SimState;
 use crate::skybox::Cubemap;
 use crate::star_renderer::StarBillboard;
@@ -110,7 +110,7 @@ pub fn setup_planets(
         apply_body(BodyBundle::from(entry.clone()), Star::default(), &assets, &mut star, &mut meshes, &mut materials,360.0 * ((s_index + 1) as f32 / stars as f32), true);
         
         //planet count in star system for coloring later
-        let planet_count = entry.children.iter().count();
+        let planet_count = entry.children.iter().filter(|p| p.data.simulate).count();
         total_count += planet_count;
         
         //collect the planets in a new vector and sort them by the length of the position
@@ -137,7 +137,7 @@ pub fn setup_planets(
             planets.push(planet_id);
             
             //moon count for coloring later
-            let moon_count = planet_entry.children.iter().count();
+            let moon_count = planet_entry.children.iter().filter(|m| m.data.simulate).count();
             total_count += moon_count;
                 
             //collect the moons in a new vector and sort them by the distance to the parent
@@ -239,7 +239,7 @@ fn spawn_imposter(
     materials: &mut ResMut<Assets<StandardMaterial>>,
 ) {
     parent.spawn(PbrBundle {
-        mesh: meshes.add(shape::Circle::new(((bundle.diameter.num * M_TO_UNIT) as f32) * 3.0).into()),
+        mesh: meshes.add(shape::Circle::new(bundle.diameter.num  * 3.0).into()),
         material: materials.add(Color::rgb(30.0, 30.0, 0.0).into()),
         visibility: Visibility::Hidden,
         ..default()

@@ -1,6 +1,4 @@
-use bevy::{prelude::*, app::AppExit};
-use bevy_egui::*;
-use bevy_inspector_egui::egui::Frame;
+use bevy::{app::AppExit, prelude::*};
 
 use crate::SimState;
 
