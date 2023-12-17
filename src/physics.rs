@@ -3,7 +3,7 @@ use std::time::Instant;
 use bevy::app::{App, Plugin, Update};
 use bevy::diagnostic::{Diagnostic, DiagnosticId, Diagnostics, RegisterDiagnostic};
 use bevy::math::{DVec3, Vec3};
-use bevy::prelude::{Entity, in_state, IntoSystemConfigs, Mut, Query, Res, ResMut, Resource, Time, Transform, Has, Children};
+use bevy::prelude::{Entity, in_state, IntoSystemConfigs, Mut, Query, Res, ResMut, Resource, Time, Transform, Has, Children, Local};
 use bevy::reflect::List;
 
 use crate::body::{Acceleration, Mass, OrbitSettings, SimPosition, Velocity, Star, Planet, BodyChildren};
@@ -86,7 +86,7 @@ pub fn apply_physics(
     mut orbit_offset: ResMut<OrbitOffset>,
     sub_steps: Res<SubSteps>,
     mut nbody_stats: ResMut<NBodyStats>,
-    mut diagnostics: Diagnostics
+    mut diagnostics: Diagnostics,
 ) {
     if pause.0 {
         change_selection_without_update(&mut query, &selected_entity, &mut orbit_offset); //allows switching bodies while paused    

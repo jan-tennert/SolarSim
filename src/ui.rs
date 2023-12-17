@@ -439,7 +439,7 @@ fn body_ui(
                     ui.label(RichText::new("Orbital Velocity").size(16.0).underline());
                     ui.horizontal(|ui| {
                         ui.label(format!("{:.3} km/s", actual_velocity));
-                        if actual_velocity < 8.0 {
+                        if actual_velocity < 10.0 {
                             ui.label(format!("({:.3} km/h)", actual_velocity * 3600.0));
                         }
                     });
