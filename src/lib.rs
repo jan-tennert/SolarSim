@@ -3,10 +3,10 @@
 use bevy::app::{App, PluginGroup};
 use bevy::DefaultPlugins;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
-use bevy::prelude::{default, Entity, NonSend, Query, Startup, States};
+use bevy::prelude::{default, Entity, NonSend, Query, Startup, States, bevy_main, Commands, With, Resource, Update, Local};
 use bevy::render::RenderPlugin;
 use bevy::render::settings::{RenderCreation, WgpuSettings};
-use bevy::window::{PresentMode, Window, WindowPlugin};
+use bevy::window::{PresentMode, Window, WindowPlugin, WindowMode, PrimaryWindow};
 use bevy::winit::WinitWindows;
 use bevy_egui::EguiPlugin;
 use bevy_mod_billboard::plugin::BillboardPlugin;
@@ -27,6 +27,7 @@ use skybox::SkyboxPlugin;
 use speed::SpeedPlugin;
 use star_renderer::StarRendererPlugin;
 use ui::UIPlugin;
+use winit::window::Icon;
 
 use crate::billboard::BodyBillboardPlugin;
 use crate::menu::MenuPlugin;
@@ -105,7 +106,7 @@ fn main() {
                     title: "Solar System Simulation (Jan Tennert)".to_string(),
                     present_mode: PresentMode::AutoVsync,
                     resizable: false,
-                    mode: WindowMode::BorderlessFullscreen,
+                    mode: WindowMode::Fullscreen,
                     ..default()
                 }),
                 ..default()
@@ -144,7 +145,7 @@ fn main() {
         .add_plugins(RotationPlugin)
         .add_plugins(FrameTimeDiagnosticsPlugin::default())
         .add_plugins(DiameterPlugin)
-        .add_systems(Startup, calculate_layout)
+        .add_systems(Update, calculate_layout)
     //    .add_plugins(ScreenDiagnosticsPlugin::default())
   //      .add_plugins(ScreenFrameDiagnosticsPlugin)
         .add_state::<SimState>()
@@ -157,9 +158,21 @@ pub fn calculate_layout(
     mut commands: Commands,
     windows: NonSend<WinitWindows>,
     primary_window: Query<Entity, With<PrimaryWindow>>,
+    mut calculated: Local<bool>
 ) {
-    let primary_entity = primary_window.single();
-    let primary = windows.get_window(primary_entity).unwrap();
+    if *calculated {
+        return;   
+    }
+    let maybe_primary_entity = primary_window.get_single();
+    if maybe_primary_entity.is_err() {
+        return;
+    }
+    let primary_entity = maybe_primary_entity.unwrap();
+    let maybe_primary = windows.get_window(primary_entity);
+    if maybe_primary.is_none() {
+        return;
+    }
+    let primary = maybe_primary.unwrap();
     let inner = primary.inner_size();
     let scale = primary.scale_factor();
 
@@ -183,6 +196,7 @@ pub fn calculate_layout(
         }
     };
     commands.insert_resource(Layout { content_rect });
+    *calculated = true;
 }
 
 #[derive(Resource)]
