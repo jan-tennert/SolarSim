@@ -1,4 +1,4 @@
-use bevy::{app::{App, Plugin}, prelude::{AssetServer, BuildChildren, Color, Commands, Component, default, Entity, in_state, IntoSystemConfigs, Label, NextState, NodeBundle, OnEnter, OnExit, Query, Res, ResMut, Resource, TextBundle, Update, With, Visibility, Has}, text::{Text, TextStyle}, ui::{AlignItems, FlexDirection, JustifyContent, Node, Style, UiImage, UiRect, Val}};
+use bevy::{app::{App, Plugin}, prelude::{AssetServer, BuildChildren, Color, Commands, Component, default, Entity, in_state, IntoSystemConfigs, Label, NextState, NodeBundle, OnEnter, OnExit, Query, Res, ResMut, Resource, TextBundle, Update, With, Visibility, Has, Children, DespawnRecursiveExt}, text::{Text, TextStyle}, ui::{AlignItems, FlexDirection, JustifyContent, Node, Style, UiImage, UiRect, Val}};
 
 use crate::{SimState, menu::BackgroundImage};
 
@@ -46,15 +46,13 @@ impl LoadingState {
 
 fn despawn_loading(
     mut commands: Commands,
-    mut nodes: Query<(Entity, &mut Visibility, Has<BackgroundImage>), With<Node>>
+    mut background: Query<(&Children, &mut Visibility), (With<Node>, With<BackgroundImage>)>
 ) {
-    for (entity, mut visibilty, is_background) in &mut nodes {
-        if !is_background {
-            commands.entity(entity).despawn();
-        } else {
-            *visibilty = Visibility::Hidden;
-        }
+    let (children, mut visibility) = background.single_mut();
+    for entity in children.iter() {
+        commands.entity(*entity).despawn_recursive();   
     }
+    *visibility = Visibility::Hidden;
 }
 
 fn spawn_loading(

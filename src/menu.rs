@@ -23,12 +23,11 @@ pub struct BackgroundImage;
 
 fn despawn_menu(
     mut commands: Commands,
-    mut nodes: Query<(Entity, Has<BackgroundImage>), With<Node>>
+    background: Query<&Children, (With<Node>, With<BackgroundImage>)>
 ) {
-    for (entity, is_background) in &mut nodes {
-        if !is_background {
-            commands.entity(entity).despawn();
-        }
+    let children = background.single();
+    for entity in children.iter() {
+        commands.entity(*entity).despawn_recursive();   
     }
 }
 
@@ -64,9 +63,10 @@ fn setup_background(
 
 fn spawn_menu(
     mut commands: Commands, 
-    mut parent: Query<Entity, With<BackgroundImage>>
+    mut parent: Query<(Entity, &mut Visibility), With<BackgroundImage>>
 ) {
-    let mut parent = commands.entity(parent.get_single_mut().unwrap());
+    let (background, mut visibility) = parent.get_single_mut().unwrap();
+    let mut parent = commands.entity(background);
 
     parent.with_children(|parent| {
             parent.spawn((
@@ -157,6 +157,7 @@ fn spawn_menu(
                     ));
                 });
         });
+    *visibility = Visibility::Visible;
 }
 
 fn button_system(
