@@ -400,11 +400,11 @@ fn body_ui(
                         if ui.button(":2").clicked() {
                             mass.0 /= 2.0;
                         }
-                        if ui.button("x5").clicked() {
-                            mass.0 *= 5.0;
-                        }
                         if ui.button("x2").clicked() {
                             mass.0 *= 2.0;
+                        }
+                        if ui.button("x5").clicked() {
+                            mass.0 *= 5.0;
                         }
                     });
                     if scale.0 != 0.0 {
