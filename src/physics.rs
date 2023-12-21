@@ -114,7 +114,7 @@ fn update_acceleration(
     for (entity, mass, mut acc, _, _, sim_pos, _, is_star, is_planet, children) in query.iter_mut() {
         acc.0 = DVec3::ZERO;
         for (other_entity, other_mass, ref mut other_acc, other_sim_pos, other_is_star, other_is_planet, other_children) in other_bodies.iter_mut() {
-            if (is_star && *other_is_planet) || (is_planet && *other_is_star) || (!is_star && !is_planet && (other_children.is_some() && other_children.unwrap().0.contains(&entity)) || *other_is_star) || (!*other_is_star && !*other_is_planet && (children.is_some() && children.unwrap().0.contains(other_entity) || is_star)) { 
+            if (is_planet && *other_is_planet) || (is_star && *other_is_planet) || (is_planet && *other_is_star) || (!is_star && !is_planet && (other_children.is_some() && other_children.unwrap().0.contains(&entity)) || *other_is_star) || (!*other_is_star && !*other_is_planet && (children.is_some() && children.unwrap().0.contains(other_entity) || is_star)) { 
                 let distance = other_sim_pos.0 - sim_pos.0;
                 let r_sq = distance.length_squared();
                 let force_direction = distance.normalize(); // Calculate the direction vector  
