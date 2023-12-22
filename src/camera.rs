@@ -70,6 +70,8 @@ pub fn pan_orbit_camera(
         for ev in ev_motion.read() {
             pan += ev.delta;
         }
+    } else {
+        ev_motion.clear();
     }
     for ev in ev_scroll.read() {
         scroll += ev.y;
@@ -116,7 +118,7 @@ pub fn pan_orbit_camera(
         } else if scroll.abs() > 0.0 {
             pan_orbit.radius -= scroll * pan_orbit.radius * 0.2;
             // dont allow zoom to reach zero or you get stuck
-            pan_orbit.radius = f32::max(pan_orbit.radius, 0.00001);
+            pan_orbit.radius = f32::max(pan_orbit.radius, 0.000001);
         }
 
         if true {
