@@ -41,12 +41,12 @@ pub enum StepType {
 pub struct UiState {
     pub visible: bool,
     pub step_type: StepType,
-    pub show_debug: bool
+    pub show_debug: bool,
 }
 
 impl Default for UiState {
     fn default() -> Self {
-        UiState { visible: true, step_type: StepType::SUBSTEPS, show_debug: false}
+        UiState { visible: true, step_type: StepType::SUBSTEPS, show_debug: false }
     }
 }
 
@@ -74,7 +74,6 @@ pub fn time_ui(
     mut windows: Query<&mut Window>,
     mut lock_on_parent: ResMut<LockOn>,
     mut pause: ResMut<Pause>,
-    keys: Res<Input<KeyCode>>,
     mut state: ResMut<NextState<SimState>>,
     starting_time: Res<StartingTime>,
     mut sub_steps: ResMut<SubSteps>,
@@ -109,7 +108,7 @@ pub fn time_ui(
                                 sub_steps.big_step_down();                                   
                             }
                         }
-                        if ui.small_button("<").clicked() || keys.just_pressed(KeyCode::Left) {
+                        if ui.small_button("<").clicked() {
                             if timestep_selected {
                                 speed.small_step_down();
                             } else {
@@ -122,10 +121,10 @@ pub fn time_ui(
                             speed.format(sub_steps.0)
                         ));
                         let time_text = if !pause.0 { "Pause" } else { "Resume" };
-                        if ui.button(time_text).clicked() || keys.just_pressed(KeyCode::Space) {
+                        if ui.button(time_text).clicked() {
                             pause.0 = !pause.0;
                         }
-                        if ui.small_button(">").clicked() || keys.just_pressed(KeyCode::Right) {
+                        if ui.small_button(">").clicked() {
                             if timestep_selected {
                                 speed.small_step_up();
                             } else {
@@ -234,7 +233,6 @@ pub fn system_ui(
         Without<Star>
     )>,
     //  mut camera: Query<&mut Camera>,
-    mut light: Query<&mut PointLight>,
     mut state: ResMut<NextState<SimState>>,
     mut selected_entity: ResMut<SelectedEntity>,
     mut config: ResMut<GizmoConfig>,
@@ -288,9 +286,6 @@ pub fn system_ui(
                 }
                 ui.heading("Options");
                 ui.checkbox(&mut camera.hdr, "HDR/Bloom");
-                if let Ok(mut light) = light.get_single_mut() {
-                    ui.checkbox(&mut light.shadows_enabled, "Shadows");
-                }
                 let skybox_enabled = skybox.is_some();
                 let mut skybox_setting = skybox_enabled;
                 ui.checkbox(&mut skybox_setting, "Milky Way Skybox");
@@ -319,6 +314,7 @@ pub fn system_ui(
                 ui.label("Space - Pause");
                 ui.label("Left Arrow - 2x Speed");
                 ui.label("Right Arrow - 1/2 Speed");
+                ui.label("Left Alt - Change Step Type");
                 ui.label("C - Reset Camera");
                 ui.label("Left Mouse - Rotate Camera");
                 ui.label("Right Mouse - Move Camera");
@@ -436,7 +432,12 @@ fn body_ui(
                         Some((_, vel, _, _)) => (vel.0 - velocity.0).length() / 1000.0,
                         None => velocity.0.length() / 1000.0,
                     };
-                    ui.label(RichText::new("Orbital Velocity").size(16.0).underline());
+                    let velocity_prefix = if parent.is_some() {
+                        "Orbital"
+                    } else {
+                        "Total"   
+                    };
+                    ui.label(RichText::new(format!("{} Velocity", velocity_prefix)).size(16.0).underline());
                     ui.horizontal(|ui| {
                         ui.label(format!("{:.3} km/s", actual_velocity));
                         if actual_velocity < 10.0 {

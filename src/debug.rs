@@ -37,6 +37,10 @@ fn debug_window(
     let cam = camera.single();
     egui::Window::new("Debug Information")
         .open(&mut ui_state.show_debug)
+        .collapsible(true)
+        .constrain(true)
+        .scroll2([true, true])
+        .default_width(250.0)
         .show(egui_ctx.ctx_mut(), |ui| {
             if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
                 if let Some(value) = fps.smoothed() {
@@ -107,5 +111,6 @@ fn debug_window(
                 ui.label(RichText::new("Camera radius: ").strong());                            
                 ui.label(format!("{}", cam.radius));
             });
+            ui.allocate_space(egui::vec2(ui.available_size().x, 0.0));
         });
 }
