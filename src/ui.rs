@@ -426,16 +426,6 @@ fn body_ui(
                         ui.label(format!("{} km", scaled_diameter / 1000.0));
                     }
 
-                    ui.label(
-                        RichText::new("Arrow Scale")
-                            .size(16.0)
-                            .underline(),
-                    );
-                    ui.add(
-                        egui::Slider::new(&mut orbit.arrow_scale, 1.00..=1000000.0)
-                            .clamp_to_range(true)
-                            .logarithmic(true)
-                    );
                     // Velocity Orbit Velocity around parent
                     let actual_velocity = match &parent {
                         Some((_, vel, _, _)) => (vel.0 - velocity.0).length() / 1000.0,
@@ -528,8 +518,22 @@ fn body_ui(
                         orbit.color = Color::rgb(rgb[0], rgb[1], rgb[2]);
                     });
                     
+                    ui.label(
+                        RichText::new("Arrows")
+                            .size(16.0)
+                            .underline(),
+                    );
                     ui.checkbox(&mut orbit.display_force, "Display force arrow");
-                    ui.checkbox(&mut orbit.display_velocity, "Display velocity arrow");                    
+                    ui.checkbox(&mut orbit.display_velocity, "Display velocity arrow");    
+                    ui.label(
+                        RichText::new("Scale")
+                            .size(14.0)
+                    );
+                    ui.add(
+                        egui::Slider::new(&mut orbit.arrow_scale, 1.00..=1000000.0)
+                            .clamp_to_range(true)
+                            .logarithmic(true)
+                    );                
 
                //     ui.label("Max Orbit Points");
               //      let mut old_length = orbit.lines.capacity();
