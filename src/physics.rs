@@ -26,8 +26,8 @@ impl Plugin for PhysicsPlugin {
             .register_type::<Mass>()
             .register_type::<SimPosition>()
             .register_type::<OrbitSettings>()
-            .register_diagnostic(Diagnostic::new(NBODY_STEP_TIME, "nbody_step_time", 10))
-            .register_diagnostic(Diagnostic::new(NBODY_TOTAL_TIME, "nbody_total_time", 10))
+            .register_diagnostic(Diagnostic::new(NBODY_STEP_TIME, "nbody_step_time", 50))
+            .register_diagnostic(Diagnostic::new(NBODY_TOTAL_TIME, "nbody_total_time", 50))
             .add_systems(Update, (apply_physics).run_if(in_state(SimState::Simulation)));
     }
 }
