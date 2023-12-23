@@ -426,7 +426,16 @@ fn body_ui(
                         ui.label(format!("{} km", scaled_diameter / 1000.0));
                     }
 
-
+                    ui.label(
+                        RichText::new("Arrow Scale")
+                            .size(16.0)
+                            .underline(),
+                    );
+                    ui.add(
+                        egui::Slider::new(&mut orbit.arrow_scale, 1.00..=1000000.0)
+                            .clamp_to_range(true)
+                            .logarithmic(true)
+                    );
                     // Velocity Orbit Velocity around parent
                     let actual_velocity = match &parent {
                         Some((_, vel, _, _)) => (vel.0 - velocity.0).length() / 1000.0,
