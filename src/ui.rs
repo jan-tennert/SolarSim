@@ -530,7 +530,7 @@ fn body_ui(
                             .size(14.0)
                     );
                     ui.add(
-                        egui::Slider::new(&mut orbit.arrow_scale, 1.00..=1000000.0)
+                        egui::Slider::new(&mut orbit.arrow_scale, 1..=100000000)
                             .clamp_to_range(true)
                             .logarithmic(true)
                     );                
