@@ -20,7 +20,6 @@ impl Plugin for PhysicsPlugin {
         app
             .init_resource::<Pause>()
             .init_resource::<SubSteps>()
-            .init_resource::<NBodyStats>()
             .register_type::<Velocity>()
             .register_type::<Acceleration>()
             .register_type::<Mass>()
@@ -28,6 +27,7 @@ impl Plugin for PhysicsPlugin {
             .register_type::<OrbitSettings>()
             .register_diagnostic(Diagnostic::new(NBODY_STEP_TIME, "nbody_step_time", 50))
             .register_diagnostic(Diagnostic::new(NBODY_TOTAL_TIME, "nbody_total_time", 50))
+            .register_diagnostic(Diagnostic::new(NBODY_STEPS, "nbody_steps", 50))
             .add_systems(Update, (apply_physics).run_if(in_state(SimState::Simulation)));
     }
 }
@@ -37,13 +37,6 @@ pub struct Pause(pub bool);
 
 #[derive(Resource)]
 pub struct SubSteps(pub i32);
-
-#[derive(Resource, Default)]
-pub struct NBodyStats {
-    
-    pub steps: i32
-             
-}
 
 impl Default for SubSteps {
     fn default() -> Self {
@@ -76,6 +69,9 @@ pub const NBODY_TOTAL_TIME: DiagnosticId =
     
 pub const NBODY_STEP_TIME: DiagnosticId =
     DiagnosticId::from_u128(337040787171757619024831343456040760892);
+    
+pub const NBODY_STEPS: DiagnosticId =
+    DiagnosticId::from_u128(337040787171757619024531341455040760892);
 
 pub fn apply_physics(
     mut query: Query<(Entity, &Mass, &mut Acceleration, &mut OrbitSettings, &mut Velocity, &mut SimPosition, &mut Transform, Has<Star>, Has<Planet>, Option<&BodyChildren>)>,
@@ -85,32 +81,32 @@ pub fn apply_physics(
     selected_entity: Res<SelectedEntity>,
     mut orbit_offset: ResMut<OrbitOffset>,
     sub_steps: Res<SubSteps>,
-    mut nbody_stats: ResMut<NBodyStats>,
     mut diagnostics: Diagnostics,
 ) {
     if pause.0 {
         change_selection_without_update(&mut query, &selected_entity, &mut orbit_offset); //allows switching bodies while paused    
         return;
     }
+    let count = query.iter().count();
     let delta = time.delta_seconds() as f64;
     let start = Instant::now();
-    nbody_stats.steps = 0;
     for _ in 0..sub_steps.0 - 1 {
-        update_acceleration(&mut query, &mut nbody_stats.steps);
+        update_acceleration(&mut query, count);
         update_velocity_and_positions(&mut query, delta, &speed, &selected_entity, &mut orbit_offset, false);
     }
     let start_step = Instant::now();            
-    update_acceleration(&mut query, &mut nbody_stats.steps);
+    update_acceleration(&mut query, count);
     update_velocity_and_positions(&mut query, delta, &speed, &selected_entity, &mut orbit_offset, true);
     diagnostics.add_measurement(NBODY_STEP_TIME, || start_step.elapsed().as_nanos() as f64);                
     diagnostics.add_measurement(NBODY_TOTAL_TIME, || start.elapsed().as_nanos() as f64);
+    diagnostics.add_measurement(NBODY_STEPS, || (sub_steps.0 as f64 / delta));
 }
 
 fn update_acceleration(
     query: &mut Query<(Entity, &Mass, &mut Acceleration, &mut OrbitSettings, &mut Velocity, &mut SimPosition, &mut Transform, Has<Star>, Has<Planet>, Option<&BodyChildren>)>,
-    steps: &mut i32,
+    count: usize
 ) {
-    let mut other_bodies: Vec<(Entity, &Mass, Mut<Acceleration>, Mut<SimPosition>, bool, bool, Option<&BodyChildren>)> = Vec::with_capacity(query.iter().count());
+    let mut other_bodies: Vec<(Entity, &Mass, Mut<Acceleration>, Mut<SimPosition>, bool, bool, Option<&BodyChildren>)> = Vec::with_capacity(count);
     for (entity, mass, mut acc, _, _, sim_pos, _, is_star, is_planet, children) in query.iter_mut() {
         acc.0 = DVec3::ZERO;
         for (other_entity, other_mass, ref mut other_acc, other_sim_pos, other_is_star, other_is_planet, other_children) in other_bodies.iter_mut() {
@@ -122,7 +118,6 @@ fn update_acceleration(
                 let force = force_direction * force_magnitude;
                 acc.0 += force;
                 other_acc.0 -= force;
-                *steps += 1;
             }
         }
         other_bodies.push((entity, mass, acc, sim_pos, is_star, is_planet, children));

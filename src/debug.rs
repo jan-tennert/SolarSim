@@ -8,7 +8,7 @@ use bevy_egui::egui::RichText;
 
 use crate::body::Mass;
 use crate::camera::PanOrbitCamera;
-use crate::physics::{NBODY_STEP_TIME, NBODY_TOTAL_TIME, NBodyStats};
+use crate::physics::{NBODY_STEP_TIME, NBODY_TOTAL_TIME, NBODY_STEPS};
 use crate::SimState;
 use crate::ui::{system_ui, UiState};
 
@@ -26,7 +26,6 @@ impl Plugin for DebugPlugin {
 fn debug_window(
     mut egui_ctx: EguiContexts,
     mut ui_state: ResMut<UiState>,
-    nbody_stats: Res<NBodyStats>,
     diagnostics: Res<DiagnosticsStore>,
     bodies: Query<&Mass>,
     camera: Query<&PanOrbitCamera>
@@ -81,10 +80,15 @@ fn debug_window(
                 ui.label(RichText::new("Total amount of bodies: ").strong());                            
                 ui.label(format!("{:?}", body_count));
             });
-            ui.horizontal(|ui| {
-                ui.label(RichText::new("N-Body steps / frame: ").strong());                            
-                ui.label(format!("{}", nbody_stats.steps));
-            });
+            if let Some(frametime) = diagnostics.get(NBODY_STEPS) {
+                if let Some(value) = frametime.smoothed() {
+                    // Update the value of the second section
+                    ui.horizontal(|ui| {
+                        ui.label(RichText::new("N-Body steps / s: ").strong());                            
+                        ui.label(format!("{:.0}", value));
+                    });
+                }
+            }
             if let Some(frametime) = diagnostics.get(NBODY_STEP_TIME) {
                 if let Some(value) = frametime.average() {
                     // Update the value of the second section

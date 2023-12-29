@@ -16,7 +16,7 @@ impl Plugin for StarRendererPlugin {
 
     fn build(&self, app: &mut App) {
         app
-            .add_systems(Update, (change_sun_renderer.before(pan_orbit_camera)).run_if(in_state(SimState::Simulation)));
+            .add_systems(Update, (change_sun_renderer.after(pan_orbit_camera)).run_if(in_state(SimState::Simulation)));
     }
 
 }
