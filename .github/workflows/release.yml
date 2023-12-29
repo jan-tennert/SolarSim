@@ -13,54 +13,6 @@ env:
 
 
 jobs:
-
-  # Build for wasm
-  release-wasm:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: olegtarasov/get-tag@v2.1.2
-        id: get_version
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-unknown
-          toolchain: 1.73.0
-      - name: install wasm-bindgen-cli
-        run: |
-          cargo install wasm-bindgen-cli
-
-      - name: Build
-        run: |
-          cargo build --release --target wasm32-unknown-unknown
-
-      - name: Prepare package
-        run: |
-          wasm-bindgen --no-typescript --out-name bevy_game --out-dir wasm --target web target/wasm32-unknown-unknown/release/${{ env.binary }}.wasm
-          cp -r assets wasm/
-
-      - name: Package as a zip
-        working-directory: ./wasm
-        run: |
-          zip --recurse-paths ../${{ env.binary }}.zip .
-
-      - name: Upload binaries to artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          path: ${{ env.binary }}.zip
-          name: wasm
-          retention-days: 1
-
-      - name: Upload binaries to release
-        if: ${{ env.add_binaries_to_github_release == 'true' }}
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ env.binary }}.zip
-          asset_name: ${{ env.binary }}-wasm-${{ steps.get_version.outputs.tag }}.zip
-          tag: ${{ github.ref }}
-          overwrite: true
-
   # Build for Linux
   release-linux:
     runs-on: ubuntu-latest
