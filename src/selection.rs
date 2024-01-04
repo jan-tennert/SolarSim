@@ -26,15 +26,15 @@ impl Plugin for SelectionPlugin {
 pub struct SelectedEntity {
 
     pub entity: Option<Entity>,
-    pub changed_focus: bool
+    pub changed_focus: bool,
 
 }
 
 impl SelectedEntity {
 
-    pub fn change_entity(&mut self, entity: Entity) {
+    pub fn change_entity(&mut self, entity: Entity, ignore_focus: bool) {
         self.entity = Some(entity);
-        self.changed_focus = false;
+        self.changed_focus = ignore_focus;
     }
 
 }
@@ -62,7 +62,7 @@ pub fn apply_camera_to_selection(
         if let Some((entity, _, _, _, _)) = bodies.iter().find(|(_, _, _, _, maybe_star)| {
             maybe_star.is_some()
         }) {
-            selected_entity.change_entity(entity);
+            selected_entity.change_entity(entity, false);
         }
     }
 }

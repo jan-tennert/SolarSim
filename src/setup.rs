@@ -87,7 +87,7 @@ pub fn setup_planets(
         let mut star = commands.spawn(SpatialBundle::default());
         let star_id = star.id();
         if selected_entity.entity.is_none() {
-            selected_entity.change_entity(star_id);
+            selected_entity.change_entity(star_id, false);
         }
         
         //planets vector for adding BodyChildren later

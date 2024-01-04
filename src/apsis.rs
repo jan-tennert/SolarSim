@@ -1,6 +1,6 @@
-use bevy::{math::DVec3, prelude::{App, Component, Entity, in_state, IntoSystemConfigs, Plugin, Query, Reflect, Update, With, Without}};
+use bevy::{math::DVec3, prelude::{App, Res, Component, Entity, in_state, IntoSystemConfigs, Plugin, Query, Reflect, Update, With, Without}};
 
-use crate::{body::{BodyChildren, Moon, Planet, SimPosition, Star}, physics::apply_physics, SimState};
+use crate::{body::{BodyChildren, Moon, Planet, SimPosition, Star}, physics::apply_physics, SimState, ui::UiState};
 
 pub struct ApsisPlugin;
 
@@ -39,7 +39,7 @@ pub enum ApsisType {
 fn update_apsis(
     stars: Query<(&SimPosition, &BodyChildren), (With<Star>, Without<Moon>, Without<Planet>)>,
     mut planets: Query<(Entity, &SimPosition, &mut ApsisBody, &BodyChildren), (With<Planet>, Without<Star>, Without<Moon>)>,
-    mut moons: Query<(Entity, &SimPosition, &mut ApsisBody), (With<Moon>, Without<Star>, Without<Planet>)>
+    mut moons: Query<(Entity, &SimPosition, &mut ApsisBody), (With<Moon>, Without<Star>, Without<Planet>)>,
 ) {
     for (entity, position, mut apsis, _) in &mut planets {
         let mut parent = None;

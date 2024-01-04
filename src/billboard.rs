@@ -4,11 +4,13 @@ use bevy::prelude::{Children, in_state, IntoSystemConfigs, Query, Res, Resource,
 use bevy::text::Text;
 use bevy_mod_billboard::text::BillboardTextBounds;
 
+use crate::apsis::ApsisBody;
 use crate::body::{Diameter, Moon, Planet, Star};
 use crate::camera::{pan_orbit_camera, PanOrbitCamera};
 use crate::constants::M_TO_UNIT;
 use crate::SimState;
 use crate::star_renderer::STAR_IMPOSTER_DIVIDER;
+use crate::ui::UiState;
 
 const STAR_VISIBILITY_THRESHOLD: f32 = 40_000_000.0; //if the camera's radius is less than this, stars' names will be hidden
 const PLANET_VISIBILITY_THRESHOLD: f32 = 1000.0; //if the camera's radius is less than this, planets' names will be hidden
@@ -40,10 +42,10 @@ impl Default for BillboardSettings {
 }
 
 fn auto_scale_billboards(
-    bodies: Query<(&Children, &Transform, &Diameter, Has<Planet>, Has<Star>), Without<Text>>,
+    bodies: Query<(&Children, &Transform, &Diameter, &ApsisBody, Has<Planet>, Has<Star>), Without<Text>>,
     mut billboards: Query<(&Text, &mut Transform, &mut Visibility), With<BillboardTextBounds>>,
     camera: Query<(&PanOrbitCamera, &Transform), (Without<BillboardTextBounds>, Without<Planet>, Without<Moon>, Without<Star>)>,
-    settings: Res<BillboardSettings>
+    settings: Res<BillboardSettings>,
 ) {
     if !settings.show {
         for (_, _, mut visible) in billboards.iter_mut() {
@@ -53,14 +55,14 @@ fn auto_scale_billboards(
     }
     let (cam, c_transform) = camera.single();
     let radius = cam.radius;
-    for (children, p_transform, diameter, planet, star) in bodies.iter() {
+    for (children, p_transform, diameter, apsis, planet, star) in bodies.iter() {
         let distance_to_cam = c_transform.translation.distance(p_transform.translation) / STAR_IMPOSTER_DIVIDER;
         let predicate = if planet {
             radius > PLANET_VISIBILITY_THRESHOLD && radius < STAR_VISIBILITY_THRESHOLD
         } else if star {
             radius > STAR_VISIBILITY_THRESHOLD
         } else {
-            radius < PLANET_VISIBILITY_THRESHOLD && radius > (diameter.num * 2.0)
+            radius < PLANET_VISIBILITY_THRESHOLD && radius > (diameter.num * 2.0) && (apsis.perihelion.distance as f64 * M_TO_UNIT * 50.0 > radius as f64)
         };
         let offset = if star {
             distance_to_cam

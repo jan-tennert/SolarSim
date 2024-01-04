@@ -241,12 +241,14 @@ pub fn system_ui(
     mut cubemap: ResMut<Cubemap>,
     mut billboard: ResMut<BillboardSettings>,
     mut ui_state: ResMut<UiState>,
-    mut orbit_offset: ResMut<OrbitOffset>
+    mut orbit_offset: ResMut<OrbitOffset>,
+    keys: Res<Input<KeyCode>>,
 ) {
     if !ui_state.visible {
         return;
     }
     if let Ok((entity, mut camera, mut pan, skybox)) = camera.get_single_mut() {
+        let ctrl_hold = keys.pressed(KeyCode::ControlLeft);
         egui::SidePanel::left("system_panel")
             .default_width(400.0)
             .resizable(true)
@@ -269,19 +271,19 @@ pub fn system_ui(
                                                 ui.toggle_value(&mut m_selected, m_name.as_str());
                                             });
                                             if m_selected && !m_old_selected {
-                                                selected_entity.change_entity(m_entity)
+                                                selected_entity.change_entity(m_entity, ctrl_hold)
                                             }
                                         }
                                     }
                                 });
                                 if p_selected && !p_old_selected {
-                                    selected_entity.change_entity(p_entity)
+                                    selected_entity.change_entity(p_entity, ctrl_hold)
                                 }
                             }
                         }
                     });
                     if s_selected && !s_old_selected {
-                        selected_entity.change_entity(s_entity)
+                        selected_entity.change_entity(s_entity, ctrl_hold)
                     }
                 }
                 ui.heading("Options");
