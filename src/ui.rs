@@ -462,8 +462,9 @@ fn body_ui(
 
                     ui.label(RichText::new("Distance to Camera").size(16.0).underline());
                     let (_, camera_pos, _) = camera.single();
-                    let c_distance_in_au = camera_pos.translation.distance(transform.translation);
-                    ui.label(format!("{:.3} au", c_distance_in_au / 10000.0));
+                    let c_distance_in_units = camera_pos.translation.distance(transform.translation) as f64;
+                    ui.label(format!("{}", format_length((c_distance_in_units / M_TO_UNIT) as f32)));
+                    ui.label(format!("{:.3} au", c_distance_in_units / M_TO_UNIT * M_TO_AU as f64));
 
                     // Distance to parent
                     if let Some((parent_pos, _, p_name, _)) = parent {

@@ -118,7 +118,7 @@ fn main() {
             })  
         )
         .add_plugins(EguiPlugin)
-        //add_plugins(WorldInspectorPlugin::new())
+     //   .add_plugins(WorldInspectorPlugin::new())
   //      .add_plugins(DefaultPickingPlugins)
         .add_plugins(LockOnPlugin)
         .add_plugins(SerializationPlugin)

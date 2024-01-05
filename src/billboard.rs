@@ -42,7 +42,7 @@ impl Default for BillboardSettings {
 }
 
 fn auto_scale_billboards(
-    bodies: Query<(&Children, &Transform, &Diameter, &ApsisBody, Has<Planet>, Has<Star>), Without<Text>>,
+    bodies: Query<(&Children, &Transform, &Diameter, Option<&ApsisBody>, Has<Planet>, Has<Star>), Without<Text>>,
     mut billboards: Query<(&Text, &mut Transform, &mut Visibility), With<BillboardTextBounds>>,
     camera: Query<(&PanOrbitCamera, &Transform), (Without<BillboardTextBounds>, Without<Planet>, Without<Moon>, Without<Star>)>,
     settings: Res<BillboardSettings>,
@@ -62,7 +62,7 @@ fn auto_scale_billboards(
         } else if star {
             radius > STAR_VISIBILITY_THRESHOLD
         } else {
-            radius < PLANET_VISIBILITY_THRESHOLD && radius > (diameter.num * 2.0) && (apsis.perihelion.distance as f64 * M_TO_UNIT * 50.0 > radius as f64)
+            radius < PLANET_VISIBILITY_THRESHOLD && radius > (diameter.num * 2.0) && (apsis.unwrap().perihelion.distance as f64 * M_TO_UNIT * 50.0 > radius as f64)
         };
         let offset = if star {
             distance_to_cam
