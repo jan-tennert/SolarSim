@@ -45,6 +45,7 @@ pub struct OrbitSettings {
     pub step: f32,
     pub lines: VecDeque<Vec3>,
     pub force_direction: DVec3,
+    pub hide_lines: bool,
     pub draw_lines: bool,
     pub display_force: bool,
     pub display_velocity: bool,
@@ -53,10 +54,13 @@ pub struct OrbitSettings {
                          
 }
 
+#[derive(Default, Component, Reflect, Clone)]
+pub struct BillboardVisible(pub bool);
+
 impl Default for OrbitSettings {
     
     fn default() -> Self {
-        OrbitSettings { color: Color::GREEN, lines: VecDeque::with_capacity(3000), force_direction: DVec3::ZERO, draw_lines: false, step: 0.0, period: 0.0, display_force: false, display_velocity: false, arrow_scale: 1 }
+        OrbitSettings { color: Color::GREEN, lines: VecDeque::with_capacity(3000), force_direction: DVec3::ZERO, draw_lines: false, step: 0.0, period: 0.0, display_force: false, display_velocity: false, arrow_scale: 1, hide_lines: false, }
     }
     
 }
@@ -114,6 +118,7 @@ pub struct BodyBundle {
     pub rotation_speed: RotationSpeed,
     pub axial_tilt: AxialTilt,   
     pub diameter: Diameter,
+    pub billboard_visible: BillboardVisible
                    
 }
 

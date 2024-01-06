@@ -5,7 +5,7 @@ use bevy::text::Text;
 use bevy_mod_billboard::text::BillboardTextBounds;
 
 use crate::apsis::ApsisBody;
-use crate::body::{Diameter, Moon, Planet, Star};
+use crate::body::{Diameter, Moon, Planet, Star, BillboardVisible};
 use crate::camera::{pan_orbit_camera, PanOrbitCamera};
 use crate::constants::M_TO_UNIT;
 use crate::SimState;
@@ -42,7 +42,7 @@ impl Default for BillboardSettings {
 }
 
 fn auto_scale_billboards(
-    bodies: Query<(&Children, &Transform, &Diameter, Option<&ApsisBody>, Has<Planet>, Has<Star>), Without<Text>>,
+    mut bodies: Query<(&Children, &Transform, &Diameter, &mut BillboardVisible, Option<&ApsisBody>, Has<Planet>, Has<Star>), Without<Text>>,
     mut billboards: Query<(&Text, &mut Transform, &mut Visibility), With<BillboardTextBounds>>,
     camera: Query<(&PanOrbitCamera, &Transform), (Without<BillboardTextBounds>, Without<Planet>, Without<Moon>, Without<Star>)>,
     settings: Res<BillboardSettings>,
@@ -55,7 +55,7 @@ fn auto_scale_billboards(
     }
     let (cam, c_transform) = camera.single();
     let radius = cam.radius;
-    for (children, p_transform, diameter, apsis, planet, star) in bodies.iter() {
+    for (children, p_transform, diameter, mut billboard_visible, apsis, planet, star) in bodies.iter_mut() {
         let distance_to_cam = c_transform.translation.distance(p_transform.translation) / STAR_IMPOSTER_DIVIDER;
         let predicate = if planet {
             radius > PLANET_VISIBILITY_THRESHOLD && radius < STAR_VISIBILITY_THRESHOLD
@@ -69,6 +69,7 @@ fn auto_scale_billboards(
         } else {
             diameter.num / distance_to_cam * 0.01
         };
+        billboard_visible.0 = predicate;
         billboard(
             &mut billboards,
             c_transform,

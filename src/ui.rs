@@ -42,11 +42,12 @@ pub struct UiState {
     pub visible: bool,
     pub step_type: StepType,
     pub show_debug: bool,
+    pub dyn_hide_orbit_lines: bool
 }
 
 impl Default for UiState {
     fn default() -> Self {
-        UiState { visible: true, step_type: StepType::SUBSTEPS, show_debug: false }
+        UiState { visible: true, step_type: StepType::SUBSTEPS, show_debug: false, dyn_hide_orbit_lines: true }
     }
 }
 
@@ -307,6 +308,7 @@ pub fn system_ui(
                         pan.focus = Vec3::ZERO;
                     }
                 }
+                ui.checkbox(&mut ui_state.dyn_hide_orbit_lines, "Dynamically hide orbit lines");
                 if ui.button("Open Debug Window").clicked() {
                     ui_state.show_debug = true; 
                 }
