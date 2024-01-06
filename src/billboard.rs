@@ -13,7 +13,7 @@ use crate::star_renderer::STAR_IMPOSTER_DIVIDER;
 use crate::ui::UiState;
 
 const STAR_VISIBILITY_THRESHOLD: f32 = 40_000_000.0; //if the camera's radius is less than this, stars' names will be hidden
-const PLANET_VISIBILITY_THRESHOLD: f32 = 1000.0; //if the camera's radius is less than this, planets' names will be hidden
+const PLANET_VISIBILITY_THRESHOLD: f32 = 1500.0; //if the camera's radius is less than this, planets' names will be hidden
 //const MOON_VISIBILITY_THRESHOLD: f32 = 0.001; //if the camera's radius is less than this, moons' names will be hidden
 const RADIUS_DIVIDER: f32 = 3700.0;
 const TRANSLATION_MULTIPLIER: f32 = 2000.0;
