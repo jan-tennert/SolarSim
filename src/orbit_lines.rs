@@ -1,6 +1,6 @@
 use bevy::{prelude::{App, Entity, Gizmos, in_state, IntoSystemConfigs, Plugin, PreUpdate, Query, Res, Resource, Transform, Vec3, With, Without, Camera}, time::Time};
 
-use crate::{body::{BodyChildren, Moon, OrbitSettings, Planet, SimPosition, Star, Diameter, BillboardVisible}, constants::M_TO_UNIT, physics::{apply_physics, Pause, SubSteps}, SimState, speed::Speed, selection::SelectedEntity, ui::UiState};
+use crate::{body::{BodyChildren, Moon, OrbitSettings, Planet, SimPosition, Star, Diameter, BillboardVisible}, constants::M_TO_UNIT, physics::{apply_physics, Pause, SubSteps}, SimState, speed::Speed, selection::SelectedEntity, ui::UiState, camera::PanOrbitCamera};
 
 pub struct OrbitLinePlugin;
 
@@ -32,12 +32,13 @@ impl Default for OrbitOffset {
 }
 
 const MULTIPLIER: f32 = 0.0001;
-const HIDE_MULTIPLIER: f32 = 10000.0;
+const PLANET_HIDE_MULTIPLIER: f32 = 10000.0;
+const HIDE_MULTIPLIER: f32 = 100.0;
 
 fn update_lines(
-    mut planet_query: Query<(Entity, &mut OrbitSettings, &SimPosition, &BodyChildren, &Transform, &Diameter, &BillboardVisible), (With<Planet>, Without<Moon>, Without<Star>)>,
-    mut moon_query: Query<(Entity, &SimPosition, &mut OrbitSettings, &Transform, &Diameter, &BillboardVisible), (With<Moon>, Without<Planet>, Without<Star>)>,
-    camera: Query<&Transform, With<Camera>>,
+    mut planet_query: Query<(Entity, &mut OrbitSettings, &SimPosition, &BodyChildren, &Diameter, &BillboardVisible), (With<Planet>, Without<Moon>, Without<Star>)>,
+    mut moon_query: Query<(Entity, &SimPosition, &mut OrbitSettings, &Diameter, &BillboardVisible), (With<Moon>, Without<Planet>, Without<Star>)>,
+    camera: Query<&PanOrbitCamera, With<Camera>>,
     time: Res<Time>,
     speed: Res<Speed>,
     substeps: Res<SubSteps>,
@@ -49,10 +50,9 @@ fn update_lines(
         return;
     }
     let cam = camera.single();
-    for (entity, mut orbit, pos, _, transform, diameter, billboard_visible) in &mut planet_query {
+    for (entity, mut orbit, pos, _, diameter, billboard_visible) in &mut planet_query {
         if orbit.draw_lines {
-            let distance_to_cam = transform.translation.distance(cam.translation);
-            orbit.hide_lines = (distance_to_cam < diameter.num * HIDE_MULTIPLIER && entity == selected_entity.entity.unwrap() || !billboard_visible.0) && ui_state.dyn_hide_orbit_lines;
+            orbit.hide_lines = (cam.radius < diameter.num * PLANET_HIDE_MULTIPLIER && entity == selected_entity.entity.unwrap() || !billboard_visible.0) && ui_state.dyn_hide_orbit_lines;
             let speed = speed.0 as f32 * (substeps.0 as f32);
             let max_step = (orbit.period as f32 / speed) * MULTIPLIER;
             if orbit.step >= max_step {
@@ -64,13 +64,12 @@ fn update_lines(
             }
         }
     }
-    for (entity, pos, mut orbit, transform, diameter, billboard_visible) in &mut moon_query {
+    for (entity, pos, mut orbit, diameter, billboard_visible) in &mut moon_query {
         if orbit.draw_lines {
-            if let Some((_, _, p_pos, _, _, _, _)) = planet_query.iter().find(|(_, _, _, children, _, _, _)| {
+            if let Some((_, _, p_pos, _, _, _)) = planet_query.iter().find(|(_, _, _, children, _, _)| {
                 children.0.contains(&entity)
             }) {
-                let distance_to_cam = transform.translation.distance(cam.translation);
-                orbit.hide_lines = (distance_to_cam < diameter.num * HIDE_MULTIPLIER && entity == selected_entity.entity.unwrap() || !billboard_visible.0) && ui_state.dyn_hide_orbit_lines;
+                orbit.hide_lines = (cam.radius < diameter.num * HIDE_MULTIPLIER && entity == selected_entity.entity.unwrap() || !billboard_visible.0) && ui_state.dyn_hide_orbit_lines;
                 let speed = speed.0 as f32 * (substeps.0 as f32);
                 let max_step = (orbit.period as f32 / speed) * MULTIPLIER;
                 if orbit.step >= max_step {
