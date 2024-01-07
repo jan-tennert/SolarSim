@@ -1,0 +1,48 @@
+name: Release
+
+on:
+  push:
+      branches:
+        - master
+
+env:
+  # update with the name of the main binary
+  binary: Simulation
+  #itch_target: <itch.io-username>/<game-name>
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  # Build for wasm
+  release-wasm:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: olegtarasov/get-tag@v2.1.2
+        id: get_version
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          toolchain: 1.73.0
+      - name: install wasm-bindgen-cli
+        run: |
+          cargo install wasm-bindgen-cli
+      - name: Build
+        run: |
+          cargo build --release --target wasm32-unknown-unknown
+      - name: Prepare package
+        run: |
+          wasm-bindgen --no-typescript --out-name Simulation --out-dir wasm --target web target/wasm32-unknown-unknown/release/${{ env.binary }}.wasm
+          cp -r assets wasm/
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: 'wasm'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1

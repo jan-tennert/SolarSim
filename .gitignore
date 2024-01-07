@@ -2,3 +2,5 @@
 /.lapce
 /.idea
 /.fleet
+/wasm/assets
+/wasm/Simulation.wasm

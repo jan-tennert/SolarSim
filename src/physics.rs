@@ -89,15 +89,19 @@ pub fn apply_physics(
     }
     let count = query.iter().count();
     let delta = time.delta_seconds() as f64;
+    #[cfg(not(target_arch = "wasm32"))]
     let start = Instant::now();
     for _ in 0..sub_steps.0 - 1 {
         update_acceleration(&mut query, count);
         update_velocity_and_positions(&mut query, delta, &speed, &selected_entity, &mut orbit_offset, false);
     }
+    #[cfg(not(target_arch = "wasm32"))]
     let start_step = Instant::now();            
     update_acceleration(&mut query, count);
     update_velocity_and_positions(&mut query, delta, &speed, &selected_entity, &mut orbit_offset, true);
-    diagnostics.add_measurement(NBODY_STEP_TIME, || start_step.elapsed().as_nanos() as f64);                
+    #[cfg(not(target_arch = "wasm32"))]
+    diagnostics.add_measurement(NBODY_STEP_TIME, || start_step.elapsed().as_nanos() as f64);   
+    #[cfg(not(target_arch = "wasm32"))]             
     diagnostics.add_measurement(NBODY_TOTAL_TIME, || start.elapsed().as_nanos() as f64);
     diagnostics.add_measurement(NBODY_STEPS, || (sub_steps.0 as f64 / delta));
 }

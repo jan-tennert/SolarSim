@@ -28,3 +28,4 @@ serde = { version = "1.0.189", features = ["derive"] }
 winit = "0.28.7"
 image = "0.24.7"
 bevy_mod_billboard = "0.5.1"
+blocking = "1.5.1"
