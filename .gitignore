@@ -3,4 +3,5 @@
 /.idea
 /.fleet
 /wasm/assets
-/wasm/Simulation.wasm
+/wasm/Simulation.js
+/wasm/Simulation_bg.wasm

@@ -108,6 +108,7 @@ fn main() {
                 primary_window: Some(Window {
                     title: "Solar System Simulation (Jan Tennert)".to_string(),
                     present_mode: PresentMode::AutoVsync,
+                    fit_canvas_to_parent: true,
                     ..default()
                 }),
                 ..default()
