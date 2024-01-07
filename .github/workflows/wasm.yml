@@ -29,7 +29,7 @@ jobs:
           toolchain: 1.73.0
       - name: install wasm-bindgen-cli
         run: |
-          cargo install wasm-bindgen-cli
+          cargo install wasm-bindgen-cli --version 0.2.87
       - name: Build
         run: |
           cargo build --release --target wasm32-unknown-unknown
