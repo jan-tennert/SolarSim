@@ -80,7 +80,7 @@ pub fn pan_orbit_camera(
             #[cfg(not(target_family = "wasm"))]
             let multiplier = 1.0;
             #[cfg(target_family = "wasm")]
-            let multiplier = 0.1;
+            let multiplier = 0.01;
             scroll += ev.y * multiplier;
         }
     }
