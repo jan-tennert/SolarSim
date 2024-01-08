@@ -1,17 +1,24 @@
 <!doctype html>
 <html lang="en">
 
-<body style="margin: 0px;">
-  <script type="module">
+<head>
+    <meta charset="utf-8">
+    <title>Simulation</title>
+    <meta name="author" content="Jan Tennert">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<script type="module">
     import './restart-audio-context.js'
     import init from './Simulation.js'
 
     init().catch((error) => {
-      if (!error.message.startsWith("Using exceptions for control flow, don't mind me. This isn't actually an error!")) {
-        throw error;
-      }
+        if (!error.message.startsWith("Using exceptions for control flow, don't mind me. This isn't actually an error!")) {
+            throw error;
+        }
     });
-  </script>
+</script>
 </body>
 
 </html>
