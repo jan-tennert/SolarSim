@@ -470,7 +470,7 @@ fn body_ui(
         
                             // Distance to parent
                             if let Some((parent_pos, _, p_name, _)) = parent {
-                                ui.label(RichText::new(format!("Distance to {}", p_name)).size(16.0).underline());
+                                ui.label(RichText::new(format!("Distance to {} (Center)", p_name)).size(16.0).underline());
                                 let distance_in_m = parent_pos.0.distance(pos.0);
                                 ui.label(format!("{}", format_length(distance_in_m as f32)));
                                 ui.label(format!("{:.3} au", distance_in_m * (M_TO_AU as f64)));
