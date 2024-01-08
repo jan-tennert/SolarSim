@@ -7,6 +7,7 @@ use bevy::{
     },
     reflect::Reflect, window::Window,
 };
+use bevy_egui::EguiContexts;
 
 use crate::{lock_on::LockOn, physics::apply_physics, SimState};
 
@@ -49,8 +50,9 @@ pub fn pan_orbit_camera(
     mut ev_scroll: EventReader<MouseWheel>,
     input_mouse: Res<Input<MouseButton>>,
     mut query: Query<(&mut PanOrbitCamera, &mut Transform, &Projection)>,
-    mut lock_on: ResMut<LockOn>
-) {
+    mut lock_on: ResMut<LockOn>,
+    mut egui_ctx: EguiContexts,
+) { 
     // change input mapping for orbit and panning here
     let orbit_button = MouseButton::Left;
     let pan_button = MouseButton::Right;
@@ -73,8 +75,10 @@ pub fn pan_orbit_camera(
     } else {
         ev_motion.clear();
     }
-    for ev in ev_scroll.read() {
-        scroll += ev.y;
+    if !egui_ctx.ctx_mut().is_pointer_over_area() {
+        for ev in ev_scroll.read() {
+            scroll += ev.y;
+        }
     }
     if input_mouse.just_released(orbit_button) || input_mouse.just_pressed(orbit_button) {
         orbit_button_changed = true;
