@@ -1,5 +1,5 @@
 use bevy::app::{App, Plugin, Update};
-use bevy::prelude::{Entity, in_state, IntoSystemConfigs, Query, Res, ResMut, Resource, Transform, With};
+use bevy::prelude::{Entity, in_state, IntoSystemConfigs, Query, Res, ResMut, Resource, Transform, With, Vec3};
 
 use crate::body::{Diameter, Mass, Star};
 use crate::camera::{pan_orbit_camera, PanOrbitCamera};
@@ -52,6 +52,9 @@ pub fn apply_camera_to_selection(
             let (_, _, diameter, _, _) = bodies.get(entity).unwrap();
             let mut cam = camera.single_mut();            
             cam.radius = (diameter.num * SELECTION_MULTIPLIER) as f32;
+            if orbit_offset.enabled {
+                cam.focus = Vec3::ZERO;        
+            }
             selected_entity.changed_focus = true;
         }
         if !orbit_offset.enabled {
