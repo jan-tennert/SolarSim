@@ -77,7 +77,11 @@ pub fn pan_orbit_camera(
     }
     if !egui_ctx.ctx_mut().is_pointer_over_area() {
         for ev in ev_scroll.read() {
-            scroll += ev.y;
+            #[cfg(not(target_family = "wasm"))]
+            let multiplier = 1.0;
+            #[cfg(target_family = "wasm")]
+            let multiplier = 0.1;
+            scroll += ev.y * multiplier;
         }
     }
     if input_mouse.just_released(orbit_button) || input_mouse.just_pressed(orbit_button) {
