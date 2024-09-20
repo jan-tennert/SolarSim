@@ -7,13 +7,13 @@ use bevy::prelude::{in_state, IntoSystemConfigs, Quat, Query, Res, ResMut, Trans
 use bevy::scene::SceneInstance;
 use bevy::time::Time;
 
-use crate::body::{AxialTilt, Diameter, RotationSpeed, Star};
+use crate::simulation::components::body::{AxialTilt, Diameter, RotationSpeed, Star};
 use crate::constants::DAY_IN_SECONDS;
 use crate::loading::LoadingState;
-use crate::physics::{Pause, SubSteps};
+use crate::simulation::components::physics::{Pause, SubSteps};
 use crate::setup::setup_planets;
 use crate::SimState;
-use crate::speed::Speed;
+use crate::simulation::components::speed::Speed;
 
 pub struct RotationPlugin;
 

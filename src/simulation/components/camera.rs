@@ -1,7 +1,7 @@
 use bevy::{
     input::mouse::{MouseMotion, MouseWheel},
     prelude::{
-        App, Component, EventReader, in_state, IntoSystemConfigs, Mat3, MouseButton, Plugin, Projection,
+        in_state, App, Component, EventReader, IntoSystemConfigs, Mat3, MouseButton, Plugin, Projection,
         Quat, Query, Res,
         ResMut, Transform, Update, Vec2, Vec3
     },
@@ -10,7 +10,9 @@ use bevy::{
 use bevy::prelude::ButtonInput;
 use bevy_egui::EguiContexts;
 
-use crate::{lock_on::LockOn, physics::apply_physics, SimState};
+use crate::SimState;
+use crate::simulation::components::lock_on::LockOn;
+use crate::simulation::components::physics::apply_physics;
 
 pub const DEFAULT_CAM_RADIUS: f32 = 150.0;
 
@@ -76,7 +78,7 @@ pub fn pan_orbit_camera(
     } else {
         ev_motion.clear();
     }
-    if !egui_ctx.ctx_mut().is_pointer_over_area() {
+    if egui_ctx.try_ctx_mut().is_some() && !egui_ctx.ctx_mut().is_pointer_over_area() {
         for ev in ev_scroll.read() {
             #[cfg(not(target_family = "wasm"))]
             let multiplier = 1.0;

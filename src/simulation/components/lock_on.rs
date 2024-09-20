@@ -1,6 +1,9 @@
-use bevy::prelude::{App, Camera, Entity, in_state, IntoSystemConfigs, Plugin, Query, Res, Resource, Transform, Update, Vec3, Without};
+use bevy::prelude::{in_state, App, Camera, Entity, IntoSystemConfigs, Plugin, Query, Res, Resource, Transform, Update, Vec3, Without};
 
-use crate::{body::{BodyChildren, Mass}, camera::pan_orbit_camera, selection::SelectedEntity, SimState};
+use crate::SimState;
+use crate::simulation::components::body::{BodyChildren, Mass};
+use crate::simulation::components::camera::pan_orbit_camera;
+use crate::simulation::components::selection::SelectedEntity;
 
 pub struct LockOnPlugin;
 

@@ -1,6 +1,7 @@
-use bevy::{math::DVec3, prelude::{App, Res, Component, Entity, in_state, IntoSystemConfigs, Plugin, Query, Reflect, Update, With, Without}};
-
-use crate::{body::{BodyChildren, Moon, Planet, SimPosition, Star}, physics::apply_physics, SimState, ui::UiState};
+use bevy::{math::DVec3, prelude::{in_state, App, Component, Entity, IntoSystemConfigs, Plugin, Query, Reflect, Res, Update, With, Without}};
+use crate::SimState;
+use crate::simulation::components::body::{BodyChildren, Moon, Planet, SimPosition, Star};
+use crate::simulation::components::physics::apply_physics;
 
 pub struct ApsisPlugin;
 

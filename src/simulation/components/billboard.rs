@@ -4,13 +4,12 @@ use bevy::prelude::{Children, in_state, IntoSystemConfigs, Query, Res, Resource,
 use bevy::text::Text;
 use bevy_mod_billboard::text::BillboardTextBounds;
 
-use crate::apsis::ApsisBody;
-use crate::body::{Diameter, Moon, Planet, Star, BillboardVisible};
-use crate::camera::{pan_orbit_camera, PanOrbitCamera};
+use crate::simulation::components::apsis::ApsisBody;
+use crate::simulation::components::body::{Diameter, Moon, Planet, Star, BillboardVisible};
+use crate::simulation::components::camera::{pan_orbit_camera, PanOrbitCamera};
 use crate::constants::M_TO_UNIT;
 use crate::SimState;
-use crate::star_renderer::STAR_IMPOSTER_DIVIDER;
-use crate::ui::UiState;
+use crate::simulation::render::star_billboard::STAR_IMPOSTER_DIVIDER;
 
 const STAR_VISIBILITY_THRESHOLD: f32 = 40_000_000.0; //if the camera's radius is less than this, stars' names will be hidden
 const PLANET_VISIBILITY_THRESHOLD: f32 = 1700.0; //if the camera's radius is less than this, planets' names will be hidden

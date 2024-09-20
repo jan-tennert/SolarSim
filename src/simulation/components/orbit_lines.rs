@@ -1,6 +1,12 @@
-use bevy::{prelude::{App, Entity, Gizmos, in_state, IntoSystemConfigs, Plugin, PreUpdate, Query, Res, Resource, Transform, Vec3, With, Without, Camera}, time::Time};
+use bevy::{prelude::{in_state, App, Camera, Entity, Gizmos, IntoSystemConfigs, Plugin, PreUpdate, Query, Res, Resource, Transform, Vec3, With, Without}, time::Time};
 
-use crate::{body::{BodyChildren, Moon, OrbitSettings, Planet, SimPosition, Star, Diameter, BillboardVisible}, constants::M_TO_UNIT, physics::{apply_physics, Pause, SubSteps}, SimState, speed::Speed, selection::SelectedEntity, ui::UiState, camera::PanOrbitCamera};
+use crate::{constants::M_TO_UNIT, SimState};
+use crate::simulation::components::body::{BillboardVisible, BodyChildren, Diameter, Moon, OrbitSettings, Planet, SimPosition, Star};
+use crate::simulation::components::camera::PanOrbitCamera;
+use crate::simulation::components::physics::{apply_physics, Pause, SubSteps};
+use crate::simulation::components::selection::SelectedEntity;
+use crate::simulation::components::speed::Speed;
+use crate::simulation::ui::UiState;
 
 pub struct OrbitLinePlugin;
 

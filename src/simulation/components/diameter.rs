@@ -1,8 +1,9 @@
-use bevy::{app::{App, Plugin}, math::Vec3A, prelude::{Children, GlobalTransform, Handle, in_state, IntoSystemConfigs, Mesh, Query, Res, ResMut, Transform, Update, Vec3, With}, render::primitives::{Aabb, Sphere}, scene::{SceneInstance, SceneSpawner}};
+use bevy::{app::{App, Plugin}, math::Vec3A, prelude::{in_state, Children, GlobalTransform, Handle, IntoSystemConfigs, Mesh, Query, Res, ResMut, Transform, Update, Vec3, With}, render::primitives::{Aabb, Sphere}, scene::{SceneInstance, SceneSpawner}};
 use bevy::prelude::AssetServer;
 
-use crate::{body::{Diameter, Scale}, constants::M_TO_UNIT, loading::LoadingState, SimState};
-use crate::body::SceneHandle;
+use crate::{loading::LoadingState, SimState};
+use crate::simulation::components::body::SceneHandle;
+use crate::simulation::components::body::{Diameter, Scale};
 
 pub struct DiameterPlugin;
 

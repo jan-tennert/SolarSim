@@ -6,12 +6,12 @@ use bevy::math::{DVec3, Vec3};
 use bevy::prelude::{Entity, in_state, IntoSystemConfigs, Mut, Query, Res, ResMut, Resource, Time, Transform, Has, Children, Local};
 use bevy::reflect::List;
 
-use crate::body::{Acceleration, Mass, OrbitSettings, SimPosition, Velocity, Star, Planet, BodyChildren};
+use crate::simulation::components::body::{Acceleration, Mass, OrbitSettings, SimPosition, Velocity, Star, Planet, BodyChildren};
 use crate::constants::{DEFAULT_SUB_STEPS, G, M_TO_UNIT};
-use crate::orbit_lines::OrbitOffset;
-use crate::selection::SelectedEntity;
+use crate::simulation::components::orbit_lines::OrbitOffset;
+use crate::simulation::components::selection::SelectedEntity;
 use crate::SimState;
-use crate::speed::Speed;
+use crate::simulation::components::speed::Speed;
 
 pub struct PhysicsPlugin;
 

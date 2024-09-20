@@ -10,55 +10,23 @@ use bevy::DefaultPlugins;
 use bevy_egui::EguiPlugin;
 use bevy_mod_billboard::plugin::BillboardPlugin;
 
-use apsis::ApsisPlugin;
-use camera::PanOrbitCameraPlugin;
-use debug::DebugPlugin;
-use diameter::DiameterPlugin;
-use direction::DirectionPlugin;
-use input::InputPlugin;
 use loading::LoadingPlugin;
-use lock_on::LockOnPlugin;
-use orbit_lines::OrbitLinePlugin;
-use reset::ResetPlugin;
-use rotation::RotationPlugin;
 use serialization::SerializationPlugin;
-use skybox::SkyboxPlugin;
-use speed::SpeedPlugin;
-use star_renderer::StarRendererPlugin;
-use ui::UIPlugin;
 
-use crate::billboard::BodyBillboardPlugin;
 use crate::menu::MenuPlugin;
-use crate::physics::PhysicsPlugin;
-use crate::selection::SelectionPlugin;
 use crate::setup::SetupPlugin;
+use crate::simulation::components::SimComponentPlugin;
+use crate::simulation::input::SimInputPlugin;
+use crate::simulation::render::SimRenderPlugin;
+use crate::simulation::ui::InterfacePlugin;
 
-mod body;
 mod constants;
 mod setup;
-mod physics;
-mod egui_input_block;
-mod speed;
-mod selection;
 mod menu;
-mod skybox;
-mod diameter;
-mod ui;
-mod orbit_lines;
-mod reset;
-mod rotation;
 mod serialization;
-mod lock_on;
-mod input;
-mod camera;
 mod loading;
-mod star_renderer;
-mod billboard;
-mod apsis;
 mod unit;
-mod debug;
-mod direction;
-mod arrows;
+mod simulation;
 
 #[derive(States, Clone, Eq, PartialEq, Debug, Default, Hash)]
 pub enum SimState {
@@ -122,30 +90,17 @@ fn main() {
         .add_plugins(EguiPlugin)
      //   .add_plugins(WorldInspectorPlugin::new())
   //      .add_plugins(DefaultPickingPlugins)
-        .add_plugins(LockOnPlugin)
         .add_plugins(SerializationPlugin)
         .add_plugins(LoadingPlugin)
-        .add_plugins(BodyBillboardPlugin)
         .add_plugins(BillboardPlugin)
-        .add_plugins(ApsisPlugin)
-        .add_plugins(DebugPlugin)
         //     .add_plugins(PanOrbitCameraPlugin)
-        .add_plugins(DirectionPlugin)
-        .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(SetupPlugin)
-        .add_plugins(PhysicsPlugin)
         .add_plugins(MenuPlugin)
-        .add_plugins(InputPlugin)
-        .add_plugins(SelectionPlugin)
-        .add_plugins(SkyboxPlugin)
-        .add_plugins(StarRendererPlugin)
-        .add_plugins(UIPlugin)
-        .add_plugins(SpeedPlugin)
-        .add_plugins(ResetPlugin)
-        .add_plugins(OrbitLinePlugin)
-        .add_plugins(RotationPlugin)
+        .add_plugins(SimInputPlugin)
+        .add_plugins(SimRenderPlugin)
+        .add_plugins(InterfacePlugin)
+        .add_plugins(SimComponentPlugin)
         .add_plugins(FrameTimeDiagnosticsPlugin::default())
-        .add_plugins(DiameterPlugin)
     //    .add_plugins(ScreenDiagnosticsPlugin::default())
   //      .add_plugins(ScreenFrameDiagnosticsPlugin)
         .init_state::<SimState>()

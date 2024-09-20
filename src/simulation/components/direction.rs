@@ -1,6 +1,8 @@
-use bevy::{app::{App, Plugin}, prelude::{Color, Entity, Gizmos, in_state, IntoSystemConfigs, Query, Transform, Update, With}};
+use bevy::{app::{App, Plugin}, prelude::{in_state, Entity, Gizmos, IntoSystemConfigs, Query, Transform, Update, With}};
 use bevy::color::palettes::css;
-use crate::{body::{BodyChildren, Diameter, Moon, OrbitSettings, Planet, Velocity}, camera::pan_orbit_camera, SimState};
+use crate::SimState;
+use crate::simulation::components::body::{BodyChildren, Diameter, Moon, OrbitSettings, Planet, Velocity};
+use crate::simulation::components::camera::pan_orbit_camera;
 
 pub struct DirectionPlugin;
 

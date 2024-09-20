@@ -3,16 +3,16 @@ use bevy::math::Vec3;
 use bevy::prelude::{Camera, Children, Component, in_state, IntoSystemConfigs, Parent, Query, Transform, Visibility, With, Without};
 use bevy::scene::SceneInstance;
 
-use crate::body::Star;
-use crate::camera::pan_orbit_camera;
+use crate::simulation::components::body::Star;
+use crate::simulation::components::camera::pan_orbit_camera;
 use crate::SimState;
 
 const STAR_IMPOSTER_THRESHOLD: f32 = 4_000.0;
 pub const STAR_IMPOSTER_DIVIDER: f32 = 10000.0;
 
-pub struct StarRendererPlugin;
+pub struct StarBillboardPlugin;
 
-impl Plugin for StarRendererPlugin {
+impl Plugin for StarBillboardPlugin {
 
     fn build(&self, app: &mut App) {
         app

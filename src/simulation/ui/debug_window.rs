@@ -3,14 +3,16 @@ use std::time::Duration;
 use bevy::app::{App, Plugin};
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::{in_state, IntoSystemConfigs, Query, Res, ResMut, Update};
+use bevy::render::diagnostic::RenderDiagnosticsPlugin;
 use bevy_egui::{egui::{self}, EguiContexts};
 use bevy_egui::egui::RichText;
 
-use crate::body::Mass;
-use crate::camera::PanOrbitCamera;
-use crate::physics::{NBODY_STEP_TIME, NBODY_TOTAL_TIME, NBODY_STEPS};
+use crate::simulation::components::body::Mass;
+use crate::simulation::components::camera::PanOrbitCamera;
+use crate::simulation::components::physics::{NBODY_STEP_TIME, NBODY_TOTAL_TIME, NBODY_STEPS};
 use crate::SimState;
-use crate::ui::{system_ui, UiState};
+use crate::simulation::ui::system_panel::system_panel;
+use crate::simulation::ui::UiState;
 
 pub struct DebugPlugin;
 
@@ -18,7 +20,7 @@ impl Plugin for DebugPlugin {
 
     fn build(&self, app: &mut App) {
         app
-            .add_systems(Update, (debug_window.after(system_ui)).run_if(in_state(SimState::Simulation)));
+            .add_systems(Update, (debug_window.after(system_panel)).run_if(in_state(SimState::Simulation)));
     }
 
 }
@@ -30,7 +32,7 @@ fn debug_window(
     bodies: Query<&Mass>,
     camera: Query<&PanOrbitCamera>
 ) {
-    if !ui_state.visible {
+    if !ui_state.visible || egui_ctx.try_ctx_mut().is_none() {
         return;
     }
     let cam = camera.single();

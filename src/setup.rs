@@ -9,21 +9,21 @@ use bevy::hierarchy::BuildChildren;
 use bevy::math::{DVec3, Vec3};
 use bevy::pbr::{PbrBundle, PointLight, PointLightBundle};
 use bevy::prelude::{Assets, Bundle, Camera, Camera3dBundle, ChildBuilder, Color, Commands, default, Entity, Handle, in_state, IntoSystemConfigs, Mesh, OnEnter, PerspectiveProjection, Projection, Res, ResMut, Resource, SceneBundle, SpatialBundle, StandardMaterial, Startup, Transform, Update, Visibility, Circle, Srgba, Hsva};
-use bevy::render::view::RenderLayers;
+use bevy::render::view::{GpuCulling, NoCpuCulling, RenderLayers};
 use bevy::scene::Scene;
 use bevy::text::{JustifyText, TextSection, TextStyle};
 use bevy_mod_billboard::{BillboardLockAxisBundle, BillboardTextBundle};
 
-use crate::apsis::ApsisBody;
-use crate::body::{BodyBundle, BodyChildren, BodyParent, Moon, OrbitSettings, Planet, SceneHandle, Star};
-use crate::camera::PanOrbitCamera;
+use crate::simulation::components::apsis::ApsisBody;
+use crate::simulation::components::body::{BodyBundle, BodyChildren, BodyParent, Moon, OrbitSettings, Planet, SceneHandle, Star};
+use crate::simulation::components::camera::PanOrbitCamera;
 use crate::constants::M_TO_UNIT;
 use crate::loading::LoadingState;
-use crate::selection::SelectedEntity;
+use crate::simulation::components::selection::SelectedEntity;
 use crate::serialization::{SerializedBody, SerializedVec, SimulationData};
 use crate::SimState;
-use crate::skybox::Cubemap;
-use crate::star_renderer::StarBillboard;
+use crate::simulation::render::skybox::Cubemap;
+use crate::simulation::render::star_billboard::StarBillboard;
 
 pub struct SetupPlugin;
 
@@ -242,7 +242,7 @@ fn spawn_imposter(
 ) {
     parent.spawn(PbrBundle {
         mesh: meshes.add(Circle::new(bundle.diameter.num  * 3.0)),
-        material: materials.add(Color::rgb(30.0, 30.0, 0.0)),
+        material: materials.add(Color::from(Srgba::rgb(30.0, 30.0, 0.0))),
         visibility: Visibility::Hidden,
         ..default()
     })
@@ -316,7 +316,9 @@ pub fn setup_camera(
         BloomSettings {
             intensity: 0.3, // the default is 0.3,
             ..default()
-        }
+        },
+        GpuCulling,
+        NoCpuCulling
     ));
     
     commands.insert_resource(Cubemap {

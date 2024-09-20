@@ -1,23 +1,12 @@
-use bevy::{prelude::{App, in_state, IntoSystemConfigs, KeyCode, Plugin, Query, Res, ResMut, Update, Vec3}, window::{Window, WindowMode}};
-use bevy::prelude::ButtonInput;
-use bevy_egui::{egui::{self}, EguiContexts, EguiSettings};
+use crate::simulation::components::camera::PanOrbitCamera;
+use crate::simulation::components::physics::{Pause, SubSteps};
+use crate::simulation::ui::{StepType, UiState};
+use crate::simulation::components::speed::Speed;
+use bevy::prelude::{ButtonInput, KeyCode, Query, Res, ResMut, Vec3, Window};
+use bevy::window::WindowMode;
+use bevy_egui::{egui, EguiContexts, EguiSettings};
 
-use crate::{camera::PanOrbitCamera, SimState, ui::{UiState, StepType}, physics::{Pause, SubSteps}, speed::Speed};
-
-pub struct InputPlugin;
-
-impl Plugin for InputPlugin {
-    
-    fn build(&self, app: &mut App) {
-        app
-        .add_systems(Update, global_input_system)
-        .add_systems(Update, key_window.run_if(in_state(SimState::Simulation)))
-        .add_systems(Update, sim_input_system.run_if(in_state(SimState::Simulation)));
-    }
-    
-}
-
-fn key_window(
+pub fn key_window(
     mut egui_ctx: EguiContexts,
     mut ui_state: ResMut<UiState>,
 ) {
@@ -31,21 +20,21 @@ fn key_window(
         .scroll2([true, true])
         .default_width(250.0)
         .show(egui_ctx.ctx_mut(), |ui| {
-                ui.label("F11 - Toggle Fullscreen");
-                ui.label("F10 - Hide Ui");
-                ui.label("Space - Pause");
-                ui.label("Left Arrow - 2x Speed");
-                ui.label("Right Arrow - 1/2 Speed");
-                ui.label("Left Alt - Change Step Type");
-                ui.label("C - Reset Camera");
-                ui.label("Left Mouse - Rotate Camera");
-                ui.label("Right Mouse - Move Camera");
-                ui.label("Ctrl + , - Increase Ui Scale");
-                ui.label("Ctrl + . - Decrease Ui Scale");
+            ui.label("F11 - Toggle Fullscreen");
+            ui.label("F10 - Hide Ui");
+            ui.label("Space - Pause");
+            ui.label("Left Arrow - 2x Speed");
+            ui.label("Right Arrow - 1/2 Speed");
+            ui.label("Left Alt - Change Step Type");
+            ui.label("C - Reset Camera");
+            ui.label("Left Mouse - Rotate Camera");
+            ui.label("Right Mouse - Move Camera");
+            ui.label("Ctrl + , - Increase Ui Scale");
+            ui.label("Ctrl + . - Decrease Ui Scale");
         });
 }
 
-fn global_input_system(
+pub fn global_input_system(
     keys: Res<ButtonInput<KeyCode>>,
     mut windows: Query<&mut Window>,
 ) {
@@ -57,10 +46,10 @@ fn global_input_system(
         } else {
             window.mode = WindowMode::Windowed;
         }
-    }   
+    }
 }
 
-fn sim_input_system(
+pub fn sim_input_system(
     keys: Res<ButtonInput<KeyCode>>,
     mut ui_state: ResMut<UiState>,
     mut camera: Query<&mut PanOrbitCamera>,
@@ -83,23 +72,23 @@ fn sim_input_system(
         if timestep_selected {
             speed.small_step_down();
         } else {
-            sub_steps.small_step_down();                                   
+            sub_steps.small_step_down();
         }
     } else if keys.just_pressed(KeyCode::ArrowRight) {
         if timestep_selected {
             speed.small_step_up();
         } else {
-            sub_steps.small_step_up();                                   
+            sub_steps.small_step_up();
         }
     } else if keys.just_pressed(KeyCode::AltLeft) {
         if timestep_selected {
             ui_state.step_type = StepType::SUBSTEPS;
         } else {
-            ui_state.step_type = StepType::TIMESTEPS;                                  
+            ui_state.step_type = StepType::TIMESTEPS;
         }
     } else if keys.pressed(KeyCode::ControlLeft) && keys.just_pressed(KeyCode::Comma) {
-            egui_settings.scale_factor *= 1.1;
+        egui_settings.scale_factor *= 1.1;
     } else if keys.pressed(KeyCode::ControlLeft) && keys.just_pressed(KeyCode::Period) {
-            egui_settings.scale_factor *= 0.9;
+        egui_settings.scale_factor *= 0.9;
     }
 }
