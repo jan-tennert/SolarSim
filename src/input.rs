@@ -1,4 +1,5 @@
-use bevy::{prelude::{App, in_state, Input, IntoSystemConfigs, KeyCode, Plugin, Query, Res, ResMut, Update, Vec3}, window::{Window, WindowMode}};
+use bevy::{prelude::{App, in_state, IntoSystemConfigs, KeyCode, Plugin, Query, Res, ResMut, Update, Vec3}, window::{Window, WindowMode}};
+use bevy::prelude::ButtonInput;
 use bevy_egui::{egui::{self}, EguiContexts, EguiSettings};
 
 use crate::{camera::PanOrbitCamera, SimState, ui::{UiState, StepType}, physics::{Pause, SubSteps}, speed::Speed};
@@ -45,7 +46,7 @@ fn key_window(
 }
 
 fn global_input_system(
-    keys: Res<Input<KeyCode>>,
+    keys: Res<ButtonInput<KeyCode>>,
     mut windows: Query<&mut Window>,
 ) {
     if keys.just_pressed(KeyCode::F11) {
@@ -60,7 +61,7 @@ fn global_input_system(
 }
 
 fn sim_input_system(
-    keys: Res<Input<KeyCode>>,
+    keys: Res<ButtonInput<KeyCode>>,
     mut ui_state: ResMut<UiState>,
     mut camera: Query<&mut PanOrbitCamera>,
     mut pause: ResMut<Pause>,
@@ -74,17 +75,17 @@ fn sim_input_system(
     };
     if keys.just_pressed(KeyCode::F10) {
         ui_state.visible = !ui_state.visible
-    } else if keys.just_pressed(KeyCode::C) {
+    } else if keys.just_pressed(KeyCode::KeyC) {
         camera.single_mut().focus = Vec3::ZERO;
     } else if keys.just_pressed(KeyCode::Space) {
         pause.0 = !pause.0;
-    } else if keys.just_pressed(KeyCode::Left) {
+    } else if keys.just_pressed(KeyCode::ArrowLeft) {
         if timestep_selected {
             speed.small_step_down();
         } else {
             sub_steps.small_step_down();                                   
         }
-    } else if keys.just_pressed(KeyCode::Right) {
+    } else if keys.just_pressed(KeyCode::ArrowRight) {
         if timestep_selected {
             speed.small_step_up();
         } else {

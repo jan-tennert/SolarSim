@@ -41,7 +41,7 @@ fn debug_window(
         .scroll2([true, true])
         .default_width(250.0)
         .show(egui_ctx.ctx_mut(), |ui| {
-            if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
+            if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
                 if let Some(value) = fps.smoothed() {
                     // Update the value of the second section
                     ui.horizontal(|ui| {
@@ -57,7 +57,7 @@ fn debug_window(
                     });
                 }
             }
-            if let Some(frametime) = diagnostics.get(FrameTimeDiagnosticsPlugin::FRAME_TIME) {
+            if let Some(frametime) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FRAME_TIME) {
                 if let Some(value) = frametime.smoothed() {
                     // Update the value of the second section
                     ui.horizontal(|ui| {
@@ -66,7 +66,7 @@ fn debug_window(
                     });
                 }
             }
-            if let Some(frametime) = diagnostics.get(FrameTimeDiagnosticsPlugin::FRAME_COUNT) {
+            if let Some(frametime) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FRAME_COUNT) {
                 if let Some(value) = frametime.value() {
                     // Update the value of the second section
                     ui.horizontal(|ui| {
@@ -80,7 +80,7 @@ fn debug_window(
                 ui.label(RichText::new("Total amount of bodies: ").strong());                            
                 ui.label(format!("{:?}", body_count));
             });
-            if let Some(frametime) = diagnostics.get(NBODY_STEPS) {
+            if let Some(frametime) = diagnostics.get(&NBODY_STEPS) {
                 if let Some(value) = frametime.smoothed() {
                     // Update the value of the second section
                     ui.horizontal(|ui| {
@@ -89,7 +89,7 @@ fn debug_window(
                     });
                 }
             }
-            if let Some(frametime) = diagnostics.get(NBODY_STEP_TIME) {
+            if let Some(frametime) = diagnostics.get(&NBODY_STEP_TIME) {
                 if let Some(value) = frametime.average() {
                     // Update the value of the second section
                     ui.horizontal(|ui| {
@@ -98,7 +98,7 @@ fn debug_window(
                     });
                 }
             }
-            if let Some(frametime) = diagnostics.get(NBODY_TOTAL_TIME) {
+            if let Some(frametime) = diagnostics.get(&NBODY_TOTAL_TIME) {
                 if let Some(value) = frametime.average() {
                     // Update the value of the second section
                     ui.horizontal(|ui| {

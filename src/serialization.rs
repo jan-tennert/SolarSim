@@ -1,29 +1,26 @@
+use bevy::asset::io::Reader;
+use bevy::asset::AsyncReadExt;
+use bevy::prelude::{Asset, AssetApp};
 use bevy::{
     asset::{AssetLoader, LoadContext},
     math::DVec3,
-    prelude::Plugin, reflect::{TypePath, TypeUuid}, utils::BoxedFuture,
+    prelude::Plugin, reflect::{TypePath}, utils::BoxedFuture,
 };
-use bevy::asset::AsyncReadExt;
-use bevy::asset::io::Reader;
-use bevy::prelude::{Asset, AssetApp};
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize, TypeUuid, TypePath, Asset, Clone)]
-#[uuid = "39cadc56-aa9c-4543-8640-a018b74b5052"]
+#[derive(Debug, Deserialize, TypePath, Asset, Clone)]
 pub struct SimulationData {
     pub bodies: Vec<SerializedBody>,
     pub starting_time_millis: i64
 }
 
-#[derive(Debug, Deserialize, TypeUuid, TypePath, Clone)]
-#[uuid = "39cadc56-aa9c-4543-8640-a018b74b5052"]
+#[derive(Debug, Deserialize, TypePath, Clone)]
 pub struct SerializedBody {
     pub children: Vec<SerializedBody>,
     pub data: SerializedBodyData
 }
 
-#[derive(Debug, Deserialize, TypeUuid, TypePath, Clone, Copy)]
-#[uuid = "39cadc56-aa9c-4543-8640-a018b74b5052"]
+#[derive(Debug, Deserialize, TypePath, Clone, Copy)]
 pub struct SerializedVec {
     pub x: f64,
     pub y: f64,
@@ -38,8 +35,7 @@ impl From<SerializedVec> for DVec3 {
     
 }
 
-#[derive(Debug, Deserialize, TypeUuid, TypePath, Clone)]
-#[uuid = "39cadc56-aa9c-4543-8640-a018b74b5052"]
+#[derive(Debug, Deserialize, TypePath, Clone)]
 pub struct SerializedBodyData {
     pub mass: f64,
     pub starting_position: SerializedVec,

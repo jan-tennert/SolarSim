@@ -1,12 +1,13 @@
 use bevy::{
     input::mouse::{MouseMotion, MouseWheel},
     prelude::{
-        App, Component, EventReader, in_state, Input, IntoSystemConfigs, Mat3, MouseButton, Plugin, Projection,
+        App, Component, EventReader, in_state, IntoSystemConfigs, Mat3, MouseButton, Plugin, Projection,
         Quat, Query, Res,
         ResMut, Transform, Update, Vec2, Vec3
     },
     reflect::Reflect, window::Window,
 };
+use bevy::prelude::ButtonInput;
 use bevy_egui::EguiContexts;
 
 use crate::{lock_on::LockOn, physics::apply_physics, SimState};
@@ -48,7 +49,7 @@ pub fn pan_orbit_camera(
     mut windows: Query<&mut Window>,
     mut ev_motion: EventReader<MouseMotion>,
     mut ev_scroll: EventReader<MouseWheel>,
-    input_mouse: Res<Input<MouseButton>>,
+    input_mouse: Res<ButtonInput<MouseButton>>,
     mut query: Query<(&mut PanOrbitCamera, &mut Transform, &Projection)>,
     mut lock_on: ResMut<LockOn>,
     mut egui_ctx: EguiContexts,

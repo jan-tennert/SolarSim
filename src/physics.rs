@@ -1,7 +1,7 @@
 use std::time::Instant;
 
 use bevy::app::{App, Plugin, Update};
-use bevy::diagnostic::{Diagnostic, DiagnosticId, Diagnostics, RegisterDiagnostic};
+use bevy::diagnostic::{Diagnostic, DiagnosticPath, Diagnostics, RegisterDiagnostic};
 use bevy::math::{DVec3, Vec3};
 use bevy::prelude::{Entity, in_state, IntoSystemConfigs, Mut, Query, Res, ResMut, Resource, Time, Transform, Has, Children, Local};
 use bevy::reflect::List;
@@ -15,6 +15,10 @@ use crate::speed::Speed;
 
 pub struct PhysicsPlugin;
 
+pub const NBODY_STEP_TIME: DiagnosticPath = DiagnosticPath::const_new("nbody_step_time");
+pub const NBODY_TOTAL_TIME: DiagnosticPath = DiagnosticPath::const_new("nbody_total_time");
+pub const NBODY_STEPS: DiagnosticPath = DiagnosticPath::const_new("nbody_steps");
+
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app
@@ -25,9 +29,9 @@ impl Plugin for PhysicsPlugin {
             .register_type::<Mass>()
             .register_type::<SimPosition>()
             .register_type::<OrbitSettings>()
-            .register_diagnostic(Diagnostic::new(NBODY_STEP_TIME, "nbody_step_time", 50))
-            .register_diagnostic(Diagnostic::new(NBODY_TOTAL_TIME, "nbody_total_time", 50))
-            .register_diagnostic(Diagnostic::new(NBODY_STEPS, "nbody_steps", 50))
+            .register_diagnostic(Diagnostic::new(NBODY_STEP_TIME).with_max_history_length(50))
+            .register_diagnostic(Diagnostic::new(NBODY_TOTAL_TIME).with_max_history_length(50))
+            .register_diagnostic(Diagnostic::new(NBODY_STEPS).with_max_history_length(50))
             .add_systems(Update, (apply_physics).run_if(in_state(SimState::Simulation)));
     }
 }
@@ -64,15 +68,6 @@ impl SubSteps {
       
 }
 
-pub const NBODY_TOTAL_TIME: DiagnosticId =
-    DiagnosticId::from_u128(337040787172757619024841343456040760896);
-    
-pub const NBODY_STEP_TIME: DiagnosticId =
-    DiagnosticId::from_u128(337040787171757619024831343456040760892);
-    
-pub const NBODY_STEPS: DiagnosticId =
-    DiagnosticId::from_u128(337040787171757619024531341455040760892);
-
 pub fn apply_physics(
     mut query: Query<(Entity, &Mass, &mut Acceleration, &mut OrbitSettings, &mut Velocity, &mut SimPosition, &mut Transform, Has<Star>, Has<Planet>, Option<&BodyChildren>)>,
     pause: Res<Pause>,
@@ -100,10 +95,10 @@ pub fn apply_physics(
     update_acceleration(&mut query, count);
     update_velocity_and_positions(&mut query, delta, &speed, &selected_entity, &mut orbit_offset, true);
     #[cfg(not(target_arch = "wasm32"))]
-    diagnostics.add_measurement(NBODY_STEP_TIME, || start_step.elapsed().as_nanos() as f64);   
+    diagnostics.add_measurement(&NBODY_STEP_TIME, || start_step.elapsed().as_nanos() as f64);
     #[cfg(not(target_arch = "wasm32"))]             
-    diagnostics.add_measurement(NBODY_TOTAL_TIME, || start.elapsed().as_nanos() as f64);
-    diagnostics.add_measurement(NBODY_STEPS, || (sub_steps.0 as f64 / delta));
+    diagnostics.add_measurement(&NBODY_TOTAL_TIME, || start.elapsed().as_nanos() as f64);
+    diagnostics.add_measurement(&NBODY_STEPS, || (sub_steps.0 as f64 / delta));
 }
 
 fn update_acceleration(

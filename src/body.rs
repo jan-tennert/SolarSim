@@ -1,8 +1,9 @@
 use std::collections::VecDeque;
-
+use bevy::color::Color;
+use bevy::color::palettes::css;
 use bevy::core::Name;
 use bevy::math::{DVec3, Vec3};
-use bevy::prelude::{Bundle, Color, Component, default, Entity, Handle, Reflect, Scene, Transform};
+use bevy::prelude::{Bundle, Component, default, Entity, Handle, Reflect, Scene, Transform, Srgba};
 
 use crate::constants::M_TO_UNIT;
 use crate::serialization::SerializedBody;
@@ -60,7 +61,7 @@ pub struct BillboardVisible(pub bool);
 impl Default for OrbitSettings {
     
     fn default() -> Self {
-        OrbitSettings { color: Color::GREEN, lines: VecDeque::with_capacity(3000), force_direction: DVec3::ZERO, draw_lines: false, step: 0.0, period: 0.0, display_force: false, display_velocity: false, arrow_scale: 1, hide_lines: false, }
+        OrbitSettings { color: css::GREEN.into(), lines: VecDeque::with_capacity(3000), force_direction: DVec3::ZERO, draw_lines: false, step: 0.0, period: 0.0, display_force: false, display_velocity: false, arrow_scale: 1, hide_lines: false, }
     }
     
 }

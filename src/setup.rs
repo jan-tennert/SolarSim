@@ -1,5 +1,6 @@
 use bevy::app::{App, Plugin};
 use bevy::asset::AssetServer;
+use bevy::color::Color::Hsla;
 use bevy::core::Name;
 use bevy::core_pipeline::bloom::BloomSettings;
 use bevy::core_pipeline::Skybox;
@@ -7,9 +8,10 @@ use bevy::ecs::system::EntityCommands;
 use bevy::hierarchy::BuildChildren;
 use bevy::math::{DVec3, Vec3};
 use bevy::pbr::{PbrBundle, PointLight, PointLightBundle};
-use bevy::prelude::{Assets, Bundle, Camera, Camera3dBundle, ChildBuilder, Color, Commands, default, Entity, Handle, in_state, IntoSystemConfigs, Mesh, OnEnter, PerspectiveProjection, Projection, Res, ResMut, Resource, SceneBundle, shape, SpatialBundle, StandardMaterial, Startup, Transform, Update, Visibility};
+use bevy::prelude::{Assets, Bundle, Camera, Camera3dBundle, ChildBuilder, Color, Commands, default, Entity, Handle, in_state, IntoSystemConfigs, Mesh, OnEnter, PerspectiveProjection, Projection, Res, ResMut, Resource, SceneBundle, SpatialBundle, StandardMaterial, Startup, Transform, Update, Visibility, Circle, Srgba, Hsva};
+use bevy::render::view::RenderLayers;
 use bevy::scene::Scene;
-use bevy::text::{TextAlignment, TextSection, TextStyle};
+use bevy::text::{JustifyText, TextSection, TextStyle};
 use bevy_mod_billboard::{BillboardLockAxisBundle, BillboardTextBundle};
 
 use crate::apsis::ApsisBody;
@@ -92,18 +94,18 @@ pub fn setup_planets(
         
         //planets vector for adding BodyChildren later
         let mut planets: Vec<Entity> = vec![];
-        star.insert(PointLightBundle {
+       star.insert(PointLightBundle {
             point_light: PointLight {
                 color: Color::rgba(1.0, 1.0, 1.0, 1.0),
-                intensity: 15000000000.0,
-                shadows_enabled: false,
-                range: 300000000000.0,
-                radius: 100.0,
+                intensity: 15000000000000.0,
+                shadows_enabled: true,
+                range: 30000000000000000.0,
+                radius: 1000000000000000.0,
                 ..default()
             },
             ..default()
         });
-        
+
         //add the star's components
         apply_body(BodyBundle::from(entry.clone()), Star::default(), &assets, &mut star, &mut meshes, &mut materials,360.0 * ((s_index + 1) as f32 / stars as f32), true);
         
@@ -120,7 +122,8 @@ pub fn setup_planets(
             if !planet_entry.data.simulate {
                 continue;
             }
-            let mut planet = star.commands().spawn(SpatialBundle::default());
+            let mut star_commands = star.commands();
+            let mut planet = star_commands.spawn(SpatialBundle::default());
             let planet_id = planet.id();
             
             //moon vector for adding BodyChildren later
@@ -147,7 +150,8 @@ pub fn setup_planets(
                 if !moon_entry.data.simulate {
                     continue;
                 }
-                let mut moon = planet.commands().spawn(SpatialBundle::default());
+                let mut planet_commands = planet.commands();
+                let mut moon = planet_commands.spawn(SpatialBundle::default());
 
                 //for the tree-based ui later                
                 moons.push(moon.id());
@@ -194,7 +198,7 @@ fn apply_body(
     is_star: bool,
 ) {
     let asset_handle: Handle<Scene> = assets.load(bundle.model_path.clone().0);
-    let color = Color::hsl(hue, 1.0, 0.5);
+    let color: Color = Hsva::new(hue, 1.0, 0.5, 1.0).into();
     entity.insert(bundle.clone());
     entity.insert(body_type);
     entity.insert(OrbitSettings {
@@ -215,7 +219,7 @@ fn apply_body(
 
         spawn_billboard(
             bundle.clone(),
-            color,
+            color.into(),
             parent
         );
         
@@ -237,8 +241,8 @@ fn spawn_imposter(
     materials: &mut ResMut<Assets<StandardMaterial>>,
 ) {
     parent.spawn(PbrBundle {
-        mesh: meshes.add(shape::Circle::new(bundle.diameter.num  * 3.0).into()),
-        material: materials.add(Color::rgb(30.0, 30.0, 0.0).into()),
+        mesh: meshes.add(Circle::new(bundle.diameter.num  * 3.0)),
+        material: materials.add(Color::rgb(30.0, 30.0, 0.0)),
         visibility: Visibility::Hidden,
         ..default()
     })
@@ -278,7 +282,7 @@ fn spawn_billboard(
                         ..default()
                     }
                 }
-            ]).with_alignment(TextAlignment::Center),
+            ]).with_justify(JustifyText::Center),
             ..default()
         },
         ..default()
@@ -305,7 +309,10 @@ pub fn setup_camera(
             ..default()
         },
         PanOrbitCamera::default(),
-        Skybox(skybox_handle.clone()),
+        Skybox {
+            image: skybox_handle.clone(),
+            brightness: 1000.0,
+        },
         BloomSettings {
             intensity: 0.3, // the default is 0.3,
             ..default()

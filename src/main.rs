@@ -1,17 +1,14 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use bevy::app::{App, PluginGroup};
-use bevy::DefaultPlugins;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
-use bevy::prelude::{default, Entity, NonSend, Query, Startup, States};
-use bevy::render::RenderPlugin;
+use bevy::prelude::{default, AppExtStates, States, SubStates};
 use bevy::render::settings::{RenderCreation, WgpuSettings};
+use bevy::render::RenderPlugin;
 use bevy::window::{PresentMode, Window, WindowPlugin};
-use bevy::winit::WinitWindows;
+use bevy::DefaultPlugins;
 use bevy_egui::EguiPlugin;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_billboard::plugin::BillboardPlugin;
-use winit::window::Icon;
 
 use apsis::ApsisPlugin;
 use camera::PanOrbitCameraPlugin;
@@ -63,9 +60,10 @@ mod debug;
 mod direction;
 mod arrows;
 
-#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
+#[derive(States, Clone, Eq, PartialEq, Debug, Default, Hash)]
 pub enum SimState {
     #[default]
+    Setup,
     Menu,
     Loading,
     Simulation,
@@ -73,6 +71,7 @@ pub enum SimState {
     ExitToMainMenu
 }
 
+/**
 fn set_window_icon(
     // we have to use `NonSend` here
     windows: Query<(Entity, &Window)>,
@@ -98,7 +97,7 @@ fn set_window_icon(
         }
     }
 }
-
+**/
 
 fn main() {
     App::new()
@@ -108,7 +107,6 @@ fn main() {
                 primary_window: Some(Window {
                     title: "Solar System Simulation (Jan Tennert)".to_string(),
                     present_mode: PresentMode::AutoVsync,
-                    fit_canvas_to_parent: true,
                     ..default()
                 }),
                 ..default()
@@ -118,6 +116,7 @@ fn main() {
               //      backends: Some(Backends::VULKAN),
                     ..default()
                 }),
+                ..default()
             })  
         )
         .add_plugins(EguiPlugin)
@@ -149,7 +148,7 @@ fn main() {
         .add_plugins(DiameterPlugin)
     //    .add_plugins(ScreenDiagnosticsPlugin::default())
   //      .add_plugins(ScreenFrameDiagnosticsPlugin)
-        .add_state::<SimState>()
-        .add_systems(Startup, set_window_icon)
+        .init_state::<SimState>()
+       // .add_systems(Startup, set_window_icon)
         .run();
 }

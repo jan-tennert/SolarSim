@@ -3,12 +3,12 @@ use bevy::{
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     prelude::{
         App, Camera, Color, Commands, DespawnRecursiveExt, Entity, GizmoConfig,
-        Input, IntoSystemConfigs, KeyCode, Mut, Name, NextState, Plugin, PointLight, Query, Res, ResMut, Resource, Transform, Vec3, Visibility, With, Without,
+        IntoSystemConfigs, KeyCode, Mut, Name, NextState, Plugin, PointLight, Query, Res, ResMut, Resource, Transform, Vec3, Visibility, With, Without,
     },
     reflect::Reflect, time::Time, window::PresentMode,
 };
 use bevy::app::Update;
-use bevy::prelude::{in_state, Window};
+use bevy::prelude::{in_state, AabbGizmoConfigGroup, ButtonInput, DefaultGizmoConfigGroup, GizmoConfigStore, Srgba, Window};
 use bevy_egui::{egui::{self, InnerResponse, Response, Ui, ScrollArea}, EguiContexts};
 use bevy_inspector_egui::egui::{RichText, TextEdit};
 use chrono::{Days, NaiveDateTime};
@@ -82,7 +82,7 @@ pub fn time_ui(
     mut ui_state: ResMut<UiState>,
     diagnostics: Res<DiagnosticsStore>,
 ) {
-    if !ui_state.visible {
+    if !ui_state.visible || windows.is_empty() {
         return;
     }
     let mut window = windows.single_mut();
@@ -192,7 +192,7 @@ pub fn time_ui(
                             window.present_mode = PresentMode::AutoNoVsync;
                         }
                     }
-                    if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
+                    if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
                         if let Some(value) = fps.smoothed() {
                             // Update the value of the second section
                             ui.label(format!("{:.0} FPS", value));
@@ -237,14 +237,14 @@ pub fn system_ui(
     //  mut camera: Query<&mut Camera>,
     mut state: ResMut<NextState<SimState>>,
     mut selected_entity: ResMut<SelectedEntity>,
-    mut config: ResMut<GizmoConfig>,
+    mut config: ResMut<GizmoConfigStore>,
     mut camera: Query<(Entity, &mut Camera, &mut PanOrbitCamera, Option<&Skybox>)>,
     mut commands: Commands,
     mut cubemap: ResMut<Cubemap>,
     mut billboard: ResMut<BillboardSettings>,
     mut ui_state: ResMut<UiState>,
     mut orbit_offset: ResMut<OrbitOffset>,
-    keys: Res<Input<KeyCode>>,
+    keys: Res<ButtonInput<KeyCode>>,
 ) {
     if !ui_state.visible {
         return;
@@ -301,11 +301,11 @@ pub fn system_ui(
                             commands.entity(entity).remove::<Skybox>();
                             cubemap.activated = false;
                         } else if !skybox_enabled && skybox_setting {
-                            commands.entity(entity).insert(Skybox(cubemap.image_handle.clone()));
+                            commands.entity(entity).insert(Skybox { image: cubemap.image_handle.clone(), brightness: 1000.0 });
                             cubemap.activated = true;
                         }
         
-                        ui.checkbox(&mut config.aabb.draw_all, "Draw Outlines");
+                        ui.checkbox(&mut config.config_mut::<AabbGizmoConfigGroup>().1.draw_all, "Draw Outlines");
                         ui.checkbox(&mut billboard.show, "Show Body Names");
                         if ui.checkbox(&mut orbit_offset.enabled, "Offset body to zero").changed() {
                             if orbit_offset.enabled {
@@ -352,7 +352,7 @@ fn body_ui(
     mut egui_context: EguiContexts,
     mut commands: Commands,
     mut query: Query<(&Name, Entity, &SimPosition, &Velocity, &RotationSpeed, &Diameter, &mut OrbitSettings, &mut Mass, &Scale, &mut Transform, Option<&mut ApsisBody>, Option<&BodyChildren>, Option<&BodyParent>)>,
-    camera: Query<(&Camera, &Transform, Without<Velocity>)>,
+    camera: Query<(&Camera, &Transform), Without<Velocity>>,
     selected_entity: Res<SelectedEntity>,
     ui_state: Res<UiState>,
 ) {
@@ -463,7 +463,7 @@ fn body_ui(
                             ui.label(format!("{}", format_seconds(rotation_speed.0 * 60.0)));
         
                             ui.label(RichText::new("Distance to Camera").size(16.0).underline());
-                            let (_, camera_pos, _) = camera.single();
+                            let (_, camera_pos) = camera.single();
                             let c_distance_in_units = camera_pos.translation.distance(transform.translation) as f64;
                             ui.label(format!("{}", format_length((c_distance_in_units / M_TO_UNIT) as f32)));
                             ui.label(format!("{:.3} au", c_distance_in_units / M_TO_UNIT * M_TO_AU as f64));
@@ -518,9 +518,10 @@ fn body_ui(
         
                             ui.horizontal(|ui| {
                                 ui.label("Orbit Color");
-                                let mut rgb = [orbit.color.r(), orbit.color.g(), orbit.color.b()];
+                                let orbit_color = orbit.color.to_srgba();
+                                let mut rgb = [orbit_color.red, orbit_color.green, orbit_color.blue];
                                 ui.color_edit_button_rgb(&mut rgb);
-                                orbit.color = Color::rgb(rgb[0], rgb[1], rgb[2]);
+                                orbit.color = Srgba::rgb(rgb[0], rgb[1], rgb[2]).into();
                             });
                             
                             ui.label(

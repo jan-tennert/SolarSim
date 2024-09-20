@@ -1,6 +1,6 @@
-use bevy::{input::InputSystem, prelude::{Input, KeyCode, MouseButton, Plugin, Res, ResMut, Resource}};
+use bevy::{input::InputSystem, prelude::{KeyCode, MouseButton, Plugin, Res, ResMut, Resource}};
 use bevy::app::{PostUpdate, PreUpdate};
-use bevy::prelude::IntoSystemConfigs;
+use bevy::prelude::{ButtonInput, IntoSystemConfigs};
 use bevy_egui::{EguiContexts, EguiSet};
 
 //Block input when hovering over egui interfaces
@@ -28,14 +28,16 @@ impl Plugin for BlockInputPlugin {
 }
 
 fn egui_wants_input(mut state: ResMut<EguiBlockInputState>, mut contexts: EguiContexts) {
-    state.wants_keyboard_input = contexts.ctx_mut().wants_keyboard_input();
-    state.wants_pointer_input = contexts.ctx_mut().wants_pointer_input();
+    if let Some(ctx) = contexts.try_ctx_mut() {
+        state.wants_keyboard_input = ctx.wants_keyboard_input();
+        state.wants_pointer_input = ctx.wants_pointer_input();
+    }
 }
 
 fn egui_block_input(
     state: Res<EguiBlockInputState>,
-    mut keys: ResMut<Input<KeyCode>>,
-    mut mouse_buttons: ResMut<Input<MouseButton>>,
+    mut keys: ResMut<ButtonInput<KeyCode>>,
+    mut mouse_buttons: ResMut<ButtonInput<MouseButton>>,
 ) {
     if state.wants_keyboard_input {
         keys.reset_all();

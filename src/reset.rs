@@ -16,7 +16,7 @@ impl Plugin for ResetPlugin {
 }
 
 fn clean_up(
-    m_entities: Query<(Entity, With<Mass>, Without<Camera>)>,
+    m_entities: Query<Entity, (With<Mass>, Without<Camera>)>,
     mut speed: ResMut<Speed>,
     mut pause: ResMut<Pause>,
     mut sim_time: ResMut<SimTime>,
@@ -28,7 +28,7 @@ fn clean_up(
     mut camera: Query<&mut PanOrbitCamera>,
     mut ui_state: ResMut<UiState>
 ) {
-    for (entity, _, _) in m_entities.iter() {
+    for entity in m_entities.iter() {
         commands.entity(entity).despawn_recursive()
     }
     speed.0 = DEFAULT_TIMESTEP;

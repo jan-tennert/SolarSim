@@ -2,6 +2,7 @@ use std::f32::consts::PI;
 
 use bevy::app::{App, Plugin};
 use bevy::hierarchy::Children;
+use bevy::math::Dir3;
 use bevy::prelude::{in_state, IntoSystemConfigs, Quat, Query, Res, ResMut, Transform, Update, Vec3, With, Without};
 use bevy::scene::SceneInstance;
 use bevy::time::Time;
@@ -72,7 +73,7 @@ fn rotate_bodies(
             for child in children.iter() {
                 if let Ok(mut transform) = scenes.get_mut(*child) {
                 //    transform.rotate_z(2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
-                    transform.rotate_axis(tilt.axis.unwrap(), 2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
+                    transform.rotate_axis(Dir3::new(tilt.axis.unwrap()).unwrap(), 2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
                 }
             }
             

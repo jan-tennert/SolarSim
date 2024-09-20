@@ -40,7 +40,7 @@ impl SelectedEntity {
 }
 
 pub fn apply_camera_to_selection(
-    bodies: Query<(Entity, &Transform, &Diameter, With<Mass>, Option<&Star>)>,
+    bodies: Query<(Entity, &Transform, &Diameter, Option<&Star>), With<Mass>>,
     mut camera: Query<&mut PanOrbitCamera>,
     mut selected_entity: ResMut<SelectedEntity>,
     orbit_offset: Res<OrbitOffset>
@@ -49,7 +49,7 @@ pub fn apply_camera_to_selection(
         if let Err(_) = bodies.get(entity) {
              selected_entity.entity = None;
         } else if !selected_entity.changed_focus {
-            let (_, _, diameter, _, _) = bodies.get(entity).unwrap();
+            let (_, _, diameter, _) = bodies.get(entity).unwrap();
             let mut cam = camera.single_mut();            
             cam.radius = (diameter.num * SELECTION_MULTIPLIER) as f32;
             if orbit_offset.enabled {
@@ -62,7 +62,7 @@ pub fn apply_camera_to_selection(
             cam.focus = bodies.get(entity).unwrap().1.translation;         
         }
     } else {
-        if let Some((entity, _, _, _, _)) = bodies.iter().find(|(_, _, _, _, maybe_star)| {
+        if let Some((entity, _, _, _)) = bodies.iter().find(|(_, _, _, maybe_star)| {
             maybe_star.is_some()
         }) {
             selected_entity.change_entity(entity, false);

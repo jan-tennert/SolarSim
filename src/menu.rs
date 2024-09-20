@@ -10,7 +10,7 @@ impl Plugin for MenuPlugin {
         app
             .add_systems(OnEnter(SimState::Menu), spawn_menu)
             .add_systems(OnExit(SimState::Menu), despawn_menu)  
-            .add_systems(Startup, setup_background)
+            .add_systems(Update, setup_background.run_if(in_state(SimState::Setup)))
             .add_systems(Update, (button_system).run_if(in_state(SimState::Menu)));
     }
 }
@@ -42,7 +42,8 @@ struct MenuButton(pub MenuButtonType);
 
 fn setup_background(  
     mut commands: Commands, 
-    asset_server: Res<AssetServer>
+    asset_server: Res<AssetServer>,
+    mut state: ResMut<NextState<SimState>>
 ) {
     commands
         .spawn(NodeBundle {
@@ -59,6 +60,7 @@ fn setup_background(
         })
         .insert(UiImage::new(asset_server.load("images/background.png")))
         .insert(BackgroundImage);
+    state.set(SimState::Menu);
 }
 
 fn spawn_menu(
@@ -181,7 +183,7 @@ fn button_system(
                         let _ = state.set(SimState::Loading);
                     }
                     MenuButtonType::EXIT => {
-                        exit.send(AppExit);
+                        exit.send(AppExit::Success);
                     }
                 }
             }
