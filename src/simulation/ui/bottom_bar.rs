@@ -1,10 +1,11 @@
 use crate::constants::DAY_IN_SECONDS;
 use crate::setup::StartingTime;
-use crate::SimState;
+use crate::simulation::{SimState, SimStateType};
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::{NextState, Query, Res, ResMut, Time, Window};
 use bevy::window::PresentMode;
 use bevy_egui::{egui, EguiContexts};
+use bevy_egui::egui::{Align, Direction};
 use bevy_inspector_egui::egui::TextEdit;
 use chrono::{Days, NaiveDateTime};
 use crate::simulation::components::lock_on::LockOn;
@@ -25,18 +26,111 @@ pub fn bottom_bar(
     mut sub_steps: ResMut<SubSteps>,
     mut ui_state: ResMut<UiState>,
     diagnostics: Res<DiagnosticsStore>,
+    sim_type: Res<SimStateType>
 ) {
     if !ui_state.visible || windows.is_empty() || egui_context.try_ctx_mut().is_none() {
         return;
     }
     let mut window = windows.single_mut();
-    if !pause.0 {
+    if !pause.0 && *sim_type == SimStateType::Simulation {
         sim_time.0 += time.delta_seconds() * (((speed.0 * (sub_steps.0 as f64)) / (DAY_IN_SECONDS as f64)) as f32);
     }
     let date = NaiveDateTime::from_timestamp_millis(starting_time.0)
         .unwrap()
         .checked_add_days(Days::new((((sim_time.0 * 100.0).round()) / 100.0) as u64))
         .unwrap();
+    match *sim_type {
+        SimStateType::None => {}
+        SimStateType::Simulation => {
+            simulation_bottom_bar(
+                date,
+                &mut window,
+                &mut egui_context,
+                &mut speed,
+                &mut lock_on_parent,
+                &mut pause,
+                &mut state,
+                &mut sub_steps,
+                &mut ui_state,
+                diagnostics,
+            )
+        }
+        SimStateType::Editor => {
+            editor_bottom_bar(
+                date,
+                &mut window,
+                &mut egui_context,
+                &mut lock_on_parent,
+                diagnostics,
+                &mut state,
+            )
+        }
+    }
+}
+
+fn editor_bottom_bar(
+    date: NaiveDateTime,
+    window: &mut Window,
+    egui_context: &mut EguiContexts,
+    lock_on_parent: &mut ResMut<LockOn>,
+    diagnostics: Res<DiagnosticsStore>,
+    state: &mut ResMut<NextState<SimState>>,
+) {
+    egui::TopBottomPanel::bottom("time_panel")
+        .resizable(false)
+        .show(egui_context.ctx_mut(), |ui| {
+            ui.horizontal(|ui| {
+                ui.with_layout(egui::Layout::left_to_right(egui::Align::LEFT), |ui| {
+                    ui.horizontal_centered(|ui| {
+                        ui.label(format!(
+                            "Date: {}",
+                            date.format("%d.%m.%Y"),
+                        ));
+                    });
+                });
+
+                ui.with_layout(egui::Layout::left_to_right(Align::Center), |ui| {
+                    if ui.button("Reset").on_hover_text("Reset scenario from file").clicked() {
+                        let _ = state.set(SimState::Reset);
+                    }
+                    ui.button("Save").on_hover_text("Save scenario to file").clicked();
+                });
+
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::RIGHT), |ui| {
+                    ui.checkbox(&mut lock_on_parent.enabled, "Lock on Parent");
+                    let mut vsync = window.present_mode == PresentMode::AutoVsync;
+                    let old_option = vsync;
+                    ui.checkbox(&mut vsync, "VSync");
+                    if old_option != vsync {
+                        if vsync {
+                            window.present_mode = PresentMode::AutoVsync;
+                        } else {
+                            window.present_mode = PresentMode::AutoNoVsync;
+                        }
+                    }
+                    if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
+                        if let Some(value) = fps.smoothed() {
+                            // Update the value of the second section
+                            ui.label(format!("{:.0} FPS", value));
+                        }
+                    }
+                })
+            });
+        });
+}
+
+fn simulation_bottom_bar(
+    date: NaiveDateTime,
+    window: &mut Window,
+    egui_context: &mut EguiContexts,
+    speed: &mut ResMut<Speed>,
+    lock_on_parent: &mut ResMut<LockOn>,
+    pause: &mut ResMut<Pause>,
+    state: &mut ResMut<NextState<SimState>>,
+    sub_steps: &mut ResMut<SubSteps>,
+    ui_state: &mut ResMut<UiState>,
+    diagnostics: Res<DiagnosticsStore>,
+) {
     egui::TopBottomPanel::bottom("time_panel")
         .resizable(false)
         .show(egui_context.ctx_mut(), |ui| {

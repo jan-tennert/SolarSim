@@ -1,6 +1,5 @@
 use bevy::{app::AppExit, prelude::*};
-
-use crate::SimState;
+use crate::simulation::{SimState, SimStateType};
 
 pub struct MenuPlugin;
 
@@ -9,7 +8,7 @@ impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(OnEnter(SimState::Menu), spawn_menu)
-            .add_systems(OnExit(SimState::Menu), despawn_menu)  
+            .add_systems(OnExit(SimState::Menu), despawn_menu)
             .add_systems(Update, setup_background.run_if(in_state(SimState::Setup)))
             .add_systems(Update, (button_system).run_if(in_state(SimState::Menu)));
     }
@@ -33,6 +32,7 @@ fn despawn_menu(
 
 enum MenuButtonType {
     START,
+    EDITOR,
     EXIT
 }
 
@@ -103,63 +103,41 @@ fn spawn_menu(
                 }),
                 Label
             ));
-            parent
-                .spawn(ButtonBundle {
-                    style: Style {
-                        width: Val::Px(150.0),
-                        height: Val::Px(65.0),
-                        border: UiRect::all(Val::Px(5.0)),
-                        // horizontally center child text
-                        justify_content: JustifyContent::Center,
-                        // vertically center child text
-                        align_items: AlignItems::Center,
-                        margin: UiRect::bottom(Val::Px(30.)),
-                        ..default()
-                    },
-        //            border_color: BorderColor(Color::BLACK),
-                    background_color: NORMAL_BUTTON.into(),
-                    ..default()
-                })
-                .insert(MenuButton(MenuButtonType::START))
-                .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
-                        "Start",
-                        TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
-                            ..default()
-                        },
-                    ));
-                });
-            parent
-                .spawn(ButtonBundle {
-                    style: Style {
-                        width: Val::Px(150.0),
-                        height: Val::Px(65.0),
-                        border: UiRect::all(Val::Px(5.0)),
-                        // horizontally center child text
-                        justify_content: JustifyContent::Center,
-                        // vertically center child text
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-               //     border_color: BorderColor(Color::BLACK),
-                    background_color: NORMAL_BUTTON.into(),
-                    ..default()
-                })
-                .insert(MenuButton(MenuButtonType::EXIT))
-                .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
-                        "Exit",
-                        TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
-                            ..default()
-                        },
-                    ));
-                });
+            button("Start", MenuButtonType::START, parent);
+            button("Editor", MenuButtonType::EDITOR, parent);
+            button("Exit", MenuButtonType::EXIT, parent);
         });
     *visibility = Visibility::Visible;
+}
+
+fn button(text: &str, button_type: MenuButtonType, builder: &mut ChildBuilder) {
+    builder
+        .spawn(ButtonBundle {
+            style: Style {
+                width: Val::Px(150.0),
+                height: Val::Px(65.0),
+                border: UiRect::all(Val::Px(5.0)),
+                // horizontally center child text
+                justify_content: JustifyContent::Center,
+                // vertically center child text
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            //     border_color: BorderColor(Color::BLACK),
+            background_color: NORMAL_BUTTON.into(),
+            ..default()
+        })
+        .insert(MenuButton(button_type))
+        .with_children(|parent| {
+            parent.spawn(TextBundle::from_section(
+                text,
+                TextStyle {
+                    font_size: 40.0,
+                    color: Srgba::rgb(0.9, 0.9, 0.9).into(),
+                    ..default()
+                },
+            ));
+        });
 }
 
 fn button_system(
@@ -173,6 +151,7 @@ fn button_system(
         (Changed<Interaction>, With<Button>),
     >,
     mut state: ResMut<NextState<SimState>>,
+    mut sim_type: ResMut<SimStateType>,
     mut exit: EventWriter<AppExit>
 ) {
     for (interaction, mut color, mut border_color, button) in &mut interaction_query {
@@ -180,10 +159,15 @@ fn button_system(
             Interaction::Pressed => {
                 match button.0 {
                     MenuButtonType::START => {
-                        let _ = state.set(SimState::Loading);
+                        *sim_type = SimStateType::Simulation;
+                        let _ = state.set(SimState::ScenarioSelection);
                     }
                     MenuButtonType::EXIT => {
                         exit.send(AppExit::Success);
+                    }
+                    MenuButtonType::EDITOR => {
+                        *sim_type = SimStateType::Editor;
+                        let _ = state.set(SimState::ScenarioSelection);
                     }
                 }
             }

@@ -10,8 +10,9 @@ use crate::simulation::components::body::{Acceleration, Mass, OrbitSettings, Sim
 use crate::constants::{DEFAULT_SUB_STEPS, G, M_TO_UNIT};
 use crate::simulation::components::orbit_lines::OrbitOffset;
 use crate::simulation::components::selection::SelectedEntity;
-use crate::SimState;
+use crate::simulation::SimState;
 use crate::simulation::components::speed::Speed;
+use crate::utils::sim_state_type_simulation;
 
 pub struct PhysicsPlugin;
 
@@ -32,7 +33,7 @@ impl Plugin for PhysicsPlugin {
             .register_diagnostic(Diagnostic::new(NBODY_STEP_TIME).with_max_history_length(50))
             .register_diagnostic(Diagnostic::new(NBODY_TOTAL_TIME).with_max_history_length(50))
             .register_diagnostic(Diagnostic::new(NBODY_STEPS).with_max_history_length(50))
-            .add_systems(Update, (apply_physics).run_if(in_state(SimState::Simulation)));
+            .add_systems(Update, (apply_physics).run_if(sim_state_type_simulation));
     }
 }
 

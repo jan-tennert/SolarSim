@@ -1,11 +1,12 @@
 use bevy::{prelude::{in_state, App, Camera, Entity, Gizmos, IntoSystemConfigs, Plugin, PreUpdate, Query, Res, Resource, Transform, Vec3, With, Without}, time::Time};
 
-use crate::{constants::M_TO_UNIT, SimState};
+use crate::{constants::M_TO_UNIT};
 use crate::simulation::components::body::{BillboardVisible, BodyChildren, Diameter, Moon, OrbitSettings, Planet, SimPosition, Star};
 use crate::simulation::components::camera::PanOrbitCamera;
 use crate::simulation::components::physics::{apply_physics, Pause, SubSteps};
 use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::components::speed::Speed;
+use crate::simulation::SimState;
 use crate::simulation::ui::UiState;
 
 pub struct OrbitLinePlugin;
@@ -14,7 +15,7 @@ impl Plugin for OrbitLinePlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<OrbitOffset>()
-            .add_systems(PreUpdate, (update_lines.after(apply_physics), draw_orbit_line.after(update_lines)).run_if(in_state(SimState::Simulation)));
+            .add_systems(PreUpdate, (update_lines.after(apply_physics), draw_orbit_line.after(update_lines)).run_if(in_state(SimState::Loaded)));
     }
 }
 

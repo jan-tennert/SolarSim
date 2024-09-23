@@ -2,6 +2,8 @@ mod bottom_bar;
 pub mod system_panel;
 mod body_panel;
 pub mod debug_window;
+mod components;
+mod scenario_selection;
 
 use bevy::{
     core_pipeline::Skybox,
@@ -24,7 +26,7 @@ use crate::simulation::components::billboard::BillboardSettings;
 use crate::simulation::components::body::BodyParent;
 use crate::constants::G;
 use crate::simulation::components::physics::Pause;
-use crate::SimState;
+use crate::simulation::SimState;
 //use crate::fps::Fps;
 use crate::simulation::components::apsis::ApsisBody;
 //use crate::fps::Fps;
@@ -41,11 +43,14 @@ use crate::simulation::components::physics::{apply_physics, SubSteps};
 use crate::simulation::components::selection::SelectedEntity;
 //use crate::fps::Fps;
 use crate::simulation::render::skybox::Cubemap;
-use crate::simulation::ui::body_panel::body_panel;
 use crate::simulation::ui::bottom_bar::bottom_bar;
 use crate::simulation::ui::system_panel::system_panel;
 use crate::simulation::components::speed::Speed;
+use crate::simulation::ui::body_panel::{editor_body_panel, sim_body_panel, EditorPanelState};
+use crate::simulation::ui::debug_window::DebugPlugin;
+use crate::simulation::ui::scenario_selection::ScenarioSelectionPlugin;
 use crate::unit::format_seconds;
+use crate::utils::{sim_state_type_editor, sim_state_type_simulation};
 
 #[derive(Resource, Reflect, Default)]
 pub struct SimTime(pub f32);
@@ -84,11 +89,17 @@ impl Plugin for InterfacePlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<UiState>()
+            .init_resource::<EditorPanelState>()
             .register_type::<SimTime>()
             .init_resource::<SimTime>()
+            .add_plugins(DebugPlugin)
+            .add_plugins(ScenarioSelectionPlugin)
             .add_systems(
                 Update,
-                (system_panel.after(bottom_bar), body_panel.after(system_panel), bottom_bar.after(apply_physics)).run_if(in_state(SimState::Simulation)),
+                ((system_panel.after(bottom_bar),
+                 bottom_bar.after(apply_physics)).run_if(in_state(SimState::Loaded)),
+                sim_body_panel.after(system_panel).run_if(sim_state_type_simulation),
+                editor_body_panel.after(system_panel).run_if(sim_state_type_editor)),
             );
     }
 }

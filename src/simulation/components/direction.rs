@@ -1,6 +1,6 @@
 use bevy::{app::{App, Plugin}, prelude::{in_state, Entity, Gizmos, IntoSystemConfigs, Query, Transform, Update, With}};
 use bevy::color::palettes::css;
-use crate::SimState;
+use crate::simulation::SimState;
 use crate::simulation::components::body::{BodyChildren, Diameter, Moon, OrbitSettings, Planet, Velocity};
 use crate::simulation::components::camera::pan_orbit_camera;
 
@@ -10,7 +10,7 @@ impl Plugin for DirectionPlugin {
     
     fn build(&self, app: &mut App) {
         app
-        .add_systems(Update, (display_force_and_velocity.after(pan_orbit_camera)).run_if(in_state(SimState::Simulation)));
+        .add_systems(Update, (display_force_and_velocity.after(pan_orbit_camera)).run_if(in_state(SimState::Loaded)));
     }
     
 }

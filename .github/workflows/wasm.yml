@@ -7,7 +7,7 @@ on:
 
 env:
   # update with the name of the main binary
-  binary: Simulation
+  binary: SolarSim
   #itch_target: <itch.io-username>/<game-name>
 
 concurrency:

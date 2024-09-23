@@ -1,5 +1,5 @@
 [package]
-name = "Simulation"
+name = "SolarSim"
 version = "0.1.0"
 edition = "2021"
 
@@ -33,3 +33,4 @@ winit = "0.28.7"
 image = "0.24.7"
 bevy_mod_billboard = "0.7.0"
 blocking = "1.5.1"
+anise = "0.4.3"

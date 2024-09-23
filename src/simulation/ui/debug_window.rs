@@ -10,7 +10,7 @@ use bevy_egui::egui::RichText;
 use crate::simulation::components::body::Mass;
 use crate::simulation::components::camera::PanOrbitCamera;
 use crate::simulation::components::physics::{NBODY_STEP_TIME, NBODY_TOTAL_TIME, NBODY_STEPS};
-use crate::SimState;
+use crate::simulation::SimState;
 use crate::simulation::ui::system_panel::system_panel;
 use crate::simulation::ui::UiState;
 
@@ -20,7 +20,7 @@ impl Plugin for DebugPlugin {
 
     fn build(&self, app: &mut App) {
         app
-            .add_systems(Update, (debug_window.after(system_panel)).run_if(in_state(SimState::Simulation)));
+            .add_systems(Update, (debug_window.after(system_panel)).run_if(in_state(SimState::Loaded)));
     }
 
 }

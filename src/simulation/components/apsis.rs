@@ -1,5 +1,5 @@
 use bevy::{math::DVec3, prelude::{in_state, App, Component, Entity, IntoSystemConfigs, Plugin, Query, Reflect, Res, Update, With, Without}};
-use crate::SimState;
+use crate::simulation::SimState;
 use crate::simulation::components::body::{BodyChildren, Moon, Planet, SimPosition, Star};
 use crate::simulation::components::physics::apply_physics;
 
@@ -10,7 +10,7 @@ impl Plugin for ApsisPlugin {
     fn build(&self, app: &mut App) {
         app
             .register_type::<Apsis>()
-            .add_systems(Update, (update_apsis.after(apply_physics)).run_if(in_state(SimState::Simulation)));
+            .add_systems(Update, (update_apsis.after(apply_physics)).run_if(in_state(SimState::Loaded)));
     }
 
 }

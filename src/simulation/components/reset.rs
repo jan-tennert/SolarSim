@@ -1,11 +1,13 @@
 use bevy::prelude::{App, Camera, Commands, DespawnRecursiveExt, Entity, NextState, OnEnter, OnExit, Plugin, Query, ResMut, Vec3, With, Without};
 
-use crate::{constants::{DEFAULT_SUB_STEPS, DEFAULT_TIMESTEP}, loading::LoadingState, setup::BodiesHandle, SimState};
+use crate::{constants::{DEFAULT_SUB_STEPS, DEFAULT_TIMESTEP}, setup::BodiesHandle};
 use crate::simulation::components::body::Mass;
 use crate::simulation::components::camera::{PanOrbitCamera, DEFAULT_CAM_RADIUS};
 use crate::simulation::components::physics::{Pause, SubSteps};
 use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::components::speed::Speed;
+use crate::simulation::loading::LoadingState;
+use crate::simulation::SimState;
 use crate::simulation::ui::{SimTime, StepType, UiState};
 
 pub struct ResetPlugin;
@@ -14,7 +16,7 @@ impl Plugin for ResetPlugin {
     
     fn build(&self, app: &mut App) {
         app
-        .add_systems(OnExit(SimState::Simulation), clean_up)
+        .add_systems(OnExit(SimState::Loaded), clean_up)
         .add_systems(OnEnter(SimState::ExitToMainMenu), switch_to_menu)
         .add_systems(OnEnter(SimState::Reset), reset);
     }

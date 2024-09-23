@@ -13,15 +13,14 @@ use bevy::render::view::{GpuCulling, NoCpuCulling, RenderLayers};
 use bevy::scene::Scene;
 use bevy::text::{JustifyText, TextSection, TextStyle};
 use bevy_mod_billboard::{BillboardLockAxisBundle, BillboardTextBundle};
-
 use crate::simulation::components::apsis::ApsisBody;
-use crate::simulation::components::body::{BodyBundle, BodyChildren, BodyParent, Moon, OrbitSettings, Planet, SceneHandle, Star};
+use crate::simulation::components::body::{BodyBundle, BodyChildren, BodyParent, Moon, OrbitSettings, Planet, SceneEntity, SceneHandle, Star};
 use crate::simulation::components::camera::PanOrbitCamera;
 use crate::constants::M_TO_UNIT;
-use crate::loading::LoadingState;
+use crate::simulation::loading::LoadingState;
 use crate::simulation::components::selection::SelectedEntity;
 use crate::serialization::{SerializedBody, SerializedVec, SimulationData};
-use crate::SimState;
+use crate::simulation::SimState;
 use crate::simulation::render::skybox::Cubemap;
 use crate::simulation::render::star_billboard::StarBillboard;
 
@@ -54,7 +53,7 @@ pub fn load_bodies(
     mut bodies_handle: ResMut<BodiesHandle>
 ) {
   //  let bodies = Bodies::all();
-    bodies_handle.handle = assets.load("bodies.sim");
+    bodies_handle.handle = assets.load("scenarios/solar_system.sim");
 }
 
 pub fn setup_planets(
@@ -107,7 +106,7 @@ pub fn setup_planets(
         });
 
         //add the star's components
-        apply_body(BodyBundle::from(entry.clone()), Star::default(), &assets, &mut star, &mut meshes, &mut materials,360.0 * ((s_index + 1) as f32 / stars as f32), true);
+        apply_body(BodyBundle::from(entry.clone()), Star::default(), &assets, &mut star, &mut meshes, &mut materials, calculate_hue(s_index as f32, stars as f32), true);
         
         //planet count in star system for coloring later
         let planet_count = entry.children.iter().filter(|p| p.data.simulate).count();
@@ -133,7 +132,7 @@ pub fn setup_planets(
             let de_planet_entry = *planet_entry;
             
             //add the planet's components
-            apply_body(BodyBundle::from(de_planet_entry.clone()), Planet, &assets, &mut planet, &mut meshes, &mut materials,360.0 * ((p_index + 1) as f32 / planet_count as f32), false);
+            apply_body(BodyBundle::from(de_planet_entry.clone()), Planet, &assets, &mut planet, &mut meshes, &mut materials,calculate_hue(p_index as f32, planet_count as f32), false);
             //for the tree-based ui later
             planets.push(planet_id);
             
@@ -157,7 +156,7 @@ pub fn setup_planets(
                 moons.push(moon.id());
                 
                 //add the moon's components
-                apply_body(BodyBundle::from(moon_entry.clone()), Moon, &assets, &mut moon, &mut meshes, &mut materials, 360.0 * ((m_index + 1) as f32 / moon_count as f32), false);
+                apply_body(BodyBundle::from(moon_entry.clone()), Moon, &assets, &mut moon, &mut meshes, &mut materials, calculate_hue(m_index as f32, moon_count as f32), false);
                 moon.insert(BodyParent(planet_id));
             }
             planet.insert(BodyParent(star_id));
@@ -168,6 +167,13 @@ pub fn setup_planets(
     bodies_handle.spawned = true;
     loading_state.loaded_bodies = true;
     loading_state.total_bodies = total_count as i32;
+}
+
+pub fn calculate_hue(
+    index: f32,
+    total: f32
+) -> f32 {
+    360.0 * ((index + 1.) / total )
 }
 
 fn sort_bodies(
@@ -187,7 +193,7 @@ fn serialized_vec_to_vec(
     DVec3::new(serialized_vec.x, serialized_vec.y, serialized_vec.z)
 }
 
-fn apply_body(
+pub fn apply_body(
     bundle: BodyBundle,
     body_type: impl Bundle,
     assets: &Res<AssetServer>,
@@ -208,14 +214,14 @@ fn apply_body(
     if !is_star {
         entity.insert(ApsisBody::default());
     }
-    entity.insert(SceneHandle(asset_handle.clone()));
+    let mut scene_entity_id = None;
     entity.with_children(|parent| {
 
-        spawn_scene(
+        scene_entity_id = Some(spawn_scene(
             asset_handle.clone(),
-            bundle.clone(),
-            parent
-        );
+            bundle.clone().name.as_str(),
+            parent,
+        ));
 
         spawn_billboard(
             bundle.clone(),
@@ -232,6 +238,7 @@ fn apply_body(
             );
         }
     });
+    entity.insert(SceneHandle(asset_handle.clone(), scene_entity_id.unwrap()));
 }
 
 fn spawn_imposter(
@@ -250,17 +257,18 @@ fn spawn_imposter(
         .insert(Name::new(format!("{} Imposter Billboard", bundle.name)));
 }
 
-fn spawn_scene(
+pub fn spawn_scene(
     asset_handle: Handle<Scene>,
-    bundle: BodyBundle,
-    parent: &mut ChildBuilder
-) {
+    name: &str,
+    parent: &mut ChildBuilder,
+) -> Entity {
     parent.spawn(SceneBundle {
         scene: asset_handle,
         transform: Transform::default(),
         ..Default::default()
     })
-        .insert(Name::new(format!("{} Scene", bundle.name)));
+        .insert(SceneEntity)
+        .insert(Name::new(format!("{} Scene", name))).id()
 }
 
 fn spawn_billboard(

@@ -6,7 +6,7 @@ use crate::simulation::components::camera::{pan_orbit_camera, PanOrbitCamera};
 use crate::constants::M_TO_UNIT;
 use crate::simulation::components::orbit_lines::OrbitOffset;
 use crate::simulation::components::physics::apply_physics;
-use crate::SimState;
+use crate::simulation::SimState;
 
 const SELECTION_MULTIPLIER: f32 = 3.0;
 
@@ -17,7 +17,7 @@ impl Plugin for SelectionPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<SelectedEntity>()
-            .add_systems(Update, (apply_camera_to_selection.after(apply_physics).before(pan_orbit_camera)).run_if(in_state(SimState::Simulation)));
+            .add_systems(Update, (apply_camera_to_selection.after(apply_physics).before(pan_orbit_camera)).run_if(in_state(SimState::Loaded)));
     }
 
 }

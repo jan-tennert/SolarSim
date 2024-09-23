@@ -9,11 +9,12 @@ use bevy::time::Time;
 
 use crate::simulation::components::body::{AxialTilt, Diameter, RotationSpeed, Star};
 use crate::constants::DAY_IN_SECONDS;
-use crate::loading::LoadingState;
+use crate::simulation::loading::LoadingState;
 use crate::simulation::components::physics::{Pause, SubSteps};
 use crate::setup::setup_planets;
-use crate::SimState;
+use crate::simulation::SimState;
 use crate::simulation::components::speed::Speed;
+use crate::utils::{sim_state_type_editor, sim_state_type_simulation};
 
 pub struct RotationPlugin;
 
@@ -22,12 +23,12 @@ impl Plugin for RotationPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(Update, (axial_tilt.after(setup_planets)).run_if(in_state(SimState::Loading)))
-            .add_systems(Update, (rotate_bodies).run_if(in_state(SimState::Simulation)));
+            .add_systems(Update, (rotate_bodies).run_if(sim_state_type_simulation));
     }
 
 }
 
-fn axial_tilt(
+pub fn axial_tilt(
     mut query: Query<(&mut AxialTilt, &Diameter, &Children)>,
     mut scenes: Query<&mut Transform, (With<SceneInstance>, Without<Star>)>,
     mut loading_state: ResMut<LoadingState>,

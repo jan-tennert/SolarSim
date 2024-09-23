@@ -5,7 +5,7 @@ use bevy::scene::SceneInstance;
 
 use crate::simulation::components::body::Star;
 use crate::simulation::components::camera::pan_orbit_camera;
-use crate::SimState;
+use crate::simulation::SimState;
 
 const STAR_IMPOSTER_THRESHOLD: f32 = 4_000.0;
 pub const STAR_IMPOSTER_DIVIDER: f32 = 10000.0;
@@ -16,7 +16,7 @@ impl Plugin for StarBillboardPlugin {
 
     fn build(&self, app: &mut App) {
         app
-            .add_systems(Update, (change_sun_renderer.after(pan_orbit_camera)).run_if(in_state(SimState::Simulation)));
+            .add_systems(Update, (change_sun_renderer.after(pan_orbit_camera)).run_if(in_state(SimState::Loaded)));
     }
 
 }

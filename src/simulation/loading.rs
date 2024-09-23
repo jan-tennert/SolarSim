@@ -1,6 +1,7 @@
 use bevy::{app::{App, Plugin}, prelude::{AssetServer, BuildChildren, Color, Commands, Component, default, Entity, in_state, IntoSystemConfigs, Label, NextState, NodeBundle, OnEnter, OnExit, Query, Res, ResMut, Resource, TextBundle, Update, With, Visibility, Has, Children, DespawnRecursiveExt}, text::{Text, TextStyle}, ui::{AlignItems, FlexDirection, JustifyContent, Node, Style, UiImage, UiRect, Val}};
 
-use crate::{SimState, menu::BackgroundImage};
+use crate::{menu::BackgroundImage};
+use crate::simulation::SimState;
 
 pub struct LoadingPlugin;
 
@@ -104,7 +105,7 @@ fn loading_system(
     mut sim_state: ResMut<NextState<SimState>>,
 ) {
     if loading_state.is_done() {
-        sim_state.set(SimState::Simulation)
+        sim_state.set(SimState::Loaded)
     }
 }
 

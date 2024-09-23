@@ -10,7 +10,7 @@ use bevy::{
 use bevy::prelude::ButtonInput;
 use bevy_egui::EguiContexts;
 
-use crate::SimState;
+use crate::simulation::SimState;
 use crate::simulation::components::lock_on::LockOn;
 use crate::simulation::components::physics::apply_physics;
 
@@ -41,7 +41,7 @@ impl Plugin for PanOrbitCameraPlugin {
     fn build(&self, app: &mut App) {
         app
         .register_type::<PanOrbitCamera>()
-        .add_systems(Update, pan_orbit_camera.after(apply_physics).run_if(in_state(SimState::Simulation)));
+        .add_systems(Update, pan_orbit_camera.after(apply_physics).run_if(in_state(SimState::Loaded)));
         //.add_system_to_stage(CoreStage::PostUpdate, pan_orbit_camera);
     }  
 } 

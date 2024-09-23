@@ -1,6 +1,6 @@
 use bevy::prelude::{in_state, App, Camera, Entity, IntoSystemConfigs, Plugin, Query, Res, Resource, Transform, Update, Vec3, Without};
 
-use crate::SimState;
+use crate::simulation::SimState;
 use crate::simulation::components::body::{BodyChildren, Mass};
 use crate::simulation::components::camera::pan_orbit_camera;
 use crate::simulation::components::selection::SelectedEntity;
@@ -12,7 +12,7 @@ impl Plugin for LockOnPlugin {
     fn build(&self, app: &mut App) {
         app
         .init_resource::<LockOn>()
-        .add_systems(Update, (lock_on.before(pan_orbit_camera)).run_if(in_state(SimState::Simulation)));
+        .add_systems(Update, (lock_on.before(pan_orbit_camera)).run_if(in_state(SimState::Loaded)));
     }
     
 }

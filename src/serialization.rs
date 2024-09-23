@@ -11,7 +11,9 @@ use serde::Deserialize;
 #[derive(Debug, Deserialize, TypePath, Asset, Clone)]
 pub struct SimulationData {
     pub bodies: Vec<SerializedBody>,
-    pub starting_time_millis: i64
+    pub starting_time_millis: i64,
+    pub title: String,
+    pub description: String,
 }
 
 #[derive(Debug, Deserialize, TypePath, Clone)]

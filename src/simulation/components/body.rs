@@ -4,7 +4,7 @@ use bevy::color::palettes::css;
 use bevy::core::Name;
 use bevy::math::{DVec3, Vec3};
 use bevy::prelude::{Bundle, Component, default, Entity, Handle, Reflect, Scene, Transform, Srgba};
-
+use bevy::render::primitives::Aabb;
 use crate::constants::M_TO_UNIT;
 use crate::serialization::SerializedBody;
 
@@ -32,6 +32,18 @@ pub struct AxialTilt {
 
 #[derive(Component, Reflect, Clone, Default)]
 pub struct ModelPath(pub String);
+
+impl ModelPath {
+
+    pub fn cleaned(&self) -> String {
+        self.0.replace("models/", "").replace("#Scene0", "")
+    }
+
+    pub fn from_cleaned(value: &str) -> Self {
+        ModelPath(format!("models/{}#Scene0", value))
+    }
+
+}
 
 #[derive(Component, Reflect, Clone, Default)]
 pub struct BodyChildren(pub Vec<Entity>);
@@ -82,12 +94,16 @@ pub struct SimPosition(pub DVec3);
 pub struct Diameter {
     
     pub num: f32,
-    pub applied: bool
+    pub applied: bool,
+    pub aabb: Option<Aabb>
     
 }
 
-#[derive(Component, Reflect, Clone, Default)]
-pub struct SceneHandle(pub Handle<Scene>);
+#[derive(Component, Reflect, Clone)]
+pub struct SceneHandle(pub Handle<Scene>, pub Entity);
+
+#[derive(Component, Reflect, Clone)]
+pub struct SceneEntity;
 
 //Types:
 #[derive(Component, Reflect, Clone, Default)]
@@ -145,4 +161,28 @@ impl From<SerializedBody> for BodyBundle {
         }
     }
     
+}
+
+impl BodyBundle {
+
+    pub fn empty(index: i32) -> Self {
+        BodyBundle {
+            mass: Mass(0.0),
+            sim_position: SimPosition(DVec3::ZERO),
+            vel: Velocity(DVec3::ZERO),
+            name: Name::new(format!("New body {}", index)),
+            model_path: ModelPath("models/earth.glb#Scene0".to_string()),
+            diameter: Diameter {
+                num: 0.0,
+                ..default()
+            },
+            axial_tilt: AxialTilt {
+                num: 0.0,
+                ..default()
+            },
+            rotation_speed: RotationSpeed(0.0),
+            ..default()
+        }
+    }
+
 }

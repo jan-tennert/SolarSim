@@ -25,6 +25,8 @@ pub mod rotation;
 pub mod speed;
 pub mod selection;
 pub mod reset;
+pub mod editor;
+pub mod anise;
 
 pub struct SimComponentPlugin;
 

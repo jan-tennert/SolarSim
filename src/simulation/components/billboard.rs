@@ -8,7 +8,7 @@ use crate::simulation::components::apsis::ApsisBody;
 use crate::simulation::components::body::{Diameter, Moon, Planet, Star, BillboardVisible};
 use crate::simulation::components::camera::{pan_orbit_camera, PanOrbitCamera};
 use crate::constants::M_TO_UNIT;
-use crate::SimState;
+use crate::simulation::SimState;
 use crate::simulation::render::star_billboard::STAR_IMPOSTER_DIVIDER;
 
 const STAR_VISIBILITY_THRESHOLD: f32 = 40_000_000.0; //if the camera's radius is less than this, stars' names will be hidden
@@ -24,7 +24,7 @@ impl Plugin for BodyBillboardPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<BillboardSettings>()
-            .add_systems(Update, ((auto_scale_billboards).chain().after(pan_orbit_camera)).run_if(in_state(SimState::Simulation)));
+            .add_systems(Update, ((auto_scale_billboards).chain().after(pan_orbit_camera)).run_if(in_state(SimState::Loaded)));
     }
 
 }

@@ -10,34 +10,20 @@ use bevy::DefaultPlugins;
 use bevy_egui::EguiPlugin;
 use bevy_mod_billboard::plugin::BillboardPlugin;
 
-use loading::LoadingPlugin;
 use serialization::SerializationPlugin;
-
 use crate::menu::MenuPlugin;
 use crate::setup::SetupPlugin;
-use crate::simulation::components::SimComponentPlugin;
-use crate::simulation::input::SimInputPlugin;
-use crate::simulation::render::SimRenderPlugin;
-use crate::simulation::ui::InterfacePlugin;
+use crate::simulation::components::anise::load_ephemeris;
+use crate::simulation::components::editor::EditorPlugin;
+use crate::simulation::SimulationPlugin;
 
 mod constants;
 mod setup;
 mod menu;
 mod serialization;
-mod loading;
 mod unit;
 mod simulation;
-
-#[derive(States, Clone, Eq, PartialEq, Debug, Default, Hash)]
-pub enum SimState {
-    #[default]
-    Setup,
-    Menu,
-    Loading,
-    Simulation,
-    Reset,
-    ExitToMainMenu
-}
+mod utils;
 
 /**
 fn set_window_icon(
@@ -67,6 +53,7 @@ fn set_window_icon(
 }
 **/
 
+
 fn main() {
     App::new()
      //   .add_plugins(DefaultPlugins)
@@ -87,23 +74,13 @@ fn main() {
                 ..default()
             })  
         )
+        .add_plugins(EditorPlugin)
+        .add_plugins(SimulationPlugin)
         .add_plugins(EguiPlugin)
-     //   .add_plugins(WorldInspectorPlugin::new())
-  //      .add_plugins(DefaultPickingPlugins)
         .add_plugins(SerializationPlugin)
-        .add_plugins(LoadingPlugin)
         .add_plugins(BillboardPlugin)
-        //     .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(SetupPlugin)
         .add_plugins(MenuPlugin)
-        .add_plugins(SimInputPlugin)
-        .add_plugins(SimRenderPlugin)
-        .add_plugins(InterfacePlugin)
-        .add_plugins(SimComponentPlugin)
         .add_plugins(FrameTimeDiagnosticsPlugin::default())
-    //    .add_plugins(ScreenDiagnosticsPlugin::default())
-  //      .add_plugins(ScreenFrameDiagnosticsPlugin)
-        .init_state::<SimState>()
-       // .add_systems(Startup, set_window_icon)
         .run();
 }
