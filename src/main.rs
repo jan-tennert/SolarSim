@@ -8,6 +8,7 @@ use bevy::render::RenderPlugin;
 use bevy::window::{PresentMode, Window, WindowPlugin};
 use bevy::DefaultPlugins;
 use bevy_egui::EguiPlugin;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_billboard::plugin::BillboardPlugin;
 
 use serialization::SerializationPlugin;
@@ -74,9 +75,10 @@ fn main() {
                 ..default()
             })  
         )
+        .add_plugins(WorldInspectorPlugin::default())
         .add_plugins(EditorPlugin)
         .add_plugins(SimulationPlugin)
-        .add_plugins(EguiPlugin)
+    //    .add_plugins(EguiPlugin)
         .add_plugins(SerializationPlugin)
         .add_plugins(BillboardPlugin)
         .add_plugins(SetupPlugin)

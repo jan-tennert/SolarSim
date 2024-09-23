@@ -18,13 +18,7 @@
         "diameter": 1392000.0,
         "rotation_speed": 38880.0,
         "axial_tilt": 7.25,
-        "simulate": true,
-        "light_source": {
-          "intensity": 3.75E28,
-          "range": 4436820000000,
-          "color": "#fc0303",
-          "enabled": true
-        }
+        "simulate": true
       },
       "children": [
         {
@@ -852,6 +846,6 @@
     }
   ],
   "starting_time_millis": 1696118400000,
-  "title": "Solar System",
-  "description": "A scenario with all major bodies and their major moons in the Solar System."
+  "title": "Earth Satellites",
+  "description": "A scenario with all major satellites orbiting the Earth."
 }

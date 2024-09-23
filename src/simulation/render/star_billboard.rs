@@ -1,6 +1,6 @@
 use bevy::app::{App, Plugin, Update};
 use bevy::math::Vec3;
-use bevy::prelude::{Camera, Children, Component, in_state, IntoSystemConfigs, Parent, Query, Transform, Visibility, With, Without};
+use bevy::prelude::{Camera, Children, Component, in_state, IntoSystemConfigs, Parent, Query, Transform, Visibility, With, Without, Entity, Color};
 use bevy::scene::SceneInstance;
 
 use crate::simulation::components::body::Star;
@@ -21,8 +21,8 @@ impl Plugin for StarBillboardPlugin {
 
 }
 
-#[derive(Component, Debug, Default)]
-pub struct StarBillboard;
+#[derive(Component, Debug)]
+pub struct StarBillboard(pub Entity);
 
 fn change_sun_renderer(
     camera: Query<(&Transform, &Camera), (Without<Star>, Without<StarBillboard>)>,

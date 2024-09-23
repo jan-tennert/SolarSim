@@ -23,7 +23,7 @@ lto = "thin"
 bevy = { version = "0.14.2" }
 bevy_easings = "0.14"
 #bevy_panorbit_camera = { git = "https://github.com/jan-tennert/bevy_panorbit_camera", rev = "7e3c3f8" }
-bevy-inspector-egui = { version = "0.26.0", default-features = false }
+bevy-inspector-egui = { version = "0.26.0"}
 #bevy_mod_picking = "0.15"
 bevy_egui = "0.29.0"
 chrono = "0.4.23"

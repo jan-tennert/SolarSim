@@ -32,7 +32,6 @@ fn despawn_menu(
 
 enum MenuButtonType {
     START,
-    EDITOR,
     EXIT
 }
 
@@ -104,7 +103,6 @@ fn spawn_menu(
                 Label
             ));
             button("Start", MenuButtonType::START, parent);
-            button("Editor", MenuButtonType::EDITOR, parent);
             button("Exit", MenuButtonType::EXIT, parent);
         });
     *visibility = Visibility::Visible;
@@ -159,15 +157,10 @@ fn button_system(
             Interaction::Pressed => {
                 match button.0 {
                     MenuButtonType::START => {
-                        *sim_type = SimStateType::Simulation;
                         let _ = state.set(SimState::ScenarioSelection);
                     }
                     MenuButtonType::EXIT => {
                         exit.send(AppExit::Success);
-                    }
-                    MenuButtonType::EDITOR => {
-                        *sim_type = SimStateType::Editor;
-                        let _ = state.set(SimState::ScenarioSelection);
                     }
                 }
             }

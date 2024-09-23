@@ -1,6 +1,6 @@
 use bevy::prelude::{App, Camera, Commands, DespawnRecursiveExt, Entity, NextState, OnEnter, OnExit, Plugin, Query, ResMut, Vec3, With, Without};
 
-use crate::{constants::{DEFAULT_SUB_STEPS, DEFAULT_TIMESTEP}, setup::BodiesHandle};
+use crate::{constants::{DEFAULT_SUB_STEPS, DEFAULT_TIMESTEP}};
 use crate::simulation::components::body::Mass;
 use crate::simulation::components::camera::{PanOrbitCamera, DEFAULT_CAM_RADIUS};
 use crate::simulation::components::physics::{Pause, SubSteps};
@@ -9,6 +9,7 @@ use crate::simulation::components::speed::Speed;
 use crate::simulation::loading::LoadingState;
 use crate::simulation::SimState;
 use crate::simulation::ui::{SimTime, StepType, UiState};
+use crate::simulation::ui::scenario_selection::SelectedScenario;
 
 pub struct ResetPlugin;
 
@@ -29,7 +30,7 @@ fn clean_up(
     mut pause: ResMut<Pause>,
     mut sim_time: ResMut<SimTime>,
     mut selected_entity: ResMut<SelectedEntity>,
-    mut bodies: ResMut<BodiesHandle>,
+    mut scenario: ResMut<SelectedScenario>,
     mut sub_steps: ResMut<SubSteps>,
     mut loading_state: ResMut<LoadingState>,
     mut commands: Commands,
@@ -44,7 +45,7 @@ fn clean_up(
     sim_time.0 = 0.0;
     selected_entity.entity = None;
     sub_steps.0 = DEFAULT_SUB_STEPS;
-    bodies.spawned = false;
+    scenario.spawned = false;
     loading_state.reset();
     let mut cam = camera.single_mut();
     cam.focus = Vec3::ZERO;

@@ -1,9 +1,10 @@
 mod bottom_bar;
 pub mod system_panel;
-mod body_panel;
+mod editor_body_panel;
 pub mod debug_window;
-mod components;
-mod scenario_selection;
+pub mod components;
+pub mod scenario_selection;
+mod sim_body_panel;
 
 use bevy::{
     core_pipeline::Skybox,
@@ -46,9 +47,10 @@ use crate::simulation::render::skybox::Cubemap;
 use crate::simulation::ui::bottom_bar::bottom_bar;
 use crate::simulation::ui::system_panel::system_panel;
 use crate::simulation::components::speed::Speed;
-use crate::simulation::ui::body_panel::{editor_body_panel, sim_body_panel, EditorPanelState};
+use crate::simulation::ui::editor_body_panel::{editor_body_panel, EditorPanelState};
 use crate::simulation::ui::debug_window::DebugPlugin;
 use crate::simulation::ui::scenario_selection::ScenarioSelectionPlugin;
+use crate::simulation::ui::sim_body_panel::sim_body_panel;
 use crate::unit::format_seconds;
 use crate::utils::{sim_state_type_editor, sim_state_type_simulation};
 

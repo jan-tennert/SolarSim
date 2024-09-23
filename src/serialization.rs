@@ -48,6 +48,15 @@ pub struct SerializedBodyData {
     pub rotation_speed: f64,
     pub axial_tilt: f32,
     pub simulate: bool,
+    pub light_source: Option<SerializedLightSource>
+}
+
+#[derive(Debug, Deserialize, TypePath, Clone)]
+pub struct SerializedLightSource {
+    pub intensity: f64,
+    pub range: f64,
+    pub color: String,
+    pub enabled: bool
 }
 
 #[derive(Default)]

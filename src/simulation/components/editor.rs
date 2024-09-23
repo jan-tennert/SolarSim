@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use bevy::app::{App, Plugin};
+use bevy::color::palettes::css::WHITE;
 use bevy::ecs::observer::TriggerTargets;
 use bevy::ecs::system::SystemId;
 use bevy::prelude::{AssetServer, Assets, Bundle, Commands, Entity, FromWorld, IntoSystemConfigs, Local, Mesh, OnEnter, Query, Res, ResMut, Resource, SpatialBundle, StandardMaterial, Transform, Update, Vec3, World};
@@ -28,7 +29,15 @@ pub struct EditorSystems(pub HashMap<String, SystemId>);
 #[derive(Resource, Default, PartialOrd, PartialEq, Eq, Clone, Debug)]
 pub struct CreateBodyState {
     pub parent: Option<Entity>,
-    pub create_as_moon: bool, //Or planet
+    pub body_type: CreateBodyType,
+}
+
+#[derive(Default, Clone, Debug, Eq, PartialEq, PartialOrd)]
+pub enum CreateBodyType {
+    #[default]
+    Moon,
+    Planet,
+    Star
 }
 
 impl FromWorld for EditorSystems {
@@ -86,32 +95,23 @@ fn create_empty_body(
     mut index: Local<i32>
 ) {
     let mut entity_commands = commands.spawn(SpatialBundle::default());
-    if create_body_state.create_as_moon {
-        apply_body(
-            BodyBundle::empty(*index),
-            Moon,
-            &mut assets,
-            &mut entity_commands,
-            &mut meshes,
-            &mut materials,
-            0.0,
-            false,
-        );
-    } else {
-        apply_body(
-            BodyBundle::empty(*index),
-            Planet,
-            &mut assets,
-            &mut entity_commands,
-            &mut meshes,
-            &mut materials,
-            0.0,
-            false,
-        );
+    apply_body(
+        BodyBundle::empty(*index),
+        create_body_state.body_type.clone(),
+        &mut assets,
+        &mut entity_commands,
+        &mut meshes,
+        &mut materials,
+        0.0,
+        WHITE.into()
+    );
+    if create_body_state.body_type != CreateBodyType::Moon {
         entity_commands.insert(BodyChildren(Vec::new()));
-    };
-    entity_commands.insert(BodyParent(create_body_state.parent.unwrap()));
-    parent_query.get_mut(create_body_state.parent.unwrap()).unwrap().0.push(entity_commands.id());
+    }
+    if let Some(parent) = create_body_state.parent {
+        entity_commands.insert(BodyParent(parent));
+        parent_query.get_mut(parent).unwrap().0.push(entity_commands.id());
+    }
     selected_entity.entity = Some(entity_commands.id());
     create_body_state.parent = None;
     *index += 1;

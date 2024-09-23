@@ -79,15 +79,6 @@ impl Default for OrbitSettings {
 }
 
 #[derive(Component, Reflect, Clone, Default)]
-pub struct LightSource {
-    pub intensity: f32,
-    pub shadows_enabled: bool,
-    pub range: f32,
-    pub radius: f32,
-    pub enabled: bool
-}
-
-#[derive(Component, Reflect, Clone, Default)]
 pub struct SimPosition(pub DVec3);
 
 #[derive(Component, Reflect, Clone, Default)]
@@ -105,12 +96,15 @@ pub struct SceneHandle(pub Handle<Scene>, pub Entity);
 #[derive(Component, Reflect, Clone)]
 pub struct SceneEntity;
 
+#[derive(Component, Reflect, Clone)]
+pub struct LightSource(pub Entity);
+
 //Types:
 #[derive(Component, Reflect, Clone, Default)]
 pub struct Star {
     
     pub use_imposter: bool,
-             
+
 }
 
 #[derive(Component, Reflect, Clone, Default)]
@@ -130,7 +124,6 @@ pub struct BodyBundle {
     pub scale: Scale,
     pub name: Name,
     pub model_path: ModelPath,
-    pub light: LightSource,
     pub orbit: OrbitSettings,
     pub rotation_speed: RotationSpeed,
     pub axial_tilt: AxialTilt,   

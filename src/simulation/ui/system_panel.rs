@@ -1,7 +1,7 @@
 use crate::simulation::components::billboard::BillboardSettings;
 use crate::simulation::components::body::{BodyChildren, Moon, Planet, Star};
 use crate::simulation::components::camera::PanOrbitCamera;
-use crate::simulation::components::editor::{CreateBodyState, EditorSystemType, EditorSystems};
+use crate::simulation::components::editor::{CreateBodyState, CreateBodyType, EditorSystemType, EditorSystems};
 use crate::simulation::components::orbit_lines::OrbitOffset;
 use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::render::skybox::Cubemap;
@@ -71,7 +71,7 @@ fn body_tree<R>(
     default_open: bool,
     add_body: impl FnOnce(&mut Ui) -> R,
     show_button: bool,
-    create_as_moon: bool,
+    body_type: CreateBodyType
 ) -> Option<CreateBodyState> {
     let id = ui.make_persistent_id(name.as_str());
     let mut new_create_body = None;
@@ -82,7 +82,7 @@ fn body_tree<R>(
                 if show_button && ui.button("+").on_hover_text("Create child").clicked() {
                     new_create_body = Some(CreateBodyState {
                         parent: Some(entity),
-                        create_as_moon,
+                        body_type,
                     });
                 }
             });
@@ -133,7 +133,7 @@ pub fn system_panel(
                                                     }
                                                 }
                                             }
-                                        }, show_button, true);
+                                        }, show_button, CreateBodyType::Moon);
                                         if p_selected && !p_old_selected {
                                             system_panel_set.selected_entity.change_entity(p_entity, ctrl_hold)
                                         }
@@ -143,7 +143,7 @@ pub fn system_panel(
                                         }
                                     }
                                 }
-                            }, show_button, false);
+                            }, show_button, CreateBodyType::Planet);
                             if s_selected && !s_old_selected {
                                 system_panel_set.selected_entity.change_entity(s_entity, ctrl_hold)
                             }
@@ -152,6 +152,14 @@ pub fn system_panel(
                                 system_panel_set.commands.run_system(system_panel_set.systems.0[EditorSystemType::CREATE_BODY]);
                             }
                         }
+                        if ui.button("+").on_hover_text("Create new major body").clicked() {
+                            *system_panel_set.create_body_state = CreateBodyState {
+                                parent: None,
+                                body_type: CreateBodyType::Star,
+                            };
+                            system_panel_set.commands.run_system(system_panel_set.systems.0[EditorSystemType::CREATE_BODY]);
+                        }
+                        ui.separator();
                         ui.heading("Options");
                         ui.checkbox(&mut camera.hdr, "HDR/Bloom");
                         let skybox_enabled = skybox.is_some();
