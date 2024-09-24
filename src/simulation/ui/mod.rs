@@ -5,6 +5,8 @@ pub mod debug_window;
 pub mod components;
 pub mod scenario_selection;
 mod sim_body_panel;
+pub mod simulation_bottom_bar;
+pub mod editor_bottom_bar;
 
 use bevy::{
     core_pipeline::Skybox,
@@ -44,13 +46,14 @@ use crate::simulation::components::physics::{apply_physics, SubSteps};
 use crate::simulation::components::selection::SelectedEntity;
 //use crate::fps::Fps;
 use crate::simulation::render::skybox::Cubemap;
-use crate::simulation::ui::bottom_bar::bottom_bar;
 use crate::simulation::ui::system_panel::system_panel;
 use crate::simulation::components::speed::Speed;
 use crate::simulation::ui::editor_body_panel::{editor_body_panel, EditorPanelState};
 use crate::simulation::ui::debug_window::DebugPlugin;
+use crate::simulation::ui::editor_bottom_bar::editor_bottom_bar;
 use crate::simulation::ui::scenario_selection::ScenarioSelectionPlugin;
 use crate::simulation::ui::sim_body_panel::sim_body_panel;
+use crate::simulation::ui::simulation_bottom_bar::simulation_bottom_bar;
 use crate::unit::format_seconds;
 use crate::utils::{sim_state_type_editor, sim_state_type_simulation};
 
@@ -98,10 +101,11 @@ impl Plugin for InterfacePlugin {
             .add_plugins(ScenarioSelectionPlugin)
             .add_systems(
                 Update,
-                ((system_panel.after(bottom_bar),
-                 bottom_bar.after(apply_physics)).run_if(in_state(SimState::Loaded)),
-                sim_body_panel.after(system_panel).run_if(sim_state_type_simulation),
-                editor_body_panel.after(system_panel).run_if(sim_state_type_editor)),
+                (
+                    system_panel.run_if(in_state(SimState::Loaded)),
+                     (editor_body_panel.run_if(sim_state_type_editor), sim_body_panel.run_if(sim_state_type_simulation).after(apply_physics)),
+                     (simulation_bottom_bar.run_if(sim_state_type_simulation), editor_bottom_bar.run_if(sim_state_type_editor))
+                ).chain()
             );
     }
 }

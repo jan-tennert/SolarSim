@@ -37,6 +37,18 @@ impl From<SerializedVec> for DVec3 {
     
 }
 
+impl From<DVec3> for SerializedVec {
+
+    fn from(value: DVec3) -> Self {
+        SerializedVec {
+            x: value.x,
+            y: value.y,
+            z: value.z
+        }
+    }
+
+}
+
 #[derive(Debug, Deserialize, TypePath, Clone)]
 pub struct SerializedBodyData {
     pub mass: f64,

@@ -27,6 +27,7 @@ pub mod selection;
 pub mod reset;
 pub mod editor;
 pub mod anise;
+mod save_scenario;
 
 pub struct SimComponentPlugin;
 

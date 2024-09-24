@@ -9,6 +9,7 @@ use crate::setup::apply_body;
 use crate::simulation::components::body::{BodyBundle, BodyChildren, BodyParent, Moon, Planet, SimPosition};
 use crate::simulation::components::diameter::apply_real_diameter;
 use crate::simulation::components::rotation::axial_tilt;
+use crate::simulation::components::save_scenario::save_scenario;
 use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::SimState;
 use crate::utils::sim_state_type_editor;
@@ -21,6 +22,7 @@ impl EditorSystemType {
     pub const UPDATE_DIAMETER: &'static str = "update_diameter";
     pub const UPDATE_TILT: &'static str = "update_tilt";
     pub const CREATE_BODY: &'static str = "create_body";
+    pub const SAVE_SCENARIO: &'static str = "save_scenario";
 }
 
 #[derive(Resource)]
@@ -42,29 +44,34 @@ pub enum CreateBodyType {
 
 impl FromWorld for EditorSystems {
     fn from_world(world: &mut World) -> Self {
-        let mut my_item_systems = EditorSystems(HashMap::new());
+        let mut systems = EditorSystems(HashMap::new());
 
-        my_item_systems.0.insert(
+        systems.0.insert(
             EditorSystemType::UPDATE_POSITIONS.into(),
             world.register_system(update_body_positions)
         );
 
-        my_item_systems.0.insert(
+        systems.0.insert(
             EditorSystemType::UPDATE_DIAMETER.into(),
             world.register_system(apply_real_diameter)
         );
 
-        my_item_systems.0.insert(
+        systems.0.insert(
             EditorSystemType::UPDATE_TILT.into(),
             world.register_system(axial_tilt)
         );
 
-        my_item_systems.0.insert(
+        systems.0.insert(
             EditorSystemType::CREATE_BODY.into(),
             world.register_system(create_empty_body)
         );
 
-        my_item_systems
+        systems.0.insert(
+            EditorSystemType::SAVE_SCENARIO.into(),
+            world.register_system(save_scenario)
+        );
+
+        systems
     }
 }
 
