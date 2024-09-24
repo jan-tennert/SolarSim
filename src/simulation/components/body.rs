@@ -84,7 +84,7 @@ pub struct SimPosition(pub DVec3);
 #[derive(Component, Reflect, Clone, Default)]
 pub struct Diameter {
 
-    //note this is scaled in units
+    //note this is scaled in units TODO: fix this
     pub num: f32,
     pub applied: bool,
     pub aabb: Option<Aabb>
