@@ -4,7 +4,7 @@ use bevy::window::PresentMode;
 use bevy_egui::{egui, EguiContexts};
 use bevy_egui::egui::Align;
 use chrono::NaiveDateTime;
-use crate::setup::StartingTime;
+use crate::setup::ScenarioData;
 use crate::simulation::components::lock_on::LockOn;
 use crate::simulation::components::physics::{Pause, SubSteps};
 use crate::simulation::components::speed::Speed;
@@ -19,13 +19,13 @@ pub fn editor_bottom_bar(
     mut windows: Query<&mut Window>,
     mut lock_on_parent: ResMut<LockOn>,
     mut state: ResMut<NextState<SimState>>,
-    starting_time: Res<StartingTime>,
+    scenario_data: Res<ScenarioData>,
     diagnostics: Res<DiagnosticsStore>,
     systems: Res<EditorSystems>,
     mut commands: Commands
 ) {
     let mut window = windows.single_mut();
-    let date = get_date_from_millis(starting_time.0, sim_time.0);
+    let date = get_date_from_millis(scenario_data.starting_time_millis, sim_time.0);
     egui::TopBottomPanel::bottom("time_panel")
         .resizable(false)
         .show(egui_context.ctx_mut(), |ui| {

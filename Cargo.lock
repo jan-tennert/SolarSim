@@ -14,9 +14,11 @@ dependencies = [
  "bevy_mod_billboard",
  "blocking",
  "chrono",
+ "egui-toast",
  "image 0.24.7",
  "serde",
  "serde_json",
+ "tinyfiledialogs",
  "winit 0.28.7",
 ]
 
@@ -2178,6 +2180,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "egui-toast"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6652cccda84ba174437caa128e4e28a3502a3c62c9e39e381c24f1f0445946f1"
+dependencies = [
+ "egui",
+]
+
+[[package]]
 name = "either"
 version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4152,7 +4163,7 @@ version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af1844ef2428cc3e1cb900be36181049ef3d3193c63e43026cfe202983b27a56"
 dependencies = [
- "proc-macro-crate 1.3.1",
+ "proc-macro-crate 3.2.0",
  "proc-macro2",
  "quote",
  "syn 2.0.77",
@@ -5892,6 +5903,16 @@ dependencies = [
  "arrayref",
  "bytemuck",
  "strict-num",
+]
+
+[[package]]
+name = "tinyfiledialogs"
+version = "3.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e25fa0bc43a6566e2cc6d7ac96df3fa5a57beba34445bead1b368ba8fe9ca568"
+dependencies = [
+ "cc",
+ "libc",
 ]
 
 [[package]]

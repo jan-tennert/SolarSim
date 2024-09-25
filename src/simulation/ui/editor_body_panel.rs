@@ -10,10 +10,12 @@ use bevy::pbr::StandardMaterial;
 use bevy::prelude::{default, BuildChildren, Camera, Color, Commands, DespawnRecursiveExt, Entity, Handle, Mesh, Mut, PointLight, PointLightBundle, Query, Res, ResMut, Resource, Scene, Srgba, Transform, Vec3, Visibility, With, Without};
 use bevy_egui::egui::{Align, Context, Layout, RichText, ScrollArea};
 use bevy_egui::{egui, EguiContexts};
+use egui_toast::{Toast, ToastKind, ToastOptions};
 use crate::setup::spawn_scene;
 use crate::simulation::components::editor::{EditorSystemType, EditorSystems};
 use crate::simulation::render::star_billboard::StarBillboard;
 use crate::simulation::ui::components::vector_field;
+use crate::simulation::ui::toast::{success_toast, ToastContainer};
 use crate::simulation::ui::UiState;
 
 #[derive(Debug, Default, Clone, Resource)]
@@ -51,10 +53,12 @@ pub fn editor_body_panel(
     mut light_query: Query<(&mut PointLight, &LightSource, &mut Visibility)>,
     mut billboards: Query<(&StarBillboard, &mut Handle<StandardMaterial>)>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut toast_container: ResMut<ToastContainer>
 ) {
     if egui_context.try_ctx_mut().is_none() {
         return;
     }
+    let mut apply  = false;
     if let Some(s_entity) = selected_entity.entity {
         if let Ok((entity, mut name, mut pos, mut vel, mut mass, mut diameter, mut rotation_speed, mut tilt, mut model_path, mut scene)) = query.get_mut(s_entity) {
             let light = light_query.iter_mut().find(|(_, l, _)| l.0 == entity).map(|(a,b,c)| (a,b,c));
@@ -62,10 +66,13 @@ pub fn editor_body_panel(
             if state.entity.is_none() || state.entity.unwrap() != s_entity {
                 initialize_state(state.as_mut(), s_entity, &name, &pos, &vel, &mass, &diameter, &rotation_speed, &tilt, &model_path, light.as_ref());
             }
-            display_body_panel(egui_context.ctx_mut(), state.as_mut(), &mut name, &mut pos, &mut vel, &mut mass, &mut diameter, &mut rotation_speed, &mut tilt, &mut model_path, &mut scene, &mut commands, &systems, &assets, light, scene_query, billboard_material.as_mut(), &mut materials);
+            display_body_panel(egui_context.ctx_mut(), state.as_mut(), &mut name, &mut pos, &mut vel, &mut mass, &mut diameter, &mut rotation_speed, &mut tilt, &mut model_path, &mut scene, &mut commands, &systems, &assets, light, scene_query, billboard_material.as_mut(), &mut materials, &mut apply);
         }
     } else {
         state.entity = None;
+    }
+    if apply {
+        toast_container.0.add(success_toast("Changes applied"));
     }
 }
 
@@ -85,10 +92,10 @@ fn initialize_state(
     *state = EditorPanelState {
         entity: Some(s_entity),
         new_name: name.to_string(),
-        new_position: pos.0,
-        new_velocity: vel.0,
+        new_position: pos.0 / 1000.0,
+        new_velocity: vel.0 / 1000.0,
         new_mass: mass.0,
-        new_diameter: (diameter.num / 1000.0) / M_TO_UNIT as f32,
+        new_diameter: (diameter.num / 1000.0),
         new_rotation_speed: rotation_speed.0,
         new_axial_tilt: tilt.num,
         new_model_path: model_path.cleaned(),
@@ -120,7 +127,8 @@ fn display_body_panel(
     light: Option<(Mut<PointLight>, &LightSource, Mut<Visibility>)>,
     scene_query: Query<Entity, With<SceneEntity>>,
     billboard_material: Option<&mut Handle<StandardMaterial>>,
-    materials: &mut ResMut<Assets<StandardMaterial>>
+    materials: &mut ResMut<Assets<StandardMaterial>>,
+    apply: &mut bool
 ) {
     egui::SidePanel::right("body_panel")
         .resizable(true)
@@ -131,7 +139,7 @@ fn display_body_panel(
                     ui.heading("Body");
                     display_body_properties(ui, state);
                     display_light_source(ui, state);
-                    display_bottom_buttons(ui, state, name, pos, vel, mass, diameter, rotation_speed, tilt, model_path, scene, commands, systems, assets, light, scene_query, billboard_material, materials);
+                    display_bottom_buttons(ui, state, name, pos, vel, mass, diameter, rotation_speed, tilt, model_path, scene, commands, systems, assets, light, scene_query, billboard_material, materials, apply);
                 });
         });
 }
@@ -161,8 +169,8 @@ fn display_body_properties(ui: &mut egui::Ui, state: &mut EditorPanelState) {
         ui.label("Axial Tilt (degrees)");
         ui.add(egui::DragValue::new(&mut state.new_axial_tilt));
     });
-    vector_field(ui, "Position (m)", &mut state.new_position);
-    vector_field(ui, "Velocity (m/s)", &mut state.new_velocity);
+    vector_field(ui, "Position (km)", &mut state.new_position);
+    vector_field(ui, "Velocity (km/s)", &mut state.new_velocity);
 }
 
 fn display_light_source(ui: &mut egui::Ui, state: &mut EditorPanelState) {
@@ -214,12 +222,14 @@ fn display_bottom_buttons(
     light: Option<(Mut<PointLight>, &LightSource, Mut<Visibility>)>,
     scene_query: Query<Entity, With<SceneEntity>>,
     billboard_material: Option<&mut Handle<StandardMaterial>>,
-    materials: &mut ResMut<Assets<StandardMaterial>>
+    materials: &mut ResMut<Assets<StandardMaterial>>,
+    apply: &mut bool
 ) {
     ui.with_layout(Layout::bottom_up(Align::Center), |ui| {
         ui.horizontal(|ui| {
             if ui.button("Apply").on_hover_text("Apply changes").clicked() {
                 apply_changes(state, name, pos, vel, mass, diameter, rotation_speed, tilt, model_path, scene, commands, systems, assets, light, scene_query, billboard_material, materials);
+                *apply = true;
             }
             if ui.button("Reset").on_hover_text("Reset to original values").clicked() {
                 // Reset logic here
@@ -263,10 +273,10 @@ fn apply_changes(
     materials: &mut ResMut<Assets<StandardMaterial>>
 ) {
     name.set(state.new_name.clone());
-    pos.0 = state.new_position;
-    vel.0 = state.new_velocity;
+    pos.0 = state.new_position * 1000.0;
+    vel.0 = state.new_velocity * 1000.0;
     mass.0 = state.new_mass;
-    let new_diameter = state.new_diameter * M_TO_UNIT as f32 * 1000.0;
+    let new_diameter = state.new_diameter * 1000.0;
     diameter.applied = new_diameter == diameter.num;
     diameter.num = new_diameter;
     rotation_speed.0 = state.new_rotation_speed;

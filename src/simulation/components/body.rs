@@ -84,7 +84,6 @@ pub struct SimPosition(pub DVec3);
 #[derive(Component, Reflect, Clone, Default)]
 pub struct Diameter {
 
-    //note this is scaled in units TODO: fix this
     pub num: f32,
     pub applied: bool,
     pub aabb: Option<Aabb>
@@ -143,7 +142,7 @@ impl From<SerializedBody> for BodyBundle {
             name: Name::new(value.data.name),
             model_path: ModelPath(format!("models/{}#Scene0", value.data.model_path)),
             diameter: Diameter {
-                num: (value.data.diameter * 1000.0 *M_TO_UNIT) as f32,
+                num: (value.data.diameter * 1000.0) as f32,
                 ..default()
             },
             axial_tilt: AxialTilt {

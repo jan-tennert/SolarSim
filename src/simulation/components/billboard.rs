@@ -61,12 +61,12 @@ fn auto_scale_billboards(
         } else if star {
             radius > STAR_VISIBILITY_THRESHOLD
         } else {
-            radius < PLANET_VISIBILITY_THRESHOLD && radius > (diameter.num * 2.0) && (apsis.unwrap().perihelion.distance as f64 * M_TO_UNIT * 50.0 > radius as f64)
+            radius < PLANET_VISIBILITY_THRESHOLD && radius > (diameter.num * 2.0 * M_TO_UNIT as f32) && (apsis.unwrap().perihelion.distance as f64 * M_TO_UNIT * 50.0 > radius as f64)
         };
         let offset = if star {
             distance_to_cam
         } else {
-            diameter.num / distance_to_cam * 0.01
+            diameter.num * M_TO_UNIT as f32 / distance_to_cam * 0.01
         };
         billboard_visible.0 = predicate;
         billboard(

@@ -6,9 +6,9 @@ use bevy::{
     math::DVec3,
     prelude::Plugin, reflect::{TypePath}, utils::BoxedFuture,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, TypePath, Asset, Clone)]
+#[derive(Debug, Deserialize, Serialize, TypePath, Asset, Clone)]
 pub struct SimulationData {
     pub bodies: Vec<SerializedBody>,
     pub starting_time_millis: i64,
@@ -16,13 +16,13 @@ pub struct SimulationData {
     pub description: String,
 }
 
-#[derive(Debug, Deserialize, TypePath, Clone)]
+#[derive(Debug, Deserialize, Serialize, TypePath, Clone)]
 pub struct SerializedBody {
     pub children: Vec<SerializedBody>,
     pub data: SerializedBodyData
 }
 
-#[derive(Debug, Deserialize, TypePath, Clone, Copy)]
+#[derive(Debug, Deserialize, Serialize, TypePath, Clone, Copy)]
 pub struct SerializedVec {
     pub x: f64,
     pub y: f64,
@@ -49,7 +49,7 @@ impl From<DVec3> for SerializedVec {
 
 }
 
-#[derive(Debug, Deserialize, TypePath, Clone)]
+#[derive(Debug, Serialize, Deserialize, TypePath, Clone)]
 pub struct SerializedBodyData {
     pub mass: f64,
     pub starting_position: SerializedVec,
@@ -63,7 +63,7 @@ pub struct SerializedBodyData {
     pub light_source: Option<SerializedLightSource>
 }
 
-#[derive(Debug, Deserialize, TypePath, Clone)]
+#[derive(Debug, Serialize, Deserialize, TypePath, Clone)]
 pub struct SerializedLightSource {
     pub intensity: f64,
     pub range: f64,

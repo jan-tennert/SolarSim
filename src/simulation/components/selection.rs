@@ -51,7 +51,7 @@ pub fn apply_camera_to_selection(
         } else if !selected_entity.changed_focus {
             let (_, _, diameter, _) = bodies.get(entity).unwrap();
             let mut cam = camera.single_mut();            
-            cam.radius = (diameter.num * SELECTION_MULTIPLIER) as f32;
+            cam.radius = (diameter.num * SELECTION_MULTIPLIER * M_TO_UNIT as f32);
             if orbit_offset.enabled {
                 cam.focus = Vec3::ZERO;        
             }

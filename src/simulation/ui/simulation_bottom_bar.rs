@@ -5,7 +5,7 @@ use bevy_egui::{egui, EguiContexts};
 use bevy_egui::egui::TextEdit;
 use chrono::NaiveDateTime;
 use crate::constants::DAY_IN_SECONDS;
-use crate::setup::StartingTime;
+use crate::setup::ScenarioData;
 use crate::simulation::components::lock_on::LockOn;
 use crate::simulation::components::physics::{Pause, SubSteps};
 use crate::simulation::components::speed::Speed;
@@ -22,7 +22,7 @@ pub fn simulation_bottom_bar(
     mut lock_on_parent: ResMut<LockOn>,
     mut pause: ResMut<Pause>,
     mut state: ResMut<NextState<SimState>>,
-    starting_time: Res<StartingTime>,
+    scenario_data: Res<ScenarioData>,
     mut sub_steps: ResMut<SubSteps>,
     mut ui_state: ResMut<UiState>,
     diagnostics: Res<DiagnosticsStore>,
@@ -34,7 +34,7 @@ pub fn simulation_bottom_bar(
     if !pause.0 && *sim_type == SimStateType::Simulation {
         sim_time.0 += time.delta_seconds() * (((speed.0 * (sub_steps.0 as f64)) / (DAY_IN_SECONDS as f64)) as f32);
     }
-    let date = get_date_from_millis(starting_time.0, sim_time.0);
+    let date = get_date_from_millis(scenario_data.starting_time_millis, sim_time.0);
     let mut window = windows.single_mut();
     egui::TopBottomPanel::bottom("time_panel")
         .resizable(false)

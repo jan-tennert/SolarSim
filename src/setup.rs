@@ -9,7 +9,7 @@ use bevy::ecs::system::EntityCommands;
 use bevy::hierarchy::BuildChildren;
 use bevy::math::{DVec3, Vec3};
 use bevy::pbr::{PbrBundle, PointLight, PointLightBundle};
-use bevy::prelude::{Assets, Bundle, Camera, Camera3dBundle, ChildBuilder, Color, Commands, default, Entity, Handle, in_state, IntoSystemConfigs, Mesh, OnEnter, PerspectiveProjection, Projection, Res, ResMut, Resource, SceneBundle, SpatialBundle, StandardMaterial, Startup, Transform, Update, Visibility, Circle, Srgba, Hsva};
+use bevy::prelude::{Assets, Bundle, Camera, Camera3dBundle, ChildBuilder, Color, Commands, default, Entity, Handle, in_state, IntoSystemConfigs, Mesh, OnEnter, PerspectiveProjection, Projection, Res, ResMut, Resource, SceneBundle, SpatialBundle, StandardMaterial, Startup, Transform, Update, Visibility, Circle, Srgba, Hsva, NextState};
 use bevy::render::view::{GpuCulling, NoCpuCulling, RenderLayers};
 use bevy::scene::Scene;
 use bevy::text::{JustifyText, TextSection, TextStyle};
@@ -32,25 +32,43 @@ pub struct SetupPlugin;
 impl Plugin for SetupPlugin {
     fn build(&self, app: &mut App) {
         app
-            .init_resource::<StartingTime>()
+            .init_resource::<ScenarioData>()
             .add_systems(Startup, setup_camera)
             .add_systems(Update, setup_planets.run_if(in_state(SimState::Loading)));
     }
 }
 
 #[derive(Resource, Default)]
-pub struct StartingTime(pub i64);
+pub struct ScenarioData {
+
+    pub starting_time_millis: i64,
+    pub title: String,
+    pub description: String
+
+}
+
+impl From<SimulationData> for ScenarioData {
+
+    fn from(value: SimulationData) -> Self {
+        Self {
+            starting_time_millis: value.starting_time_millis,
+            title: value.title,
+            description: value.description
+        }
+    }
+}
 
 pub fn setup_planets(
     mut commands: Commands,
     assets: Res<AssetServer>,
     mut selected_scenario: ResMut<SelectedScenario>,
     bodies_asset: ResMut<Assets<SimulationData>>,
-    mut starting_time: ResMut<StartingTime>,
+    mut scenario_data: ResMut<ScenarioData>,
     mut loading_state: ResMut<LoadingState>,
     mut selected_entity: ResMut<SelectedEntity>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut sim_state: ResMut<NextState<SimState>>,
 ) {
     if selected_scenario.spawned {
         return;
@@ -61,7 +79,7 @@ pub fn setup_planets(
         return;
     }
     let data = bodies.unwrap();
-    starting_time.0 = data.starting_time_millis;
+    *scenario_data = ScenarioData::from(data.clone());
     let stars = data.bodies.iter().count();  
     total_count += stars;
     
@@ -161,6 +179,10 @@ pub fn setup_planets(
     selected_scenario.spawned = true;
     loading_state.loaded_bodies = true;
     loading_state.total_bodies = total_count as i32;
+    if stars == 0 {
+        loading_state.reset();
+        sim_state.set(SimState::Loaded);
+    }
 }
 
 pub fn calculate_hue(
@@ -259,7 +281,7 @@ fn spawn_imposter(
     parent_id: Entity,
 ) {
     parent.spawn(PbrBundle {
-        mesh: meshes.add(Circle::new(bundle.diameter.num  * 3.0)),
+        mesh: meshes.add(Circle::new(bundle.diameter.num  * 3.0 * M_TO_UNIT as f32)),
         material: materials.add(color),
         visibility: Visibility::Hidden,
         ..default()

@@ -1,12 +1,14 @@
+use std::fs;
 use bevy::app::{App, Plugin, Update};
 use bevy::asset::LoadedFolder;
 use bevy::prelude::{in_state, AssetServer, Assets, Commands, Handle, Image, IntoSystemConfigs, Local, NextState, OnEnter, OnExit, Res, ResMut, Resource};
 use bevy::utils::HashMap;
-use bevy_egui::egui::{Align, CentralPanel, Layout, TextureId};
+use bevy_egui::egui::{Align, CentralPanel, Layout, SidePanel, TextureId};
 use bevy_egui::{egui, EguiContexts};
 use image::load;
 use crate::serialization::SimulationData;
 use crate::simulation::{SimState, SimStateType};
+use crate::simulation::ui::toast::{error_toast, ToastContainer};
 
 pub struct ScenarioSelectionPlugin;
 
@@ -15,8 +17,9 @@ impl Plugin for ScenarioSelectionPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<SelectedScenario>()
+            .init_resource::<SelectionState>()
             .add_systems(OnEnter(SimState::ScenarioSelection), load_scenarios)
-            .add_systems(Update, spawn_menu.run_if(in_state(SimState::ScenarioSelection)));
+            .add_systems(Update, (creation_sidebar, show_menu).chain().run_if(in_state(SimState::ScenarioSelection)));
     }
 }
 
@@ -31,6 +34,17 @@ pub struct SelectedScenario {
 
 }
 
+#[derive(Resource, Default, Clone)]
+pub struct SelectionState {
+
+    pub show_creation: bool,
+    pub title: String,
+    pub description: String,
+    pub file_name: String,
+    pub image_path: String
+
+}
+
 fn load_scenarios(
     assets: Res<AssetServer>,
     mut commands: Commands
@@ -39,7 +53,96 @@ fn load_scenarios(
     commands.insert_resource(ScenarioFolder(handle));
 }
 
-fn spawn_menu(
+fn creation_sidebar(
+    mut egui_context: EguiContexts,
+    mut selection_state: ResMut<SelectionState>,
+    mut sim_state: ResMut<NextState<SimState>>,
+    mut sim_state_type: ResMut<SimStateType>,
+    mut toasts: ResMut<ToastContainer>
+) {
+    if !selection_state.show_creation {
+        return;
+    }
+    SidePanel::right("Create Scenario").default_width(300.0).resizable(true).show(&egui_context.ctx_mut(), |ui| {
+            ui.horizontal(|ui| {
+                ui.heading("Create new scenario");
+                ui.separator();
+                if ui.button("Cancel").clicked() {
+                    selection_state.show_creation = false;
+                }
+            });
+            ui.separator();
+            ui.horizontal(|ui| {
+                ui.label("File name:");
+                ui.text_edit_singleline(&mut selection_state.file_name);
+            });
+            ui.horizontal(|ui| {
+                ui.label("Title:");
+                ui.text_edit_singleline(&mut selection_state.title);
+            });
+            ui.horizontal(|ui| {
+                ui.label("Description:");
+                ui.text_edit_singleline(&mut selection_state.description);
+            });
+            ui.horizontal(|ui| {
+                ui.label("Image path:");
+                ui.text_edit_singleline(&mut selection_state.image_path);
+                if ui.button("Select").on_hover_text("Select image").clicked() {
+                    match tinyfiledialogs::open_file_dialog("Open", "password.txt", None) {
+                        Some(file) => {
+                            selection_state.image_path = file;
+                        },
+                        None => {
+                            toasts.0.add(error_toast("No file selected"));
+                        },
+                    }
+                };
+            });
+            ui.horizontal(|ui| {
+                if ui.button("Create").on_hover_text("Create scenario").clicked() {
+                    if let Err(e) = validate_input(selection_state.clone()) {
+                        toasts.0.add(error_toast(&e));
+                    } else {
+                        let initial_data = SimulationData {
+                            bodies: Vec::new(),
+                            starting_time_millis: 0,
+                            title: selection_state.title.clone(),
+                            description: selection_state.description.clone()
+                        };
+                        fs::write(format!("assets/scenarios/{}.sim", selection_state.file_name), serde_json::to_string(&initial_data).unwrap()).unwrap();
+                        fs::copy(&selection_state.image_path, format!("assets/scenarios/{}.png", selection_state.file_name)).unwrap();
+                        selection_state.show_creation = false;
+                    }
+                };
+            });
+        });
+}
+
+fn validate_input(selection_state: SelectionState) -> Result<(), String> {
+    if let Ok(e) = fs::exists(&selection_state.image_path) {
+        if !e {
+            return Err("Image path cannot be accessed".to_string());
+        }
+    } else {
+        return Err("Image path cannot be accessed".to_string());
+    }
+    if let Ok(e) = fs::exists(format!("assets/scenarios/{}.sim", selection_state.file_name)) {
+        if e {
+            return Err("Scenario with file name already exists".to_string());
+        }
+    } else {
+        return Err("File path cannot be accessed".to_string());
+    }
+    if selection_state.file_name.is_empty() {
+        return Err("File name cannot be empty".to_string());
+    }
+    if selection_state.title.is_empty() {
+        return Err("Title cannot be empty".to_string());
+    }
+    Ok(())
+}
+
+fn show_menu(
     mut egui_context: EguiContexts,
     scenario_folder: Res<ScenarioFolder>,
     folders: Res<Assets<LoadedFolder>>,
@@ -48,11 +151,18 @@ fn spawn_menu(
     mut selected_scenario: ResMut<SelectedScenario>,
     mut sim_state: ResMut<NextState<SimState>>,
     mut images: Local<HashMap<String, TextureId>>,
-    mut sim_state_type: ResMut<SimStateType>
+    mut sim_state_type: ResMut<SimStateType>,
+    mut selection_state: ResMut<SelectionState>
 ) {
     CentralPanel::default()
         .show(&egui_context.ctx_mut().clone(), |ui| {
-            ui.heading("Scenario Selection");
+            ui.horizontal(|ui| {
+                ui.heading("Scenario Selection");
+                ui.separator();
+                if ui.button("Create new").clicked() {
+                    selection_state.show_creation = true;
+                }
+            });
             ui.separator();
             ui.label("Select a scenario to load:");
             ui.separator();

@@ -1,5 +1,6 @@
 use bevy::{app::{App, Plugin}, prelude::{in_state, Entity, Gizmos, IntoSystemConfigs, Query, Transform, Update, With}};
 use bevy::color::palettes::css;
+use crate::constants::M_TO_UNIT;
 use crate::simulation::SimState;
 use crate::simulation::components::body::{BodyChildren, Diameter, Moon, OrbitSettings, Planet, Velocity};
 use crate::simulation::components::camera::pan_orbit_camera;
@@ -21,20 +22,22 @@ fn display_force_and_velocity(
     mut gizmos: Gizmos
 ) {
     for (transform, _, orbit, diameter, velocity) in &planet_query {
+        let d =  diameter.num as f64 * M_TO_UNIT;
         if orbit.display_force {
-            gizmos.arrow(transform.translation, transform.translation + (orbit.force_direction * diameter.num as f64 * orbit.arrow_scale as f64).as_vec3(), css::BLUE);
+            gizmos.arrow(transform.translation, transform.translation + (orbit.force_direction * d * orbit.arrow_scale as f64).as_vec3(), css::BLUE);
         }
         if orbit.display_velocity {
-            gizmos.arrow(transform.translation, transform.translation +(velocity.0.normalize() * diameter.num as f64 * orbit.arrow_scale as f64).as_vec3(), css::RED);
+            gizmos.arrow(transform.translation, transform.translation +(velocity.0.normalize() * d* orbit.arrow_scale as f64).as_vec3(), css::RED);
         }
     }
     for (entity, transform, orbit, diameter, velocity) in &moon_query {
+        let d =  diameter.num as f64 * M_TO_UNIT;
         if orbit.display_force {
-            gizmos.arrow(transform.translation, transform.translation +(orbit.force_direction * diameter.num as f64 * orbit.arrow_scale as f64).as_vec3(), css::BLUE);
+            gizmos.arrow(transform.translation, transform.translation +(orbit.force_direction * d * orbit.arrow_scale as f64).as_vec3(), css::BLUE);
         }
         if orbit.display_velocity {
             if let Some((_, _, _, _, vel)) = planet_query.iter().find(|(_, ch, _, _, _)| ch.0.contains(&entity)) {
-                gizmos.arrow(transform.translation, transform.translation +((velocity.0 - vel.0).normalize() * diameter.num as f64 * orbit.arrow_scale as f64).as_vec3(), css::RED);
+                gizmos.arrow(transform.translation, transform.translation +((velocity.0 - vel.0).normalize() * d * orbit.arrow_scale as f64).as_vec3(), css::RED);
             }
         }
     }

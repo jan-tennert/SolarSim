@@ -92,7 +92,7 @@ pub fn sim_body_panel(
                                         .size(16.0)
                                         .underline(),
                                 );
-                                let scaled_diameter = (diameter.num / M_TO_UNIT as f32) * n_scale;
+                                let scaled_diameter = (diameter.num) * n_scale;
                                 ui.label(format!("{} km", scaled_diameter / 1000.0));
                             }
 

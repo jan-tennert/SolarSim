@@ -1,7 +1,7 @@
 use bevy::{app::{App, Plugin}, math::Vec3A, prelude::{in_state, Children, GlobalTransform, Handle, IntoSystemConfigs, Mesh, Query, Res, ResMut, Transform, Update, Vec3, With}, render::primitives::{Aabb, Sphere}, scene::{SceneInstance, SceneSpawner}};
 use bevy::ecs::query::QueryManyIter;
 use bevy::prelude::{AssetServer, Entity, Name};
-
+use crate::constants::M_TO_UNIT;
 use crate::simulation::SimState;
 use crate::simulation::components::body::SceneHandle;
 use crate::simulation::components::body::{Diameter, Scale};
@@ -48,7 +48,7 @@ pub fn apply_real_diameter(
                     diameter.aabb = Some(aabb);
                     aabb
                 };
-                transform.scale = Vec3::splat(diameter.num / 1.7) / (Vec3::from(aabb.half_extents)); //not dividing by 1.7 for the diameter makes them to big which doesn't work with satellites very close to their planet
+                transform.scale = Vec3::splat(diameter.num  * M_TO_UNIT as f32 / 1.7) / (Vec3::from(aabb.half_extents)); //not dividing by 1.7 for the diameter makes them to big which doesn't work with satellites very close to their planet
                 scale.0 = transform.scale.x;
                 diameter.applied = true;
                 loading_state.scaled_bodies_count += 1;

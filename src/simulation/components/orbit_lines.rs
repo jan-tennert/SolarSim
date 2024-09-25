@@ -59,7 +59,7 @@ fn update_lines(
     let cam = camera.single();
     for (entity, mut orbit, pos, _, diameter, billboard_visible) in &mut planet_query {
         if orbit.draw_lines {
-            orbit.hide_lines = (cam.radius < diameter.num * PLANET_HIDE_MULTIPLIER && entity == selected_entity.entity.unwrap() || !billboard_visible.0) && ui_state.dyn_hide_orbit_lines;
+            orbit.hide_lines = (cam.radius < diameter.num * M_TO_UNIT as f32 * PLANET_HIDE_MULTIPLIER && entity == selected_entity.entity.unwrap() || !billboard_visible.0) && ui_state.dyn_hide_orbit_lines;
             let speed = speed.0 as f32 * (substeps.0 as f32);
             let max_step = (orbit.period as f32 / speed) * MULTIPLIER;
             if orbit.step >= max_step {
@@ -76,7 +76,7 @@ fn update_lines(
             if let Some((_, _, p_pos, _, _, _)) = planet_query.iter().find(|(_, _, _, children, _, _)| {
                 children.0.contains(&entity)
             }) {
-                orbit.hide_lines = (cam.radius < diameter.num * HIDE_MULTIPLIER && entity == selected_entity.entity.unwrap() || !billboard_visible.0) && ui_state.dyn_hide_orbit_lines;
+                orbit.hide_lines = (cam.radius < diameter.num * M_TO_UNIT as f32  * HIDE_MULTIPLIER && entity == selected_entity.entity.unwrap() || !billboard_visible.0) && ui_state.dyn_hide_orbit_lines;
                 let speed = speed.0 as f32 * (substeps.0 as f32);
                 let max_step = (orbit.period as f32 / speed) * MULTIPLIER;
                 if orbit.step >= max_step {
