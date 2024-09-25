@@ -41,7 +41,8 @@ pub struct SelectionState {
     pub title: String,
     pub description: String,
     pub file_name: String,
-    pub image_path: String
+    pub image_path: String,
+    pub delete_confirm: Option<String>
 
 }
 
@@ -109,8 +110,7 @@ fn creation_sidebar(
                             title: selection_state.title.clone(),
                             description: selection_state.description.clone()
                         };
-                        fs::write(format!("assets/scenarios/{}.sim", selection_state.file_name), serde_json::to_string(&initial_data).unwrap()).unwrap();
-                        fs::copy(&selection_state.image_path, format!("assets/scenarios/{}.png", selection_state.file_name)).unwrap();
+                        create_scenario(selection_state.file_name.clone(), selection_state.image_path.clone(), initial_data);
                         selection_state.show_creation = false;
                     }
                 };
@@ -169,7 +169,7 @@ fn show_menu(
             if let Some(loaded_folder) = folders.get(&scenario_folder.0) {
                 for handle in loaded_folder.handles.clone() {
                     let path = handle.path().unwrap().path();
-                    let file_name = path.file_name().unwrap().to_str().unwrap();
+                    let file_name = path.file_name().unwrap().to_str().unwrap().clone();
                     if !file_name.ends_with(".sim") {
                         continue;
                     }
@@ -181,7 +181,7 @@ fn show_menu(
                         images.insert(file_name.to_string(), t_id);
                         t_id
                     };
-                    let typed_handle: Handle<SimulationData> = handle.typed();
+                    let typed_handle: Handle<SimulationData> = handle.clone().typed();
                     if let Some(scenario) = bodies_asset.get(&typed_handle) {
                         let title = &scenario.title;
                         let description = &scenario.description;
@@ -193,6 +193,25 @@ fn show_menu(
                                 ui.with_layout(Layout::left_to_right(Align::BOTTOM), |ui| {
                                     let loading_button = ui.button("Load").on_hover_text("Load scenario");
                                     let edit_button = ui.button("Edit").on_hover_text("Edit scenario in editor");
+                                    if let Some(delete_confirm) = &selection_state.delete_confirm {
+                                        if delete_confirm == file_name.clone() {
+                                            ui.label("Are you sure you want to delete this scenario?");
+                                            ui.horizontal(|ui| {
+                                                if ui.button("Yes").on_hover_text("Delete scenario").clicked() {
+                                                    delete_scenario(file_name);
+                                                    selection_state.delete_confirm = None;
+                                                }
+                                                if ui.button("No").on_hover_text("Cancel").clicked() {
+                                                    selection_state.delete_confirm = None;
+                                                }
+                                            });
+                                        }
+                                    } else {
+                                        let del_button = ui.button("Delete").on_hover_text("Delete scenario");
+                                        if del_button.clicked() {
+                                            selection_state.delete_confirm = Some(file_name.to_string());
+                                        }
+                                    }
                                     if loading_button.clicked() {
                                         selected_scenario.handle = typed_handle;
                                         sim_state.set(SimState::Loading);
@@ -210,4 +229,18 @@ fn show_menu(
                 }
             }
         });
+}
+
+fn delete_scenario(file_name: &str) {
+    fs::remove_file(format!("assets/scenarios/{}", file_name)).unwrap();
+    fs::remove_file(format!("assets/scenarios/{}", file_name.replace("sim", "png")).replace("sim", "png")).unwrap();
+}
+
+fn create_scenario(
+    file_name: String,
+    image_path: String,
+    initial_data: SimulationData
+) {
+    fs::write(format!("assets/scenarios/{}.sim", file_name), serde_json::to_string(&initial_data).unwrap()).unwrap();
+    fs::copy(&image_path, format!("assets/scenarios/{}.png", file_name)).unwrap();
 }

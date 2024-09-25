@@ -12,7 +12,7 @@ use bevy::core_pipeline::Skybox;
 use bevy::ecs::system::SystemParam;
 use bevy::input::ButtonInput;
 use bevy::prelude::{AabbGizmoConfigGroup, Camera, Commands, Entity, GizmoConfigStore, KeyCode, NextState, Query, Res, ResMut, Vec3, Visibility, With, Without};
-use bevy_egui::egui::{InnerResponse, Response, ScrollArea, Ui};
+use bevy_egui::egui::{Align, InnerResponse, Layout, Response, ScrollArea, Ui};
 use bevy_egui::{egui, EguiContexts};
 
 #[derive(SystemParam)]
@@ -191,10 +191,12 @@ pub fn system_panel(
                         if ui.button("Open Keybind Window").clicked() {
                             ui_state.show_keys = true;
                         }
-                        ui.separator();
-                        if ui.button("Back to Menu").clicked() {
-                            let _ = system_panel_set.state.set(SimState::ExitToMainMenu);
-                        }
+                        ui.with_layout(Layout::bottom_up(Align::LEFT), |ui| {
+                            if ui.button("Back to Menu").clicked() {
+                                system_panel_set.state.set(SimState::ExitToMainMenu);
+                            }
+                            ui.separator();
+                        });
                     });
             });
     }

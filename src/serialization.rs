@@ -1,4 +1,4 @@
-use bevy::asset::io::Reader;
+use bevy::asset::io::{AssetSourceBuilder, Reader};
 use bevy::asset::AsyncReadExt;
 use bevy::prelude::{Asset, AssetApp};
 use bevy::{
@@ -104,6 +104,7 @@ impl Plugin for SerializationPlugin {
 
     fn build(&self, app: &mut bevy::prelude::App) {
         app
+       //         .register_asset_source("sim", AssetSourceBuilder::default())
             .init_asset_loader::<BodyAssetLoader>()
             .init_asset::<SimulationData>();
     }
