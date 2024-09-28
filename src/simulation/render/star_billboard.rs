@@ -1,10 +1,11 @@
 use bevy::app::{App, Plugin, Update};
 use bevy::math::Vec3;
-use bevy::prelude::{Camera, Children, Component, in_state, IntoSystemConfigs, Parent, Query, Transform, Visibility, With, Without, Entity, Color};
+use bevy::prelude::{Camera, Children, Component, in_state, IntoSystemConfigs, Parent, Query, Transform, Visibility, With, Without, Entity, Color, Res};
 use bevy::scene::SceneInstance;
-
+use crate::constants::DEF_M_TO_UNIT;
 use crate::simulation::components::body::Star;
 use crate::simulation::components::camera::pan_orbit_camera;
+use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::SimState;
 
 const STAR_IMPOSTER_THRESHOLD: f32 = 4_000.0;
@@ -29,20 +30,23 @@ fn change_sun_renderer(
     mut stars: Query<(&Transform, &Children), (Without<Camera>, Without<StarBillboard>)>,
     mut star_billboards: Query<(&mut Transform, &mut Visibility, &Parent), (With<StarBillboard>, Without<Camera>, Without<Star>)>,
     mut scenes: Query<(&SceneInstance, &mut Visibility), (Without<StarBillboard>, Without<Star>)>,
+    scale: Res<SimulationScale>
 ) {
     let (c_transform, camera) = camera.single();
+    let multiplier = scale.0 / DEF_M_TO_UNIT as f32;
+    let multiplier_sq = multiplier.powi(2);
     for (transform, children) in &mut stars {
         let distance = c_transform.translation.distance(transform.translation);
         for child in children.iter() {
             if let Ok((_, mut visibility)) = scenes.get_mut(*child) {
-                if distance > STAR_IMPOSTER_THRESHOLD && camera.hdr {
+                if distance > STAR_IMPOSTER_THRESHOLD * multiplier && camera.hdr {
                     *visibility = Visibility::Hidden;
                 } else {
                     *visibility = Visibility::Visible;
                 }
             }
             if let Ok((_, mut visibility, _)) = star_billboards.get_mut(*child) {
-                if distance > STAR_IMPOSTER_THRESHOLD && camera.hdr {
+                if distance > STAR_IMPOSTER_THRESHOLD * multiplier && camera.hdr {
                     *visibility = Visibility::Visible;
                 } else {
                     *visibility = Visibility::Hidden;
@@ -55,6 +59,6 @@ fn change_sun_renderer(
         let (transform, _) = stars.get(**parent).unwrap();
         let distance = c_transform.translation.distance(transform.translation);
         b_transform.look_at(-c_transform.translation, Vec3::Y);
-        b_transform.scale = Vec3::splat(distance / STAR_IMPOSTER_DIVIDER);
+        b_transform.scale = Vec3::splat(distance / STAR_IMPOSTER_DIVIDER / multiplier_sq);
     }
 }

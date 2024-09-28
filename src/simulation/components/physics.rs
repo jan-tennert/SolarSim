@@ -7,8 +7,9 @@ use bevy::prelude::{Entity, in_state, IntoSystemConfigs, Mut, Query, Res, ResMut
 use bevy::reflect::List;
 
 use crate::simulation::components::body::{Acceleration, Mass, OrbitSettings, SimPosition, Velocity, Star, Planet, BodyChildren};
-use crate::constants::{DEFAULT_SUB_STEPS, G, M_TO_UNIT};
+use crate::constants::{DEFAULT_SUB_STEPS, G};
 use crate::simulation::components::orbit_lines::OrbitOffset;
+use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::SimState;
 use crate::simulation::components::speed::Speed;
@@ -78,9 +79,10 @@ pub fn apply_physics(
     mut orbit_offset: ResMut<OrbitOffset>,
     sub_steps: Res<SubSteps>,
     mut diagnostics: Diagnostics,
+    scale: Res<SimulationScale>,
 ) {
     if pause.0 {
-        change_selection_without_update(&mut query, &selected_entity, &mut orbit_offset); //allows switching bodies while paused    
+        change_selection_without_update(&mut query, &selected_entity, &mut orbit_offset, &scale); //allows switching bodies while paused
         return;
     }
     let count = query.iter().count();
@@ -89,12 +91,12 @@ pub fn apply_physics(
     let start = Instant::now();
     for _ in 0..sub_steps.0 - 1 {
         update_acceleration(&mut query, count);
-        update_velocity_and_positions(&mut query, delta, &speed, &selected_entity, &mut orbit_offset, false);
+        update_velocity_and_positions(&mut query, delta, &speed, &selected_entity, &mut orbit_offset, false, &scale);
     }
     #[cfg(not(target_arch = "wasm32"))]
     let start_step = Instant::now();            
     update_acceleration(&mut query, count);
-    update_velocity_and_positions(&mut query, delta, &speed, &selected_entity, &mut orbit_offset, true);
+    update_velocity_and_positions(&mut query, delta, &speed, &selected_entity, &mut orbit_offset, true, &scale);
     #[cfg(not(target_arch = "wasm32"))]
     diagnostics.add_measurement(&NBODY_STEP_TIME, || start_step.elapsed().as_nanos() as f64);
     #[cfg(not(target_arch = "wasm32"))]             
@@ -110,7 +112,11 @@ fn update_acceleration(
     for (entity, mass, mut acc, _, _, sim_pos, _, is_star, is_planet, children) in query.iter_mut() {
         acc.0 = DVec3::ZERO;
         for (other_entity, other_mass, ref mut other_acc, other_sim_pos, other_is_star, other_is_planet, other_children) in other_bodies.iter_mut() {
-            if (is_planet && *other_is_planet) || (is_star && *other_is_planet) || (is_planet && *other_is_star) || (!is_star && !is_planet && (other_children.is_some() && other_children.unwrap().0.contains(&entity)) || *other_is_star) || (!*other_is_star && !*other_is_planet && (children.is_some() && children.unwrap().0.contains(other_entity) || is_star)) { 
+            if (/*is_planet && *other_is_planet)
+                || (is_star && *other_is_planet)
+                || (is_planet && *other_is_star)
+                || (!is_star && !is_planet && (other_children.is_some() && other_children.unwrap().0.contains(&entity)) || *other_is_star)
+                || (!*other_is_star && !*other_is_planet && (children.is_some() && children.unwrap().0.contains(other_entity) || is_star)*/ true) {
                 let distance = other_sim_pos.0 - sim_pos.0;
                 let r_sq = distance.length_squared();
                 let force_direction = distance.normalize(); // Calculate the direction vector  
@@ -128,13 +134,14 @@ fn change_selection_without_update(
     query: &mut Query<(Entity, &Mass, &mut Acceleration, &mut OrbitSettings, &mut Velocity, &mut SimPosition, &mut Transform, Has<Star>, Has<Planet>, Option<&BodyChildren>)>,
     selected_entity: &Res<SelectedEntity>,
     orbit_offset: &mut ResMut<OrbitOffset>,
+    scale: &SimulationScale,
 ) {
     let offset = match selected_entity.entity { //if orbit_offset.enabled is true, we calculate the new position of the selected entity first and then move it to 0,0,0 and add the actual position to all other bodies
         Some(selected) => {
             if !orbit_offset.enabled {
                 DVec3::ZERO
             } else if let Ok((_, _, _, _, _, sim_pos, mut transform, _, _, _)) = query.get_mut(selected) {
-                let raw_translation = sim_pos.0 * M_TO_UNIT;
+                let raw_translation = scale.m_to_unit_dvec(sim_pos.0);
                 transform.translation = Vec3::ZERO; //the selected entity will always be at 0,0,0
                 -raw_translation 
             } else {
@@ -154,8 +161,8 @@ fn change_selection_without_update(
                 }
             }
         }
-        let pos_without_offset = sim_pos.0.as_vec3() * M_TO_UNIT as f32;
-        transform.translation = pos_without_offset + offset.as_vec3(); //apply offset   
+        let pos_without_offset = scale.m_to_unit_dvec(sim_pos.0);
+        transform.translation = (pos_without_offset + offset).as_vec3(); //apply offset
     }
     if orbit_offset.enabled {
         orbit_offset.value = offset.as_vec3();   
@@ -171,6 +178,7 @@ fn update_velocity_and_positions(
     selected_entity: &Res<SelectedEntity>,
     orbit_offset: &mut ResMut<OrbitOffset>,
     last_step: bool,
+    scale: &SimulationScale,
 ) {
     let offset = match selected_entity.entity { //if orbit_offset.enabled is true, we calculate the new position of the selected entity first and then move it to 0,0,0 and add the actual position to all other bodies
         Some(selected) => {
@@ -183,7 +191,7 @@ fn update_velocity_and_positions(
                 acc.0 /= mass.0; //actually apply the force to the body
                 vel.0 += acc.0 * delta_time * speed.0;
                 sim_pos.0 += vel.0 * delta_time * speed.0; //this is the same step as below, but we are doing this first for the offset
-                let raw_translation = sim_pos.0 * M_TO_UNIT;
+                let raw_translation = scale.m_to_unit_dvec(sim_pos.0);
                 transform.translation = Vec3::ZERO; //the selected entity will always be at 0,0,0
                 -raw_translation 
             } else {
@@ -207,8 +215,8 @@ fn update_velocity_and_positions(
         vel.0 += acc.0 * delta_time * speed.0;
         sim_pos.0 += vel.0 * delta_time * speed.0;
         if last_step {
-            let pos_without_offset = sim_pos.0.as_vec3() * M_TO_UNIT as f32;
-            transform.translation = pos_without_offset + offset.as_vec3(); //apply offset   
+            let pos_without_offset = scale.m_to_unit_dvec(sim_pos.0);
+            transform.translation = (pos_without_offset + offset).as_vec3(); //apply offset
         }
     }
     if orbit_offset.enabled && last_step {

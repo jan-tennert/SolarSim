@@ -4,12 +4,13 @@ use bevy::color::palettes::css::WHITE;
 use bevy::ecs::observer::TriggerTargets;
 use bevy::ecs::system::SystemId;
 use bevy::prelude::{AssetServer, Assets, Bundle, Commands, Entity, FromWorld, IntoSystemConfigs, Local, Mesh, OnEnter, Query, Res, ResMut, Resource, SpatialBundle, StandardMaterial, Transform, Update, Vec3, World};
-use crate::constants::M_TO_UNIT;
 use crate::setup::apply_body;
 use crate::simulation::components::body::{BodyBundle, BodyChildren, BodyParent, Moon, Planet, SimPosition};
 use crate::simulation::components::diameter::apply_real_diameter;
+use crate::simulation::components::horizons::retrieve_starting_data;
 use crate::simulation::components::rotation::axial_tilt;
 use crate::simulation::components::save_scenario::save_scenario;
+use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::SimState;
 use crate::utils::sim_state_type_editor;
@@ -23,6 +24,7 @@ impl EditorSystemType {
     pub const UPDATE_TILT: &'static str = "update_tilt";
     pub const CREATE_BODY: &'static str = "create_body";
     pub const SAVE_SCENARIO: &'static str = "save_scenario";
+    pub const RETRIEVE_DATA: &'static str = "retrieve_data";
 }
 
 #[derive(Resource)]
@@ -71,6 +73,12 @@ impl FromWorld for EditorSystems {
             world.register_system(save_scenario)
         );
 
+
+        systems.0.insert(
+            EditorSystemType::RETRIEVE_DATA.into(),
+            world.register_system(retrieve_starting_data)
+        );
+
         systems
     }
 }
@@ -99,7 +107,8 @@ fn create_empty_body(
     mut assets: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut index: Local<i32>
+    mut index: Local<i32>,
+    scale: Res<SimulationScale>
 ) {
     let mut entity_commands = commands.spawn(SpatialBundle::default());
     apply_body(
@@ -110,7 +119,8 @@ fn create_empty_body(
         &mut meshes,
         &mut materials,
         0.0,
-        WHITE.into()
+        WHITE.into(),
+        &scale
     );
     if create_body_state.body_type != CreateBodyType::Moon {
         entity_commands.insert(BodyChildren(Vec::new()));
@@ -146,7 +156,8 @@ fn selection_listener(
 
 pub fn update_body_positions(
     mut bodies: Query<(Entity, &SimPosition, &mut Transform)>,
-    selected_entity: Res<SelectedEntity>
+    selected_entity: Res<SelectedEntity>,
+    scale: Res<SimulationScale>
 ) {
     let offset = if let Some(entity) = selected_entity.entity {
         if let Err(_) = bodies.get(entity) {
@@ -154,13 +165,12 @@ pub fn update_body_positions(
         } else {
             let (_, position, mut transform) = bodies.get_mut(entity).unwrap();
             transform.translation = Vec3::ZERO;
-            (position.0 * M_TO_UNIT).as_vec3()
+            scale.m_to_unit_dvec(position.0).as_vec3()
         }
     } else {
         Vec3::ZERO
     };
-    println!("Offset: {:?}", offset);
     for (_, position, mut transform) in bodies.iter_mut() {
-        transform.translation = (position.0 * M_TO_UNIT).as_vec3() - offset;
+        transform.translation = scale.m_to_unit_dvec(position.0).as_vec3() - offset;
     }
 }

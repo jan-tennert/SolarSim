@@ -7,7 +7,7 @@ use bevy_mod_billboard::text::BillboardTextBounds;
 use crate::simulation::components::apsis::ApsisBody;
 use crate::simulation::components::body::{Diameter, Moon, Planet, Star, BillboardVisible};
 use crate::simulation::components::camera::{pan_orbit_camera, PanOrbitCamera};
-use crate::constants::M_TO_UNIT;
+use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::SimState;
 use crate::simulation::render::star_billboard::STAR_IMPOSTER_DIVIDER;
 
@@ -32,11 +32,12 @@ impl Plugin for BodyBillboardPlugin {
 #[derive(Resource)]
 pub struct BillboardSettings {
     pub show: bool,
+    pub dynamic_hide: bool,
 }
 
 impl Default for BillboardSettings {
     fn default() -> Self {
-        Self { show: true }
+        Self { show: true, dynamic_hide: true }
     }
 }
 
@@ -45,6 +46,7 @@ fn auto_scale_billboards(
     mut billboards: Query<(&Text, &mut Transform, &mut Visibility), With<BillboardTextBounds>>,
     camera: Query<(&PanOrbitCamera, &Transform), (Without<BillboardTextBounds>, Without<Planet>, Without<Moon>, Without<Star>)>,
     settings: Res<BillboardSettings>,
+    scale: Res<SimulationScale>
 ) {
     if !settings.show {
         for (_, _, mut visible) in billboards.iter_mut() {
@@ -61,14 +63,14 @@ fn auto_scale_billboards(
         } else if star {
             radius > STAR_VISIBILITY_THRESHOLD
         } else {
-            radius < PLANET_VISIBILITY_THRESHOLD && radius > (diameter.num * 2.0 * M_TO_UNIT as f32) && (apsis.unwrap().perihelion.distance as f64 * M_TO_UNIT * 50.0 > radius as f64)
+            radius < PLANET_VISIBILITY_THRESHOLD && radius > (scale.m_to_unit_32(diameter.num) * 2.0) && (scale.m_to_unit_32(apsis.unwrap().perihelion.distance) * 50.0 > radius)
         };
         let offset = if star {
             distance_to_cam
         } else {
-            diameter.num * M_TO_UNIT as f32 / distance_to_cam * 0.01
+            scale.m_to_unit_32(diameter.num) / distance_to_cam * 0.01
         };
-        billboard_visible.0 = predicate;
+        billboard_visible.0 = !settings.dynamic_hide || predicate;
         billboard(
             &mut billboards,
             c_transform,
@@ -76,7 +78,7 @@ fn auto_scale_billboards(
             radius,
             offset,
             children,
-            predicate
+            !settings.dynamic_hide || predicate
         )
     }
 }

@@ -11,7 +11,7 @@ use crate::simulation::components::physics::{Pause, SubSteps};
 use crate::simulation::components::speed::Speed;
 use crate::simulation::{SimState, SimStateType};
 use crate::simulation::ui::{SimTime, StepType, UiState};
-use crate::simulation::ui::bottom_bar::get_date_from_millis;
+use crate::simulation::ui::bottom_bar::{get_date_from_seconds};
 
 pub fn simulation_bottom_bar(
     time: Res<Time>,
@@ -32,9 +32,9 @@ pub fn simulation_bottom_bar(
         return;
     }
     if !pause.0 && *sim_type == SimStateType::Simulation {
-        sim_time.0 += time.delta_seconds() * (((speed.0 * (sub_steps.0 as f64)) / (DAY_IN_SECONDS as f64)) as f32);
+        sim_time.0 += time.delta_seconds() * (speed.0 * sub_steps.0 as f64) as f32;
     }
-    let date = get_date_from_millis(scenario_data.starting_time_millis, sim_time.0);
+    let date = get_date_from_seconds(scenario_data.starting_time_millis, sim_time.0);
     let mut window = windows.single_mut();
     egui::TopBottomPanel::bottom("time_panel")
         .resizable(false)
@@ -62,7 +62,7 @@ pub fn simulation_bottom_bar(
                         }
                         ui.label(format!(
                             "{} ({}/s)",
-                            date.format("%d.%m.%Y"),
+                            date.format("%d.%m.%Y %H:%M:%S"),
                             speed.format(sub_steps.0)
                         ));
                         let time_text = if !pause.0 { "Pause" } else { "Resume" };

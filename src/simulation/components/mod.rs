@@ -4,11 +4,13 @@ use crate::simulation::components::billboard::BodyBillboardPlugin;
 use crate::simulation::components::camera::PanOrbitCameraPlugin;
 use crate::simulation::components::diameter::DiameterPlugin;
 use crate::simulation::components::direction::DirectionPlugin;
+use crate::simulation::components::horizons::HorizonsPlugin;
 use crate::simulation::components::lock_on::LockOnPlugin;
 use crate::simulation::components::orbit_lines::OrbitLinePlugin;
 use crate::simulation::components::physics::PhysicsPlugin;
 use crate::simulation::components::reset::ResetPlugin;
 use crate::simulation::components::rotation::RotationPlugin;
+use crate::simulation::components::scale::ScalePlugin;
 use crate::simulation::components::selection::SelectionPlugin;
 use crate::simulation::components::speed::SpeedPlugin;
 
@@ -26,8 +28,9 @@ pub mod speed;
 pub mod selection;
 pub mod reset;
 pub mod editor;
-pub mod anise;
+pub mod horizons;
 mod save_scenario;
+pub mod scale;
 
 pub struct SimComponentPlugin;
 
@@ -41,12 +44,14 @@ impl Plugin for SimComponentPlugin {
             .add_plugins(DiameterPlugin)
             .add_plugins(DirectionPlugin)
             .add_plugins(LockOnPlugin)
+            .add_plugins(ScalePlugin)
             .add_plugins(OrbitLinePlugin)
             .add_plugins(PhysicsPlugin)
             .add_plugins(ResetPlugin)
             .add_plugins(RotationPlugin)
             .add_plugins(SelectionPlugin)
-            .add_plugins(SpeedPlugin);
+            .add_plugins(SpeedPlugin)
+            .add_plugins(HorizonsPlugin);
     }
 
 }

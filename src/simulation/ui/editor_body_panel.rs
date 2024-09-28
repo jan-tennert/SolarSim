@@ -1,9 +1,7 @@
 use bevy::asset::{AssetServer, Assets};
 use crate::simulation::components::apsis::ApsisBody;
 use crate::simulation::components::body::{AxialTilt, BodyChildren, BodyParent, Diameter, LightSource, Mass, ModelPath, OrbitSettings, RotationSpeed, Scale, SceneEntity, SceneHandle, SimPosition, Velocity};
-use crate::constants::{G, M_TO_AU, M_TO_UNIT};
 use crate::simulation::components::selection::SelectedEntity;
-use crate::unit::{format_length, format_seconds};
 use bevy::core::Name;
 use bevy::math::DVec3;
 use bevy::pbr::StandardMaterial;
@@ -13,10 +11,13 @@ use bevy_egui::{egui, EguiContexts};
 use egui_toast::{Toast, ToastKind, ToastOptions};
 use crate::setup::spawn_scene;
 use crate::simulation::components::editor::{EditorSystemType, EditorSystems};
+use crate::simulation::components::horizons::HorizonsId;
+use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::render::star_billboard::StarBillboard;
 use crate::simulation::ui::components::vector_field;
 use crate::simulation::ui::toast::{success_toast, ToastContainer};
 use crate::simulation::ui::UiState;
+use crate::simulation::units::converter::{km_to_m, km_to_m_dvec, km_to_m_f64, m_to_km, m_to_km_dvec, m_to_km_f64, scale_lumen, unscale_lumen};
 
 #[derive(Debug, Default, Clone, Resource)]
 pub struct EditorPanelState {
@@ -30,21 +31,22 @@ pub struct EditorPanelState {
     pub new_axial_tilt: f32,
     pub new_model_path: String,
     pub show_delete_confirm: bool,
-    pub new_light_settings: Option<LightSettings>
+    pub new_light_settings: Option<LightSettings>,
+    pub horizons_id: i32,
 }
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct LightSettings {
     pub color: Color,
-    pub intensity: f64,
-    pub range: f64,
+    pub intensity: f32,
+    pub range: f32,
     pub enabled: bool,
 }
 
 pub fn editor_body_panel(
     mut egui_context: EguiContexts,
     selected_entity: Res<SelectedEntity>,
-    mut query: Query<(Entity, &mut Name, &mut SimPosition, &mut Velocity, &mut Mass, &mut Diameter, &mut RotationSpeed, &mut AxialTilt, &mut ModelPath, &mut SceneHandle), With<Mass>>,
+    mut query: Query<(Entity, &mut Name, &mut SimPosition, &mut Velocity, &mut Mass, &mut Diameter, &mut RotationSpeed, &mut AxialTilt, &mut ModelPath, &mut SceneHandle, &mut HorizonsId), With<Mass>>,
     scene_query: Query<Entity, With<SceneEntity>>,
     mut state: ResMut<EditorPanelState>,
     mut commands: Commands,
@@ -53,20 +55,21 @@ pub fn editor_body_panel(
     mut light_query: Query<(&mut PointLight, &LightSource, &mut Visibility)>,
     mut billboards: Query<(&StarBillboard, &mut Handle<StandardMaterial>)>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut toast_container: ResMut<ToastContainer>
+    mut toast_container: ResMut<ToastContainer>,
+    scale: Res<SimulationScale>
 ) {
     if egui_context.try_ctx_mut().is_none() {
         return;
     }
     let mut apply  = false;
     if let Some(s_entity) = selected_entity.entity {
-        if let Ok((entity, mut name, mut pos, mut vel, mut mass, mut diameter, mut rotation_speed, mut tilt, mut model_path, mut scene)) = query.get_mut(s_entity) {
+        if let Ok((entity, mut name, mut pos, mut vel, mut mass, mut diameter, mut rotation_speed, mut tilt, mut model_path, mut scene, mut horizons_id)) = query.get_mut(s_entity) {
             let light = light_query.iter_mut().find(|(_, l, _)| l.0 == entity).map(|(a,b,c)| (a,b,c));
             let mut billboard_material = billboards.iter_mut().find(|(b, _)| b.0 == entity).map(|(_, m)| m.clone());
             if state.entity.is_none() || state.entity.unwrap() != s_entity {
-                initialize_state(state.as_mut(), s_entity, &name, &pos, &vel, &mass, &diameter, &rotation_speed, &tilt, &model_path, light.as_ref());
+                initialize_state(state.as_mut(), s_entity, &name, &pos, &vel, &mass, &diameter, &rotation_speed, &tilt, &model_path, light.as_ref(), &scale, &horizons_id);
             }
-            display_body_panel(egui_context.ctx_mut(), state.as_mut(), &mut name, &mut pos, &mut vel, &mut mass, &mut diameter, &mut rotation_speed, &mut tilt, &mut model_path, &mut scene, &mut commands, &systems, &assets, light, scene_query, billboard_material.as_mut(), &mut materials, &mut apply);
+            display_body_panel(egui_context.ctx_mut(), state.as_mut(), &mut name, &mut pos, &mut vel, &mut mass, &mut diameter, &mut rotation_speed, &mut tilt, &mut model_path, &mut scene, &mut horizons_id, &mut commands, &systems, &assets, light, scene_query, billboard_material.as_mut(), &mut materials, &mut apply, &scale);
         }
     } else {
         state.entity = None;
@@ -87,25 +90,28 @@ fn initialize_state(
     rotation_speed: &RotationSpeed,
     tilt: &AxialTilt,
     model_path: &ModelPath,
-    light: Option<&(Mut<PointLight>, &LightSource, Mut<Visibility>)>
+    light: Option<&(Mut<PointLight>, &LightSource, Mut<Visibility>)>,
+    scale: &SimulationScale,
+    horizons_id: &Mut<HorizonsId>,
 ) {
     *state = EditorPanelState {
         entity: Some(s_entity),
         new_name: name.to_string(),
-        new_position: pos.0 / 1000.0,
-        new_velocity: vel.0 / 1000.0,
+        new_position: m_to_km_dvec(pos.0),
+        new_velocity: m_to_km_dvec(vel.0),
         new_mass: mass.0,
-        new_diameter: (diameter.num / 1000.0),
+        new_diameter: m_to_km(diameter.num),
         new_rotation_speed: rotation_speed.0,
         new_axial_tilt: tilt.num,
         new_model_path: model_path.cleaned(),
         show_delete_confirm: false,
         new_light_settings: light.map(|(light, _, visible)| LightSettings {
             color: (*light).color,
-            intensity: (*light).intensity as f64 / M_TO_UNIT.powf(2.),
+            intensity: unscale_lumen((*light).intensity, scale),
             enabled: **visible == Visibility::Visible,
-            range: (*light).range as f64 / M_TO_UNIT,
-        })
+            range: scale.unit_to_m_32(light.range),
+        }),
+        horizons_id: horizons_id.0,
     };
 }
 
@@ -121,6 +127,7 @@ fn display_body_panel(
     tilt: &mut AxialTilt,
     model_path: &mut ModelPath,
     scene: &mut SceneHandle,
+    horizons: &mut Mut<HorizonsId>,
     commands: &mut Commands,
     systems: &Res<EditorSystems>,
     assets: &Res<AssetServer>,
@@ -128,7 +135,8 @@ fn display_body_panel(
     scene_query: Query<Entity, With<SceneEntity>>,
     billboard_material: Option<&mut Handle<StandardMaterial>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
-    apply: &mut bool
+    apply: &mut bool,
+    scale: &SimulationScale
 ) {
     egui::SidePanel::right("body_panel")
         .resizable(true)
@@ -139,7 +147,7 @@ fn display_body_panel(
                     ui.heading("Body");
                     display_body_properties(ui, state);
                     display_light_source(ui, state);
-                    display_bottom_buttons(ui, state, name, pos, vel, mass, diameter, rotation_speed, tilt, model_path, scene, commands, systems, assets, light, scene_query, billboard_material, materials, apply);
+                    display_bottom_buttons(ui, state, name, pos, vel, mass, diameter, rotation_speed, tilt, model_path, scene, horizons, commands, systems, assets, light, scene_query, billboard_material, materials, apply, scale);
                 });
         });
 }
@@ -148,6 +156,10 @@ fn display_body_properties(ui: &mut egui::Ui, state: &mut EditorPanelState) {
     ui.horizontal(|ui| {
         ui.label("Name");
         ui.text_edit_singleline(&mut state.new_name);
+    });
+    ui.horizontal(|ui| {
+        ui.label("Horizons ID");
+        ui.add(egui::DragValue::new(&mut state.horizons_id));
     });
     ui.horizontal(|ui| {
         ui.label("Model Path");
@@ -216,6 +228,7 @@ fn display_bottom_buttons(
     tilt: &mut AxialTilt,
     model_path: &mut ModelPath,
     scene: &mut SceneHandle,
+    horizons: &mut Mut<HorizonsId>,
     commands: &mut Commands,
     systems: &Res<EditorSystems>,
     assets: &Res<AssetServer>,
@@ -223,12 +236,13 @@ fn display_bottom_buttons(
     scene_query: Query<Entity, With<SceneEntity>>,
     billboard_material: Option<&mut Handle<StandardMaterial>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
-    apply: &mut bool
+    apply: &mut bool,
+    scale: &SimulationScale
 ) {
     ui.with_layout(Layout::bottom_up(Align::Center), |ui| {
         ui.horizontal(|ui| {
             if ui.button("Apply").on_hover_text("Apply changes").clicked() {
-                apply_changes(state, name, pos, vel, mass, diameter, rotation_speed, tilt, model_path, scene, commands, systems, assets, light, scene_query, billboard_material, materials);
+                apply_changes(state, name, pos, vel, mass, diameter, rotation_speed, tilt, model_path, scene, horizons, commands, systems, assets, light, scene_query, billboard_material, materials, scale);
                 *apply = true;
             }
             if ui.button("Reset").on_hover_text("Reset to original values").clicked() {
@@ -250,6 +264,9 @@ fn display_bottom_buttons(
             }
         });
         ui.separator();
+        if ui.button("Fetch Horizons Data").on_hover_text("Fetch data from NASA Horizons").clicked() {
+            commands.run_system(systems.0[EditorSystemType::RETRIEVE_DATA]);
+        }
     });
 }
 
@@ -264,25 +281,28 @@ fn apply_changes(
     tilt: &mut AxialTilt,
     model_path: &mut ModelPath,
     scene: &mut SceneHandle,
+    horizons_id: &mut HorizonsId,
     commands: &mut Commands,
     systems: &Res<EditorSystems>,
     assets: &Res<AssetServer>,
     light: Option<(Mut<PointLight>, &LightSource, Mut<Visibility>)>,
     scene_query: Query<Entity, With<SceneEntity>>,
     billboard_material: Option<&mut Handle<StandardMaterial>>,
-    materials: &mut ResMut<Assets<StandardMaterial>>
+    materials: &mut ResMut<Assets<StandardMaterial>>,
+    scale: &SimulationScale
 ) {
     name.set(state.new_name.clone());
-    pos.0 = state.new_position * 1000.0;
-    vel.0 = state.new_velocity * 1000.0;
+    pos.0 = km_to_m_dvec(state.new_position);
+    vel.0 = km_to_m_dvec(state.new_velocity);
     mass.0 = state.new_mass;
-    let new_diameter = state.new_diameter * 1000.0;
+    let new_diameter = km_to_m(state.new_diameter);
     diameter.applied = new_diameter == diameter.num;
     diameter.num = new_diameter;
     rotation_speed.0 = state.new_rotation_speed;
     let new_tilt = state.new_axial_tilt;
     tilt.applied = new_tilt == tilt.num;
     tilt.num = new_tilt;
+    *horizons_id = HorizonsId(state.horizons_id);
     if let Some((mut light, _, mut visible)) = light {
         light.color = state.new_light_settings.as_ref().unwrap().color;
         if let Some(material) = billboard_material {
@@ -292,8 +312,8 @@ fn apply_changes(
             let mut material = materials.get_mut(material).unwrap();
             material.base_color = new_color;
         }
-        light.intensity = (state.new_light_settings.as_ref().unwrap().intensity * M_TO_UNIT.powf(2.)) as f32;
-        light.range = (state.new_light_settings.as_ref().unwrap().range * M_TO_UNIT) as f32;
+        light.intensity = scale_lumen(state.new_light_settings.as_ref().unwrap().intensity, scale);
+        light.range = scale.m_to_unit_32(state.new_light_settings.as_ref().unwrap().range);
         *visible = if state.new_light_settings.as_ref().unwrap().enabled {
             Visibility::Visible
         } else {
@@ -305,8 +325,8 @@ fn apply_changes(
                 .insert(PointLightBundle {
                     point_light: PointLight {
                         color: light.color,
-                        intensity: (light.intensity * M_TO_UNIT.powf(2.)) as f32,
-                        range: (light.range * M_TO_UNIT) as f32,
+                        intensity: scale_lumen(light.intensity, scale),
+                        range: scale.m_to_unit_32(light.range),
                         radius: new_diameter / 2.0,
                         ..default()
                     },

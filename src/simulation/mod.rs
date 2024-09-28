@@ -11,6 +11,8 @@ pub mod render;
 pub mod ui;
 pub mod components;
 pub mod loading;
+pub mod asset;
+pub mod units;
 
 #[derive(Clone, Eq, PartialEq, Debug, Default, Hash, Resource)]
 pub enum SimStateType {

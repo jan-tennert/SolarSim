@@ -1,9 +1,10 @@
 use bevy::{app::{App, Plugin}, prelude::{in_state, Entity, Gizmos, IntoSystemConfigs, Query, Transform, Update, With}};
 use bevy::color::palettes::css;
-use crate::constants::M_TO_UNIT;
+use bevy::prelude::Res;
 use crate::simulation::SimState;
 use crate::simulation::components::body::{BodyChildren, Diameter, Moon, OrbitSettings, Planet, Velocity};
 use crate::simulation::components::camera::pan_orbit_camera;
+use crate::simulation::components::scale::SimulationScale;
 
 pub struct DirectionPlugin;
 
@@ -19,10 +20,11 @@ impl Plugin for DirectionPlugin {
 fn display_force_and_velocity(
     planet_query: Query<(&Transform, &BodyChildren, &OrbitSettings, &Diameter, &Velocity), With<Planet>>,
     moon_query: Query<(Entity, &Transform, &OrbitSettings, &Diameter, &Velocity), With<Moon>>,
-    mut gizmos: Gizmos
+    mut gizmos: Gizmos,
+    scale: Res<SimulationScale>
 ) {
     for (transform, _, orbit, diameter, velocity) in &planet_query {
-        let d =  diameter.num as f64 * M_TO_UNIT;
+        let d = scale.m_to_unit(diameter.num as f64);
         if orbit.display_force {
             gizmos.arrow(transform.translation, transform.translation + (orbit.force_direction * d * orbit.arrow_scale as f64).as_vec3(), css::BLUE);
         }
@@ -31,7 +33,7 @@ fn display_force_and_velocity(
         }
     }
     for (entity, transform, orbit, diameter, velocity) in &moon_query {
-        let d =  diameter.num as f64 * M_TO_UNIT;
+        let d = scale.m_to_unit(diameter.num as f64);
         if orbit.display_force {
             gizmos.arrow(transform.translation, transform.translation +(orbit.force_direction * d * orbit.arrow_scale as f64).as_vec3(), css::BLUE);
         }

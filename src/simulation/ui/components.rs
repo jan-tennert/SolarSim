@@ -14,6 +14,6 @@ pub fn vector_field(ui: &mut Ui, name: &str, state: &mut DVec3) {
 fn coordinate_field(ui: &mut Ui, name: &str, state: &mut f64) {
     ui.horizontal(|ui| {
         ui.label(name);
-        ui.add(egui::DragValue::new(state));
+        ui.add(egui::DragValue::new(state).max_decimals(20));
     });
 }

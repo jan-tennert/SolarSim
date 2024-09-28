@@ -2,7 +2,7 @@ use bevy::app::{App, Plugin};
 use bevy::prelude::Resource;
 
 use crate::constants::DEFAULT_TIMESTEP;
-use crate::unit::format_seconds;
+use crate::simulation::units::text_formatter::format_seconds;
 
 pub struct SpeedPlugin;
 
@@ -23,7 +23,7 @@ impl Speed {
     pub fn format(&self, sub_steps: i32) -> String {
         let speed_in_seconds = self.0 * (sub_steps as f64);
             
-        return format_seconds(speed_in_seconds);
+        format_seconds(speed_in_seconds)
     }
         
     pub fn small_step_up(&mut self) {

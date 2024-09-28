@@ -1,5 +1,3 @@
-use crate::constants::M_TO_UNIT;
-use crate::serialization::{SerializedBody, SerializedBodyData, SerializedLightSource, SerializedVec, SimulationData};
 use crate::setup::ScenarioData;
 use crate::simulation::components::body::{AxialTilt, BodyChildren, Diameter, LightSource, Mass, ModelPath, RotationSpeed, SimPosition, Star, Velocity};
 use crate::simulation::ui::scenario_selection::SelectedScenario;
@@ -11,6 +9,11 @@ use bevy::math::DVec3;
 use bevy::prelude::{default, AssetServer, Assets, Entity, PointLight, Query, Res, ResMut, Visibility};
 use std::fs;
 use egui_toast::{Toast, ToastKind, ToastOptions};
+use crate::simulation::asset::serialization::{SerializedBody, SerializedBodyData, SerializedLightSource, SerializedVec, SimulationData};
+use crate::simulation::components::horizons::HorizonsId;
+use crate::simulation::components::scale::SimulationScale;
+use crate::simulation::components::speed::Speed;
+use crate::simulation::units::converter::unscale_lumen;
 
 pub struct SaveScenarioPlugin;
 
@@ -29,9 +32,11 @@ pub struct SystemPanelSet<'w, 's> {
     selected_scenario: ResMut<'w, SelectedScenario>,
     bodies_asset: ResMut<'w, Assets<SimulationData>>,
     scenario_data: ResMut<'w, ScenarioData>,
-    bodies: Query<'w, 's, (Entity, &'static Mass, &'static SimPosition, &'static Velocity, &'static Name, &'static ModelPath, &'static Diameter, &'static RotationSpeed, &'static AxialTilt, Option<&'static BodyChildren>, Option<&'static Star>)>,
+    bodies: Query<'w, 's, (Entity, &'static Mass, &'static SimPosition, &'static Velocity, &'static Name, &'static ModelPath, &'static Diameter, &'static RotationSpeed, &'static AxialTilt, Option<&'static BodyChildren>, Option<&'static HorizonsId>, Option<&'static Star>)>,
     lights: Query<'w, 's, (&'static LightSource, &'static PointLight, &'static Visibility)>,
-    toasts: ResMut<'w, ToastContainer>
+    toasts: ResMut<'w, ToastContainer>,
+    scale: Res<'w, SimulationScale>,
+    speed: Res<'w, Speed>
 
 }
 
@@ -46,9 +51,11 @@ pub fn save_scenario(
         starting_time_millis: scenario_data.starting_time_millis,
         title: scenario_data.title.clone(),
         description: scenario_data.description.clone(),
+        scale: system_panel_set.scale.0,
+        timestep: system_panel_set.speed.0 as i32
     };
     let serialized_data = serde_json::to_string(&simulation_data).unwrap();
-    fs::write(format!("assets/scenarios/{}", file_path), serialized_data).unwrap();
+    fs::write(format!("scenarios/{}", file_path), serialized_data).unwrap();
     system_panel_set.toasts.0.add(success_toast("Scenario saved"));
 }
 
@@ -58,7 +65,7 @@ fn get_file_path<'s>(system_panel_set: &'s SystemPanelSet) -> &'s str {
 
 fn collect_bodies(system_panel_set: &SystemPanelSet) -> Vec<SerializedBody> {
     let mut bodies = Vec::new();
-    system_panel_set.bodies.iter().filter(|(_, _, _, _, _, _, _, _, _, _, star)| star.is_some()).for_each(|(entity, _, _, _, _, _, _, _, _, children, _)| {
+    system_panel_set.bodies.iter().filter(|(_, _, _, _, _, _, _, _, _, _, _, star)| star.is_some()).for_each(|(entity, _, _, _, _, _, _ ,_, _, children, _, _)| {
         let mut data = find_body_data(system_panel_set, entity).map(|(data, _)| data).unwrap();
         let light_source = find_light_source(system_panel_set, entity);
         data.light_source = light_source;
@@ -73,7 +80,6 @@ fn collect_planets(system_panel_set: &SystemPanelSet, children: BodyChildren) ->
     for planet_entity in children.0.clone() {
         if let Some((planet_data, planet_children)) = find_body_data(system_panel_set, planet_entity) {
             let moons = collect_moons(system_panel_set, planet_children.unwrap().clone());
-            println!("{:?}", moons);
             planets.push(SerializedBody { children: moons, data: planet_data.clone() });
         }
     }
@@ -91,9 +97,9 @@ fn collect_moons(system_panel_set: &SystemPanelSet, children: BodyChildren) -> V
 }
 
 fn find_body_data(system_panel_set: &SystemPanelSet, entity: Entity) -> Option<(SerializedBodyData, Option<BodyChildren>)> {
-    system_panel_set.bodies.iter().find(|(e, _, _, _, _, _, _, _, _, _, _)| *e == entity)
-        .map(|(_, m, p, v, n, mp, d, rs, at, child, _)| (
-            create_serialized_body_data(m.0, p.0 / 1000.0, v.0 / 1000.0, n.to_string(), mp.cleaned(), d.num as f64 / 1000.0, rs.0, at.num, None),
+    system_panel_set.bodies.iter().find(|(e, _, _, _, _, _, _, _, _, _, _, _)| *e == entity)
+        .map(|(_, m, p, v, n, mp, d, rs, at, child, horizon, _)| (
+            create_serialized_body_data(m.0, p.0 / 1000.0, v.0 / 1000.0, n.to_string(), mp.cleaned(), d.num as f64 / 1000.0, rs.0, at.num, None, horizon.map(|h| h.0)),
             child.map(|c| c.clone())
         ))
 }
@@ -106,7 +112,8 @@ fn create_serialized_body_data(
     diameter: f64,
     rotation_speed: f64,
     axial_tilt: f32,
-    light_source: Option<SerializedLightSource>
+    light_source: Option<SerializedLightSource>,
+    horizons_id: Option<i32>,
 ) -> SerializedBodyData {
     SerializedBodyData {
         mass,
@@ -118,17 +125,18 @@ fn create_serialized_body_data(
         rotation_speed,
         axial_tilt,
         simulate: true,
-        light_source
+        light_source,
+        horizons_id
     }
 }
 
 fn find_light_source(
     system_panel_set: &SystemPanelSet,
-    entity: Entity
+    entity: Entity,
 ) -> Option<SerializedLightSource> {
     system_panel_set.lights.iter().find(|(s, _, _)| s.0 == entity).map(|(_, light, visibility)| SerializedLightSource {
-        intensity: light.intensity as f64 / M_TO_UNIT.powf(2.),
-        range: light.range as f64 / M_TO_UNIT,
+        intensity: unscale_lumen(light.intensity, &system_panel_set.scale),
+        range: system_panel_set.scale.unit_to_m_32(light.range),
         color: light.color.to_srgba().to_hex(),
         enabled: visibility == &Visibility::Visible
     })

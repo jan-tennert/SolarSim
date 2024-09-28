@@ -1,6 +1,16 @@
+use crate::simulation::asset::serialization::{SerializedBody, SerializedVec, SimulationData};
+use crate::simulation::components::apsis::ApsisBody;
+use crate::simulation::components::body::{BodyBundle, BodyChildren, BodyParent, LightSource, Moon, OrbitSettings, Planet, Scale, SceneEntity, SceneHandle, Star};
+use crate::simulation::components::camera::PanOrbitCamera;
+use crate::simulation::components::editor::CreateBodyType;
+use crate::simulation::components::selection::SelectedEntity;
+use crate::simulation::loading::LoadingState;
+use crate::simulation::render::skybox::Cubemap;
+use crate::simulation::render::star_billboard::StarBillboard;
+use crate::simulation::ui::scenario_selection::SelectedScenario;
+use crate::simulation::SimState;
 use bevy::app::{App, Plugin};
 use bevy::asset::AssetServer;
-use bevy::color::Color::Hsla;
 use bevy::color::palettes::css::WHITE;
 use bevy::core::Name;
 use bevy::core_pipeline::bloom::BloomSettings;
@@ -9,23 +19,15 @@ use bevy::ecs::system::EntityCommands;
 use bevy::hierarchy::BuildChildren;
 use bevy::math::{DVec3, Vec3};
 use bevy::pbr::{PbrBundle, PointLight, PointLightBundle};
-use bevy::prelude::{Assets, Bundle, Camera, Camera3dBundle, ChildBuilder, Color, Commands, default, Entity, Handle, in_state, IntoSystemConfigs, Mesh, OnEnter, PerspectiveProjection, Projection, Res, ResMut, Resource, SceneBundle, SpatialBundle, StandardMaterial, Startup, Transform, Update, Visibility, Circle, Srgba, Hsva, NextState};
-use bevy::render::view::{GpuCulling, NoCpuCulling, RenderLayers};
+use bevy::prelude::{default, in_state, Assets, Camera, Camera3dBundle, ChildBuilder, Circle, Color, Commands, Entity, Handle, Hsva, IntoSystemConfigs, Mesh, NextState, PerspectiveProjection, Projection, Res, ResMut, Resource, SceneBundle, SpatialBundle, Srgba, StandardMaterial, Startup, Transform, Update, Visibility};
+use bevy::render::view::{GpuCulling, NoCpuCulling};
 use bevy::scene::Scene;
 use bevy::text::{JustifyText, TextSection, TextStyle};
+use bevy::time::TimePlugin;
 use bevy_mod_billboard::{BillboardLockAxisBundle, BillboardTextBundle};
-use crate::simulation::components::apsis::ApsisBody;
-use crate::simulation::components::body::{BodyBundle, BodyChildren, BodyParent, LightSource, Moon, OrbitSettings, Planet, SceneEntity, SceneHandle, Star};
-use crate::simulation::components::camera::PanOrbitCamera;
-use crate::constants::M_TO_UNIT;
-use crate::simulation::loading::LoadingState;
-use crate::simulation::components::selection::SelectedEntity;
-use crate::serialization::{SerializedBody, SerializedVec, SimulationData};
-use crate::simulation::components::editor::CreateBodyType;
-use crate::simulation::SimState;
-use crate::simulation::render::skybox::Cubemap;
-use crate::simulation::render::star_billboard::StarBillboard;
-use crate::simulation::ui::scenario_selection::SelectedScenario;
+use crate::simulation::asset::from_scenario_source;
+use crate::simulation::components::scale::SimulationScale;
+use crate::simulation::units::converter::scale_lumen;
 
 pub struct SetupPlugin;
 
@@ -43,7 +45,9 @@ pub struct ScenarioData {
 
     pub starting_time_millis: i64,
     pub title: String,
-    pub description: String
+    pub description: String,
+    pub timestep: i32,
+    pub scale: f32
 
 }
 
@@ -53,7 +57,9 @@ impl From<SimulationData> for ScenarioData {
         Self {
             starting_time_millis: value.starting_time_millis,
             title: value.title,
-            description: value.description
+            description: value.description,
+            timestep: value.timestep,
+            scale: value.scale
         }
     }
 }
@@ -69,6 +75,7 @@ pub fn setup_planets(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut sim_state: ResMut<NextState<SimState>>,
+    scale: Res<SimulationScale>
 ) {
     if selected_scenario.spawned {
         return;
@@ -103,10 +110,10 @@ pub fn setup_planets(
                 parent.spawn(PointLightBundle {
                     point_light: PointLight {
                         color: star_color,
-                        intensity: (source.intensity * M_TO_UNIT.powf(2.)) as f32,
+                        intensity: scale_lumen(source.intensity, &scale),
                         shadows_enabled: true,
-                        range: (source.range * M_TO_UNIT) as f32, //TODO: make this a variable
-                        radius: (entry.data.diameter / 2.0 * M_TO_UNIT) as f32,
+                        range: scale.m_to_unit_32(source.range as f32), //TODO: make this a variable
+                        radius: scale.m_to_unit_32(entry.data.diameter as f32 / 2.0),
                         ..default()
                     },
                     visibility: if source.enabled { Visibility::Visible } else { Visibility::Hidden },
@@ -118,7 +125,7 @@ pub fn setup_planets(
         star_color = Srgba::rgb(srgb.red * 30.0, srgb.green * 30.0, srgb.blue * 30.0).into();
 
         //add the star's components
-        apply_body(BodyBundle::from(entry.clone()), CreateBodyType::Star, &assets, &mut star, &mut meshes, &mut materials, calculate_hue(s_index as f32, stars as f32), star_color);
+        apply_body(BodyBundle::from(entry.clone()), CreateBodyType::Star, &assets, &mut star, &mut meshes, &mut materials, calculate_hue(s_index as f32, stars as f32), star_color, &scale);
         
         //planet count in star system for coloring later
         let planet_count = entry.children.iter().filter(|p| p.data.simulate).count();
@@ -144,7 +151,7 @@ pub fn setup_planets(
             let de_planet_entry = *planet_entry;
             
             //add the planet's components
-            apply_body(BodyBundle::from(de_planet_entry.clone()), CreateBodyType::Planet, &assets, &mut planet, &mut meshes, &mut materials,calculate_hue(p_index as f32, planet_count as f32), WHITE.into());
+            apply_body(BodyBundle::from(de_planet_entry.clone()), CreateBodyType::Planet, &assets, &mut planet, &mut meshes, &mut materials,calculate_hue(p_index as f32, planet_count as f32), WHITE.into(), &scale);
             //for the tree-based ui later
             planets.push(planet_id);
             
@@ -154,7 +161,7 @@ pub fn setup_planets(
                 
             //collect the moons in a new vector and sort them by the distance to the parent
             let mut planet_children = de_planet_entry.children.iter().collect::<Vec<_>>();
-            sort_bodies(&mut planet_children, -serialized_vec_to_vec(de_planet_entry.clone().data.starting_position));
+            sort_bodies(&mut planet_children, -DVec3::from(de_planet_entry.clone().data.starting_position));
             
             //iterate through the moons
             for (m_index, moon_entry) in planet_entry.children.iter().enumerate() {
@@ -168,7 +175,7 @@ pub fn setup_planets(
                 moons.push(moon.id());
                 
                 //add the moon's components
-                apply_body(BodyBundle::from(moon_entry.clone()), CreateBodyType::Moon, &assets, &mut moon, &mut meshes, &mut materials, calculate_hue(m_index as f32, moon_count as f32), WHITE.into());
+                apply_body(BodyBundle::from(moon_entry.clone()), CreateBodyType::Moon, &assets, &mut moon, &mut meshes, &mut materials, calculate_hue(m_index as f32, moon_count as f32), WHITE.into(), &scale);
                 moon.insert(BodyParent(planet_id));
             }
             planet.insert(BodyParent(star_id));
@@ -197,16 +204,10 @@ fn sort_bodies(
     offset: DVec3,
 ) {
     bodies.sort_by(|body1, body2| {
-        let pos1 = serialized_vec_to_vec(body1.data.starting_position) + offset;
-        let pos2 = serialized_vec_to_vec(body2.data.starting_position) + offset;
+        let pos1 = DVec3::from(body1.data.starting_position) +offset;
+        let pos2 = DVec3::from(body2.data.starting_position) + offset;
         pos1.length().partial_cmp(&pos2.length()).unwrap()
     });
-}
-
-fn serialized_vec_to_vec(
-    serialized_vec: SerializedVec
-) -> DVec3 {
-    DVec3::new(serialized_vec.x, serialized_vec.y, serialized_vec.z)
 }
 
 pub fn apply_body(
@@ -217,7 +218,8 @@ pub fn apply_body(
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
     hue: f32,
-    star_color: Color
+    star_color: Color,
+    scale: &SimulationScale
 ) {
     let asset_handle: Handle<Scene> = assets.load(bundle.model_path.clone().0);
     let color: Color = Hsva::new(hue, 1.0, 0.5, 1.0).into();
@@ -266,6 +268,7 @@ pub fn apply_body(
                 materials,
                 star_color,
                 *id,
+                &scale,
             );
         }
     });
@@ -279,9 +282,10 @@ fn spawn_imposter(
     materials: &mut ResMut<Assets<StandardMaterial>>,
     color: Color,
     parent_id: Entity,
+    scale: &SimulationScale
 ) {
     parent.spawn(PbrBundle {
-        mesh: meshes.add(Circle::new(bundle.diameter.num  * 3.0 * M_TO_UNIT as f32)),
+        mesh: meshes.add(Circle::new(scale.m_to_unit_32(bundle.diameter.num  * 3.0))),
         material: materials.add(color),
         visibility: Visibility::Hidden,
         ..default()

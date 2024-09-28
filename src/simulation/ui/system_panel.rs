@@ -14,6 +14,7 @@ use bevy::input::ButtonInput;
 use bevy::prelude::{AabbGizmoConfigGroup, Camera, Commands, Entity, GizmoConfigStore, KeyCode, NextState, Query, Res, ResMut, Vec3, Visibility, With, Without};
 use bevy_egui::egui::{Align, InnerResponse, Layout, Response, ScrollArea, Ui};
 use bevy_egui::{egui, EguiContexts};
+use crate::simulation::ui::metadata::ShowMetadata;
 
 #[derive(SystemParam)]
 pub struct SystemPanelSet<'w, 's> {
@@ -61,6 +62,7 @@ pub struct SystemPanelSet<'w, 's> {
     sim_state_type: Res<'w, SimStateType>,
     create_body_state: ResMut<'w, CreateBodyState>,
     systems: Res<'w, EditorSystems>,
+    show_metadata: ResMut<'w, ShowMetadata>,
 }
 
 fn body_tree<R>(
@@ -176,6 +178,7 @@ pub fn system_panel(
 
                         ui.checkbox(&mut system_panel_set.config.config_mut::<AabbGizmoConfigGroup>().1.draw_all, "Draw Outlines");
                         ui.checkbox(&mut system_panel_set.billboard.show, "Show Body Names");
+                        ui.checkbox(&mut system_panel_set.billboard.dynamic_hide, "Dynamically hide Body Names");
                         if *system_panel_set.sim_state_type == SimStateType::Simulation {
                             if ui.checkbox(&mut system_panel_set.orbit_offset.enabled, "Offset body to zero").changed() {
                                 if system_panel_set.orbit_offset.enabled {
@@ -190,6 +193,10 @@ pub fn system_panel(
                         ui.add_space(5.0);
                         if ui.button("Open Keybind Window").clicked() {
                             ui_state.show_keys = true;
+                        }
+                        ui.add_space(5.0);
+                        if *system_panel_set.sim_state_type == SimStateType::Editor && ui.button("Edit metadata").clicked() {
+                            system_panel_set.show_metadata.0 = true;
                         }
                         ui.with_layout(Layout::bottom_up(Align::LEFT), |ui| {
                             if ui.button("Back to Menu").clicked() {

@@ -4,12 +4,13 @@ use bevy::math::Vec3;
 use bevy::prelude::{Camera, Commands, DespawnRecursiveExt, Entity, Mut, Query, Res, ResMut, Transform, Without};
 use bevy_egui::{egui, EguiContexts};
 use bevy_egui::egui::{RichText, ScrollArea};
-use crate::constants::{G, M_TO_AU, M_TO_UNIT};
+use crate::constants::{G, M_TO_AU};
 use crate::simulation::components::apsis::ApsisBody;
 use crate::simulation::components::body::{BodyChildren, BodyParent, Diameter, Mass, OrbitSettings, RotationSpeed, Scale, SimPosition, Velocity};
+use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::ui::UiState;
-use crate::unit::{format_length, format_seconds};
+use crate::simulation::units::text_formatter::{format_length, format_seconds};
 
 pub fn sim_body_panel(
     mut egui_context: EguiContexts,
@@ -18,6 +19,7 @@ pub fn sim_body_panel(
     camera: Query<(&Camera, &Transform), Without<Velocity>>,
     selected_entity: Res<SelectedEntity>,
     mut ui_state: ResMut<UiState>,
+    s_scale: Res<SimulationScale>,
 ) {
     if !ui_state.visible || egui_context.try_ctx_mut().is_none() {
         return;
@@ -131,8 +133,8 @@ pub fn sim_body_panel(
                             ui.label(RichText::new("Distance to Camera").size(16.0).underline());
                             let (_, camera_pos) = camera.single();
                             let c_distance_in_units = camera_pos.translation.distance(transform.translation) as f64;
-                            ui.label(format!("{}", format_length((c_distance_in_units / M_TO_UNIT) as f32)));
-                            ui.label(format!("{:.3} au", c_distance_in_units / M_TO_UNIT * M_TO_AU as f64));
+                            ui.label(format!("{}", format_length(s_scale.unit_to_m_32(c_distance_in_units as f32))));
+                            ui.label(format!("{:.3} au", s_scale.unit_to_m(c_distance_in_units) * M_TO_AU as f64));
 
                             // Distance to parent
                             if let Some((parent_pos, _, p_name, _)) = parent {
@@ -188,6 +190,15 @@ pub fn sim_body_panel(
                                 let mut rgb = [orbit_color.red, orbit_color.green, orbit_color.blue];
                                 ui.color_edit_button_rgb(&mut rgb);
                                 orbit.color = Srgba::rgb(rgb[0], rgb[1], rgb[2]).into();
+                            });
+
+                            ui.horizontal(|ui| {
+                                ui.label("Orbit Line Multiplier");
+                                ui.add(
+                                    egui::Slider::new(&mut orbit.orbit_line_multiplier, 0.1..=100.0)
+                                        .clamp_to_range(true)
+                                        .logarithmic(true),
+                                );
                             });
 
                             ui.label(

@@ -1,6 +1,7 @@
-use bevy::prelude::{App, Camera, Commands, DespawnRecursiveExt, Entity, NextState, OnEnter, OnExit, Plugin, Query, ResMut, Vec3, With, Without};
+use bevy::prelude::{App, Camera, Commands, DespawnRecursiveExt, Entity, NextState, OnEnter, OnExit, Plugin, Query, Res, ResMut, Vec3, With, Without};
 
 use crate::{constants::{DEFAULT_SUB_STEPS, DEFAULT_TIMESTEP}};
+use crate::setup::ScenarioData;
 use crate::simulation::components::body::Mass;
 use crate::simulation::components::camera::{PanOrbitCamera, DEFAULT_CAM_RADIUS};
 use crate::simulation::components::physics::{Pause, SubSteps};
@@ -35,12 +36,13 @@ fn clean_up(
     mut loading_state: ResMut<LoadingState>,
     mut commands: Commands,
     mut camera: Query<&mut PanOrbitCamera>,
-    mut ui_state: ResMut<UiState>
+    mut ui_state: ResMut<UiState>,
+    scenario_data: Res<ScenarioData>
 ) {
     for entity in m_entities.iter() {
         commands.entity(entity).despawn_recursive()
     }
-    speed.0 = DEFAULT_TIMESTEP;
+    speed.0 = scenario_data.timestep as f64;
     pause.0 = false;
     sim_time.0 = 0.0;
     selected_entity.entity = None;

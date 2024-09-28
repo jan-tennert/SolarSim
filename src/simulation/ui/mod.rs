@@ -1,6 +1,6 @@
 mod bottom_bar;
 pub mod system_panel;
-mod editor_body_panel;
+pub mod editor_body_panel;
 pub mod debug_window;
 pub mod components;
 pub mod scenario_selection;
@@ -8,6 +8,7 @@ mod sim_body_panel;
 pub mod simulation_bottom_bar;
 pub mod editor_bottom_bar;
 pub mod toast;
+mod metadata;
 
 use bevy::{
     core_pipeline::Skybox,
@@ -25,7 +26,7 @@ use bevy_inspector_egui::egui::{RichText, TextEdit};
 use chrono::{Days, NaiveDateTime};
 
 //use crate::fps::Fps;
-use crate::{constants::{DAY_IN_SECONDS, M_TO_AU, M_TO_UNIT}, unit::format_length};
+use crate::constants::{DAY_IN_SECONDS, M_TO_AU};
 use crate::simulation::components::billboard::BillboardSettings;
 use crate::simulation::components::body::BodyParent;
 use crate::constants::G;
@@ -52,11 +53,12 @@ use crate::simulation::components::speed::Speed;
 use crate::simulation::ui::editor_body_panel::{editor_body_panel, EditorPanelState};
 use crate::simulation::ui::debug_window::DebugPlugin;
 use crate::simulation::ui::editor_bottom_bar::editor_bottom_bar;
+use crate::simulation::ui::metadata::MetadataPlugin;
 use crate::simulation::ui::scenario_selection::ScenarioSelectionPlugin;
 use crate::simulation::ui::sim_body_panel::sim_body_panel;
 use crate::simulation::ui::simulation_bottom_bar::simulation_bottom_bar;
 use crate::simulation::ui::toast::ToastPlugin;
-use crate::unit::format_seconds;
+//use crate::fps::Fps;
 use crate::utils::{sim_state_type_editor, sim_state_type_simulation};
 
 #[derive(Resource, Reflect, Default)]
@@ -102,6 +104,7 @@ impl Plugin for InterfacePlugin {
             .add_plugins(DebugPlugin)
             .add_plugins(ScenarioSelectionPlugin)
             .add_plugins(ToastPlugin)
+            .add_plugins(MetadataPlugin)
             .add_systems(
                 Update,
                 (

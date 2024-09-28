@@ -11,7 +11,7 @@ use crate::simulation::components::speed::Speed;
 use crate::simulation::{SimState, SimStateType};
 use crate::simulation::components::editor::{EditorSystemType, EditorSystems};
 use crate::simulation::ui::{SimTime, UiState};
-use crate::simulation::ui::bottom_bar::get_date_from_millis;
+use crate::simulation::ui::bottom_bar::get_date_from_seconds;
 
 pub fn editor_bottom_bar(
     mut sim_time: ResMut<SimTime>,
@@ -25,7 +25,7 @@ pub fn editor_bottom_bar(
     mut commands: Commands
 ) {
     let mut window = windows.single_mut();
-    let date = get_date_from_millis(scenario_data.starting_time_millis, sim_time.0);
+    let date = get_date_from_seconds(scenario_data.starting_time_millis, sim_time.0);
     egui::TopBottomPanel::bottom("time_panel")
         .resizable(false)
         .show(egui_context.ctx_mut(), |ui| {

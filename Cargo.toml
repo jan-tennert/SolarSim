@@ -20,7 +20,7 @@ lto = "thin"
 
 [dependencies]
 #bevy = { git = "https://github.com/bevyengine/bevy", branch = "release-0.11.3", features = ["dynamic_linking"] } 
-bevy = { version = "0.14.2" }
+bevy = { version = "0.14.2", features = ["jpeg"] }
 bevy_easings = "0.14"
 #bevy_panorbit_camera = { git = "https://github.com/jan-tennert/bevy_panorbit_camera", rev = "7e3c3f8" }
 bevy-inspector-egui = { version = "0.26.0"}
@@ -33,6 +33,7 @@ winit = "0.28.7"
 image = "0.24.7"
 bevy_mod_billboard = "0.7.0"
 blocking = "1.5.1"
-anise = "0.4.3"
 egui-toast = "0.14.0"
 tinyfiledialogs = "3.0"
+egui_extras = { version = "0.28.0", features = ["chrono"] }
+reqwest = { version = "0.12.7", features = ["blocking", "json"] }

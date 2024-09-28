@@ -1,12 +1,12 @@
-use std::collections::VecDeque;
-use bevy::color::Color;
+use crate::simulation::asset::serialization::SerializedBody;
 use bevy::color::palettes::css;
+use bevy::color::Color;
 use bevy::core::Name;
 use bevy::math::{DVec3, Vec3};
-use bevy::prelude::{Bundle, Component, default, Entity, Handle, Reflect, Scene, Transform, Srgba};
+use bevy::prelude::{default, Bundle, Component, Entity, Handle, Reflect, Scene, Srgba, Transform};
 use bevy::render::primitives::Aabb;
-use crate::constants::M_TO_UNIT;
-use crate::serialization::SerializedBody;
+use std::collections::VecDeque;
+use crate::simulation::components::horizons::HorizonsId;
 
 #[derive(Component, Clone, Default, Reflect, Copy)]
 pub struct Mass(pub f64);
@@ -58,6 +58,7 @@ pub struct OrbitSettings {
     pub step: f32,
     pub lines: VecDeque<Vec3>,
     pub force_direction: DVec3,
+    pub orbit_line_multiplier: f32,
     pub hide_lines: bool,
     pub draw_lines: bool,
     pub display_force: bool,
@@ -73,7 +74,7 @@ pub struct BillboardVisible(pub bool);
 impl Default for OrbitSettings {
     
     fn default() -> Self {
-        OrbitSettings { color: css::GREEN.into(), lines: VecDeque::with_capacity(3000), force_direction: DVec3::ZERO, draw_lines: false, step: 0.0, period: 0.0, display_force: false, display_velocity: false, arrow_scale: 1, hide_lines: false, }
+        OrbitSettings { color: css::GREEN.into(), lines: VecDeque::with_capacity(3000), force_direction: DVec3::ZERO, draw_lines: false, step: 0.0, period: 0.0, display_force: false, display_velocity: false, arrow_scale: 1, hide_lines: false, orbit_line_multiplier: 1.0 }
     }
     
 }
@@ -128,8 +129,9 @@ pub struct BodyBundle {
     pub rotation_speed: RotationSpeed,
     pub axial_tilt: AxialTilt,   
     pub diameter: Diameter,
-    pub billboard_visible: BillboardVisible
-                   
+    pub billboard_visible: BillboardVisible,
+    pub horizons_id: HorizonsId,
+
 }
 
 impl From<SerializedBody> for BodyBundle {
@@ -150,6 +152,7 @@ impl From<SerializedBody> for BodyBundle {
                 ..default()
             },
             rotation_speed: RotationSpeed(value.data.rotation_speed),
+            horizons_id: HorizonsId(value.data.horizons_id.unwrap_or(-1)),
            ..default()
         }
     }

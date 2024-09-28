@@ -1,13 +1,18 @@
 use std::fs;
+use std::path::Path;
 use bevy::app::{App, Plugin, Update};
-use bevy::asset::LoadedFolder;
+use bevy::asset::io::AssetSourceId;
+use bevy::asset::{AssetPath, LoadedFolder};
 use bevy::prelude::{in_state, AssetServer, Assets, Commands, Handle, Image, IntoSystemConfigs, Local, NextState, OnEnter, OnExit, Res, ResMut, Resource};
 use bevy::utils::HashMap;
 use bevy_egui::egui::{Align, CentralPanel, Layout, SidePanel, TextureId};
 use bevy_egui::{egui, EguiContexts};
 use image::load;
-use crate::serialization::SimulationData;
 use crate::simulation::{SimState, SimStateType};
+use crate::simulation::asset::{from_scenario_source, SCENARIO_ASSET_SOURCE};
+use crate::simulation::asset::serialization::SimulationData;
+use crate::simulation::components::scale::SimulationScale;
+use crate::simulation::components::speed::Speed;
 use crate::simulation::ui::toast::{error_toast, ToastContainer};
 
 pub struct ScenarioSelectionPlugin;
@@ -50,15 +55,13 @@ fn load_scenarios(
     assets: Res<AssetServer>,
     mut commands: Commands
 ) {
-    let handle = assets.load_folder("scenarios");
+    let handle = assets.load_folder(from_scenario_source(""));
     commands.insert_resource(ScenarioFolder(handle));
 }
 
 fn creation_sidebar(
     mut egui_context: EguiContexts,
     mut selection_state: ResMut<SelectionState>,
-    mut sim_state: ResMut<NextState<SimState>>,
-    mut sim_state_type: ResMut<SimStateType>,
     mut toasts: ResMut<ToastContainer>
 ) {
     if !selection_state.show_creation {
@@ -108,7 +111,9 @@ fn creation_sidebar(
                             bodies: Vec::new(),
                             starting_time_millis: 0,
                             title: selection_state.title.clone(),
-                            description: selection_state.description.clone()
+                            description: selection_state.description.clone(),
+                            scale: SimulationScale::default().0,
+                            timestep: Speed::default().0 as i32
                         };
                         create_scenario(selection_state.file_name.clone(), selection_state.image_path.clone(), initial_data);
                         selection_state.show_creation = false;
@@ -126,7 +131,7 @@ fn validate_input(selection_state: SelectionState) -> Result<(), String> {
     } else {
         return Err("Image path cannot be accessed".to_string());
     }
-    if let Ok(e) = fs::exists(format!("assets/scenarios/{}.sim", selection_state.file_name)) {
+    if let Ok(e) = fs::exists(format!("scenarios/{}.sim", selection_state.file_name)) {
         if e {
             return Err("Scenario with file name already exists".to_string());
         }
@@ -152,7 +157,9 @@ fn show_menu(
     mut sim_state: ResMut<NextState<SimState>>,
     mut images: Local<HashMap<String, TextureId>>,
     mut sim_state_type: ResMut<SimStateType>,
-    mut selection_state: ResMut<SelectionState>
+    mut selection_state: ResMut<SelectionState>,
+    mut scale: ResMut<SimulationScale>,
+    mut speed: ResMut<Speed>
 ) {
     CentralPanel::default()
         .show(&egui_context.ctx_mut().clone(), |ui| {
@@ -176,7 +183,7 @@ fn show_menu(
                     let image_handle: TextureId = if images.get(file_name).is_some() {
                         images.get(file_name).unwrap().clone()
                     } else {
-                        let handle: Handle<Image> = assets.load(format!("scenarios/{}", file_name.replace("sim", "png")));
+                        let handle: Handle<Image> = assets.load(from_scenario_source(file_name.replace("sim", "png").as_str()));
                         let t_id = egui_context.add_image(handle);
                         images.insert(file_name.to_string(), t_id);
                         t_id
@@ -213,10 +220,14 @@ fn show_menu(
                                         }
                                     }
                                     if loading_button.clicked() {
+                                        *scale = SimulationScale(scenario.scale);
+                                        *speed = Speed(scenario.timestep as f64);
                                         selected_scenario.handle = typed_handle;
                                         sim_state.set(SimState::Loading);
                                         *sim_state_type = SimStateType::Simulation;
                                     } else if edit_button.clicked() {
+                                        *scale = SimulationScale(scenario.scale);
+                                        *speed = Speed(scenario.timestep as f64);
                                         selected_scenario.handle = typed_handle;
                                         sim_state.set(SimState::Loading);
                                         *sim_state_type = SimStateType::Editor;
@@ -232,8 +243,8 @@ fn show_menu(
 }
 
 fn delete_scenario(file_name: &str) {
-    fs::remove_file(format!("assets/scenarios/{}", file_name)).unwrap();
-    fs::remove_file(format!("assets/scenarios/{}", file_name.replace("sim", "png")).replace("sim", "png")).unwrap();
+    fs::remove_file(format!("scenarios/{}", file_name)).unwrap();
+    fs::remove_file(format!("scenarios/{}", file_name.replace("sim", "png")).replace("sim", "png")).unwrap();
 }
 
 fn create_scenario(
@@ -241,6 +252,6 @@ fn create_scenario(
     image_path: String,
     initial_data: SimulationData
 ) {
-    fs::write(format!("assets/scenarios/{}.sim", file_name), serde_json::to_string(&initial_data).unwrap()).unwrap();
-    fs::copy(&image_path, format!("assets/scenarios/{}.png", file_name)).unwrap();
+    fs::write(format!("scenarios/{}.sim", file_name), serde_json::to_string(&initial_data).unwrap()).unwrap();
+    fs::copy(&image_path, format!("scenarios/{}.png", file_name)).unwrap();
 }

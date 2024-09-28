@@ -3,9 +3,9 @@ use bevy::prelude::{Entity, in_state, IntoSystemConfigs, Query, Res, ResMut, Res
 
 use crate::simulation::components::body::{Diameter, Mass, Star};
 use crate::simulation::components::camera::{pan_orbit_camera, PanOrbitCamera};
-use crate::constants::M_TO_UNIT;
 use crate::simulation::components::orbit_lines::OrbitOffset;
 use crate::simulation::components::physics::apply_physics;
+use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::SimState;
 
 const SELECTION_MULTIPLIER: f32 = 3.0;
@@ -43,7 +43,8 @@ pub fn apply_camera_to_selection(
     bodies: Query<(Entity, &Transform, &Diameter, Option<&Star>), With<Mass>>,
     mut camera: Query<&mut PanOrbitCamera>,
     mut selected_entity: ResMut<SelectedEntity>,
-    orbit_offset: Res<OrbitOffset>
+    orbit_offset: Res<OrbitOffset>,
+    scale: ResMut<SimulationScale>
 ) {
     if let Some(entity) = selected_entity.entity {
         if let Err(_) = bodies.get(entity) {
@@ -51,7 +52,7 @@ pub fn apply_camera_to_selection(
         } else if !selected_entity.changed_focus {
             let (_, _, diameter, _) = bodies.get(entity).unwrap();
             let mut cam = camera.single_mut();            
-            cam.radius = (diameter.num * SELECTION_MULTIPLIER * M_TO_UNIT as f32);
+            cam.radius = scale.m_to_unit_32(diameter.num * SELECTION_MULTIPLIER);
             if orbit_offset.enabled {
                 cam.focus = Vec3::ZERO;        
             }
