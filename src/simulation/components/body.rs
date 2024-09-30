@@ -6,7 +6,7 @@ use bevy::math::{DVec3, Vec3};
 use bevy::prelude::{default, Bundle, Component, Entity, Handle, Reflect, Scene, Srgba, Transform};
 use bevy::render::primitives::Aabb;
 use std::collections::VecDeque;
-use crate::simulation::components::horizons::HorizonsId;
+use crate::simulation::components::horizons::NaifIdComponent;
 
 #[derive(Component, Clone, Default, Reflect, Copy)]
 pub struct Mass(pub f64);
@@ -130,7 +130,7 @@ pub struct BodyBundle {
     pub axial_tilt: AxialTilt,   
     pub diameter: Diameter,
     pub billboard_visible: BillboardVisible,
-    pub horizons_id: HorizonsId,
+    pub naif_id: NaifIdComponent,
 
 }
 
@@ -152,7 +152,7 @@ impl From<SerializedBody> for BodyBundle {
                 ..default()
             },
             rotation_speed: RotationSpeed(value.data.rotation_speed),
-            horizons_id: HorizonsId(value.data.horizons_id.unwrap_or(-1)),
+            naif_id: NaifIdComponent(value.data.naif_id),
            ..default()
         }
     }

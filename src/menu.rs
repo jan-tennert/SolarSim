@@ -1,5 +1,6 @@
-use bevy::{app::AppExit, prelude::*};
 use crate::simulation::{SimState, SimStateType};
+use bevy::{app::AppExit, prelude::*};
+use bevy_egui::EguiContexts;
 
 pub struct MenuPlugin;
 
@@ -42,7 +43,8 @@ struct MenuButton(pub MenuButtonType);
 fn setup_background(  
     mut commands: Commands, 
     asset_server: Res<AssetServer>,
-    mut state: ResMut<NextState<SimState>>
+    mut state: ResMut<NextState<SimState>>,
+    mut egui_context: EguiContexts
 ) {
     commands
         .spawn(NodeBundle {

@@ -5,9 +5,9 @@ use bevy::ecs::observer::TriggerTargets;
 use bevy::ecs::system::SystemId;
 use bevy::prelude::{AssetServer, Assets, Bundle, Commands, Entity, FromWorld, IntoSystemConfigs, Local, Mesh, OnEnter, Query, Res, ResMut, Resource, SpatialBundle, StandardMaterial, Transform, Update, Vec3, World};
 use crate::setup::apply_body;
+use crate::simulation::components::anise::retrieve_starting_data;
 use crate::simulation::components::body::{BodyBundle, BodyChildren, BodyParent, Moon, Planet, SimPosition};
 use crate::simulation::components::diameter::apply_real_diameter;
-use crate::simulation::components::horizons::retrieve_starting_data;
 use crate::simulation::components::rotation::axial_tilt;
 use crate::simulation::components::save_scenario::save_scenario;
 use crate::simulation::components::scale::SimulationScale;
@@ -72,7 +72,6 @@ impl FromWorld for EditorSystems {
             EditorSystemType::SAVE_SCENARIO.into(),
             world.register_system(save_scenario)
         );
-
 
         systems.0.insert(
             EditorSystemType::RETRIEVE_DATA.into(),

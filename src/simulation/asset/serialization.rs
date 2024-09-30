@@ -12,6 +12,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Deserialize, Serialize, TypePath, Asset, Clone)]
 pub struct SimulationData {
     pub bodies: Vec<SerializedBody>,
+    #[serde(default = "default_spk")]
+    pub data_sets: Vec<String>,
     pub starting_time_millis: i64,
     pub title: String,
     pub description: String,
@@ -63,8 +65,17 @@ pub struct SerializedBodyData {
     pub rotation_speed: f64,
     pub axial_tilt: f32,
     pub simulate: bool,
-    pub horizons_id: Option<i32>,
+    #[serde(default = "default_id")]
+    pub naif_id: i32,
     pub light_source: Option<SerializedLightSource>
+}
+
+fn default_id() -> i32 {
+    -1
+}
+
+fn default_spk() -> Vec<String> {
+    Vec::new()
 }
 
 #[derive(Debug, Serialize, Deserialize, TypePath, Clone)]

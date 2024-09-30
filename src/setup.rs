@@ -26,7 +26,9 @@ use bevy::text::{JustifyText, TextSection, TextStyle};
 use bevy::time::TimePlugin;
 use bevy_mod_billboard::{BillboardLockAxisBundle, BillboardTextBundle};
 use crate::simulation::asset::from_scenario_source;
+use crate::simulation::components::anise::{load_spk_files, AlmanacHolder};
 use crate::simulation::components::scale::SimulationScale;
+use crate::simulation::ui::toast::ToastContainer;
 use crate::simulation::units::converter::scale_lumen;
 
 pub struct SetupPlugin;
@@ -36,7 +38,7 @@ impl Plugin for SetupPlugin {
         app
             .init_resource::<ScenarioData>()
             .add_systems(Startup, setup_camera)
-            .add_systems(Update, setup_planets.run_if(in_state(SimState::Loading)));
+            .add_systems(Update, setup_scenario.run_if(in_state(SimState::Loading)));
     }
 }
 
@@ -47,7 +49,8 @@ pub struct ScenarioData {
     pub title: String,
     pub description: String,
     pub timestep: i32,
-    pub scale: f32
+    pub scale: f32,
+    pub spk_files: Vec<String>
 
 }
 
@@ -59,12 +62,13 @@ impl From<SimulationData> for ScenarioData {
             title: value.title,
             description: value.description,
             timestep: value.timestep,
-            scale: value.scale
+            scale: value.scale,
+            spk_files: value.data_sets
         }
     }
 }
 
-pub fn setup_planets(
+pub fn setup_scenario(
     mut commands: Commands,
     assets: Res<AssetServer>,
     mut selected_scenario: ResMut<SelectedScenario>,
@@ -75,7 +79,7 @@ pub fn setup_planets(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut sim_state: ResMut<NextState<SimState>>,
-    scale: Res<SimulationScale>
+    scale: Res<SimulationScale>,
 ) {
     if selected_scenario.spawned {
         return;
@@ -87,7 +91,7 @@ pub fn setup_planets(
     }
     let data = bodies.unwrap();
     *scenario_data = ScenarioData::from(data.clone());
-    let stars = data.bodies.iter().count();  
+    let stars = data.bodies.iter().count();
     total_count += stars;
     
     //iterate through the stars

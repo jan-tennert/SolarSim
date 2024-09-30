@@ -11,7 +11,7 @@ use crate::simulation::components::body::{AxialTilt, Diameter, RotationSpeed, St
 use crate::constants::DAY_IN_SECONDS;
 use crate::simulation::loading::LoadingState;
 use crate::simulation::components::physics::{Pause, SubSteps};
-use crate::setup::setup_planets;
+use crate::setup::setup_scenario;
 use crate::simulation::SimState;
 use crate::simulation::components::speed::Speed;
 use crate::utils::{sim_state_type_editor, sim_state_type_simulation};
@@ -22,7 +22,7 @@ impl Plugin for RotationPlugin {
 
     fn build(&self, app: &mut App) {
         app
-            .add_systems(Update, (axial_tilt.after(setup_planets)).run_if(in_state(SimState::Loading)))
+            .add_systems(Update, (axial_tilt.after(setup_scenario)).run_if(in_state(SimState::Loading)))
             .add_systems(Update, (rotate_bodies).run_if(sim_state_type_simulation));
     }
 

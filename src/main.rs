@@ -16,7 +16,6 @@ use crate::setup::SetupPlugin;
 use crate::simulation::asset::SCENARIO_ASSET_SOURCE;
 use crate::simulation::asset::serialization::SerializationPlugin;
 use crate::simulation::components::editor::EditorPlugin;
-use crate::simulation::components::horizons::{get_starting_data, HorizonsApiParameters};
 use crate::simulation::SimulationPlugin;
 
 mod constants;

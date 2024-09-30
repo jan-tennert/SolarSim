@@ -1,7 +1,9 @@
+use anise::prelude::Almanac;
 use bevy::prelude::{App, Camera, Commands, DespawnRecursiveExt, Entity, NextState, OnEnter, OnExit, Plugin, Query, Res, ResMut, Vec3, With, Without};
 
 use crate::{constants::{DEFAULT_SUB_STEPS, DEFAULT_TIMESTEP}};
 use crate::setup::ScenarioData;
+use crate::simulation::components::anise::AlmanacHolder;
 use crate::simulation::components::body::Mass;
 use crate::simulation::components::camera::{PanOrbitCamera, DEFAULT_CAM_RADIUS};
 use crate::simulation::components::physics::{Pause, SubSteps};
@@ -37,11 +39,13 @@ fn clean_up(
     mut commands: Commands,
     mut camera: Query<&mut PanOrbitCamera>,
     mut ui_state: ResMut<UiState>,
-    scenario_data: Res<ScenarioData>
+    scenario_data: Res<ScenarioData>,
+    mut almanac_holder: ResMut<AlmanacHolder>
 ) {
     for entity in m_entities.iter() {
         commands.entity(entity).despawn_recursive()
     }
+    almanac_holder.0 = Almanac::default();
     speed.0 = scenario_data.timestep as f64;
     pause.0 = false;
     sim_time.0 = 0.0;

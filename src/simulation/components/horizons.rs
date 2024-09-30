@@ -30,7 +30,7 @@ impl Default for HorizonsClient {
 }
 
 #[derive(Component, Clone, Default)]
-pub struct HorizonsId(pub i32);
+pub struct NaifIdComponent(pub i32);
 
 const HORIZONS_API_URL: &'static str = "https://ssd.jpl.nasa.gov/api/horizons.api?format=text";
 
@@ -73,7 +73,7 @@ impl HorizonsApiParameters {
 
 }
 
-pub fn get_starting_data(
+pub fn get_starting_data_horizons(
     parameters: HorizonsApiParameters,
     client: Client
 ) -> Result<(SerializedVec, SerializedVec), Box<dyn Error>> {
@@ -124,9 +124,9 @@ pub fn get_starting_data(
     Ok((vec1, vec2))
 }
 
-pub fn retrieve_starting_data(
+pub fn retrieve_starting_data_horizons(
     selected_entity: Res<SelectedEntity>,
-    bodies: Query<&HorizonsId>,
+    bodies: Query<&NaifIdComponent>,
     client: Res<HorizonsClient>,
     mut state: ResMut<EditorPanelState>,
     scenario: Res<ScenarioData>,
@@ -141,7 +141,7 @@ pub fn retrieve_starting_data(
             .with_command(id.0)
             .with_start_time(start_date.as_str())
             .with_stop_time(stop_date.as_str());
-        if let Ok((pos, vel)) = get_starting_data(parameters, client.0.clone()) {
+        if let Ok((pos, vel)) = get_starting_data_horizons(parameters, client.0.clone()) {
             state.new_position = DVec3::from(pos);
             state.new_velocity = DVec3::from(vel);
             toasts.0.add(success_toast("Horizons data retrieved"));

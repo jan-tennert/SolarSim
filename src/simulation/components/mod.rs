@@ -1,4 +1,5 @@
 use bevy::app::Plugin;
+use crate::simulation::components::anise::AnisePlugin;
 use crate::simulation::components::apsis::ApsisPlugin;
 use crate::simulation::components::billboard::BodyBillboardPlugin;
 use crate::simulation::components::camera::PanOrbitCameraPlugin;
@@ -31,6 +32,7 @@ pub mod editor;
 pub mod horizons;
 mod save_scenario;
 pub mod scale;
+pub mod anise;
 
 pub struct SimComponentPlugin;
 
@@ -51,7 +53,8 @@ impl Plugin for SimComponentPlugin {
             .add_plugins(RotationPlugin)
             .add_plugins(SelectionPlugin)
             .add_plugins(SpeedPlugin)
-            .add_plugins(HorizonsPlugin);
+            .add_plugins(HorizonsPlugin)
+            .add_plugins(AnisePlugin);
     }
 
 }

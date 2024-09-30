@@ -11,7 +11,7 @@ use bevy_egui::{egui, EguiContexts};
 use egui_toast::{Toast, ToastKind, ToastOptions};
 use crate::setup::spawn_scene;
 use crate::simulation::components::editor::{EditorSystemType, EditorSystems};
-use crate::simulation::components::horizons::HorizonsId;
+use crate::simulation::components::horizons::NaifIdComponent;
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::render::star_billboard::StarBillboard;
 use crate::simulation::ui::components::vector_field;
@@ -32,7 +32,7 @@ pub struct EditorPanelState {
     pub new_model_path: String,
     pub show_delete_confirm: bool,
     pub new_light_settings: Option<LightSettings>,
-    pub horizons_id: i32,
+    pub naif_id: i32,
 }
 
 #[derive(Debug, Default, Clone, Copy)]
@@ -46,7 +46,7 @@ pub struct LightSettings {
 pub fn editor_body_panel(
     mut egui_context: EguiContexts,
     selected_entity: Res<SelectedEntity>,
-    mut query: Query<(Entity, &mut Name, &mut SimPosition, &mut Velocity, &mut Mass, &mut Diameter, &mut RotationSpeed, &mut AxialTilt, &mut ModelPath, &mut SceneHandle, &mut HorizonsId), With<Mass>>,
+    mut query: Query<(Entity, &mut Name, &mut SimPosition, &mut Velocity, &mut Mass, &mut Diameter, &mut RotationSpeed, &mut AxialTilt, &mut ModelPath, &mut SceneHandle, &mut NaifIdComponent), With<Mass>>,
     scene_query: Query<Entity, With<SceneEntity>>,
     mut state: ResMut<EditorPanelState>,
     mut commands: Commands,
@@ -92,7 +92,7 @@ fn initialize_state(
     model_path: &ModelPath,
     light: Option<&(Mut<PointLight>, &LightSource, Mut<Visibility>)>,
     scale: &SimulationScale,
-    horizons_id: &Mut<HorizonsId>,
+    horizons_id: &Mut<NaifIdComponent>,
 ) {
     *state = EditorPanelState {
         entity: Some(s_entity),
@@ -111,7 +111,7 @@ fn initialize_state(
             enabled: **visible == Visibility::Visible,
             range: scale.unit_to_m_32(light.range),
         }),
-        horizons_id: horizons_id.0,
+        naif_id: horizons_id.0,
     };
 }
 
@@ -127,7 +127,7 @@ fn display_body_panel(
     tilt: &mut AxialTilt,
     model_path: &mut ModelPath,
     scene: &mut SceneHandle,
-    horizons: &mut Mut<HorizonsId>,
+    horizons: &mut Mut<NaifIdComponent>,
     commands: &mut Commands,
     systems: &Res<EditorSystems>,
     assets: &Res<AssetServer>,
@@ -158,8 +158,8 @@ fn display_body_properties(ui: &mut egui::Ui, state: &mut EditorPanelState) {
         ui.text_edit_singleline(&mut state.new_name);
     });
     ui.horizontal(|ui| {
-        ui.label("Horizons ID");
-        ui.add(egui::DragValue::new(&mut state.horizons_id));
+        ui.label("Naif ID");
+        ui.add(egui::DragValue::new(&mut state.naif_id));
     });
     ui.horizontal(|ui| {
         ui.label("Model Path");
@@ -228,7 +228,7 @@ fn display_bottom_buttons(
     tilt: &mut AxialTilt,
     model_path: &mut ModelPath,
     scene: &mut SceneHandle,
-    horizons: &mut Mut<HorizonsId>,
+    horizons: &mut Mut<NaifIdComponent>,
     commands: &mut Commands,
     systems: &Res<EditorSystems>,
     assets: &Res<AssetServer>,
@@ -264,7 +264,7 @@ fn display_bottom_buttons(
             }
         });
         ui.separator();
-        if ui.button("Fetch Horizons Data").on_hover_text("Fetch data from NASA Horizons").clicked() {
+        if ui.button("Use starting data from ANISE").on_hover_text("Use starting data from ANISE").clicked() {
             commands.run_system(systems.0[EditorSystemType::RETRIEVE_DATA]);
         }
     });
@@ -281,7 +281,7 @@ fn apply_changes(
     tilt: &mut AxialTilt,
     model_path: &mut ModelPath,
     scene: &mut SceneHandle,
-    horizons_id: &mut HorizonsId,
+    horizons_id: &mut NaifIdComponent,
     commands: &mut Commands,
     systems: &Res<EditorSystems>,
     assets: &Res<AssetServer>,
@@ -302,7 +302,7 @@ fn apply_changes(
     let new_tilt = state.new_axial_tilt;
     tilt.applied = new_tilt == tilt.num;
     tilt.num = new_tilt;
-    *horizons_id = HorizonsId(state.horizons_id);
+    *horizons_id = NaifIdComponent(state.naif_id);
     if let Some((mut light, _, mut visible)) = light {
         light.color = state.new_light_settings.as_ref().unwrap().color;
         if let Some(material) = billboard_material {
