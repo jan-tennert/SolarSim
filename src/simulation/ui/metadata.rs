@@ -9,8 +9,8 @@ use bevy_egui::{egui, EguiContext, EguiContexts};
 use bevy_egui::egui::ComboBox;
 use chrono::{NaiveTime, Timelike};
 use egui_extras::DatePickerButton;
-use crate::setup::ScenarioData;
-use crate::simulation::components::anise::AlmanacHolder;
+use crate::simulation::scenario::setup::ScenarioData;
+use crate::simulation::components::anise::{load_spk_files, AlmanacHolder};
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::components::speed::Speed;
 use crate::simulation::SimState;
@@ -140,6 +140,14 @@ fn edit_spk_files(
                 ui.selectable_value(selected_spk_file, file.clone(), file);
             }
         });
+        if ui.button("Remove").on_hover_text("Remove selected SPK file").clicked() {
+            if let Some(index) = scenario_data.spk_files.iter().position(|f| f == selected_spk_file) {
+                scenario_data.spk_files.remove(index);
+                *selected_spk_file = "".to_string();
+                toasts.0.add(success_toast("SPK file removed"));
+                load_spk_files(scenario_data.spk_files.clone(), almanac_holder, toasts);
+            }
+        }
     });
     ui.text_edit_singleline(new_spk_file);
     ui.horizontal(|ui| {
@@ -153,7 +161,7 @@ fn edit_spk_files(
                 },
             }
         }
-        if ui.button("Load Scenario").clicked() {
+        if ui.button("Load SPK File").clicked() {
             if let Err(e) = load_scenario_file(scenario_data, selected_spk_file, new_spk_file, toasts, almanac_holder) {
                 toasts.0.add(error_toast(&e));
             }

@@ -9,7 +9,7 @@ use bevy::prelude::{default, BuildChildren, Camera, Color, Commands, DespawnRecu
 use bevy_egui::egui::{Align, Context, Layout, RichText, ScrollArea};
 use bevy_egui::{egui, EguiContexts};
 use egui_toast::{Toast, ToastKind, ToastOptions};
-use crate::setup::spawn_scene;
+use crate::simulation::scenario::setup::spawn_scene;
 use crate::simulation::components::editor::{EditorSystemType, EditorSystems};
 use crate::simulation::components::horizons::NaifIdComponent;
 use crate::simulation::components::scale::SimulationScale;

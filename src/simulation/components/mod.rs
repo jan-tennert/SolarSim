@@ -30,7 +30,6 @@ pub mod selection;
 pub mod reset;
 pub mod editor;
 pub mod horizons;
-mod save_scenario;
 pub mod scale;
 pub mod anise;
 

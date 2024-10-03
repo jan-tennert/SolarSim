@@ -1,6 +1,6 @@
 use crate::simulation::components::SimComponentPlugin;
 use crate::simulation::input::SimInputPlugin;
-use crate::simulation::loading::LoadingPlugin;
+use scenario::loading::LoadingPlugin;
 use crate::simulation::render::SimRenderPlugin;
 use crate::simulation::ui::InterfacePlugin;
 use bevy::app::{App, Plugin};
@@ -10,9 +10,9 @@ pub mod input;
 pub mod render;
 pub mod ui;
 pub mod components;
-pub mod loading;
 pub mod asset;
 pub mod units;
+pub(crate) mod scenario;
 
 #[derive(Clone, Eq, PartialEq, Debug, Default, Hash, Resource)]
 pub enum SimStateType {

@@ -8,7 +8,7 @@ use bevy::utils::HashMap;
 use bevy_egui::egui::{Align, CentralPanel, Layout, SidePanel, TextureId};
 use bevy_egui::{egui, EguiContexts};
 use image::load;
-use crate::setup::ScenarioData;
+use crate::simulation::scenario::setup::ScenarioData;
 use crate::simulation::{SimState, SimStateType};
 use crate::simulation::asset::{from_scenario_source, SCENARIO_ASSET_SOURCE};
 use crate::simulation::asset::serialization::SimulationData;
@@ -163,8 +163,6 @@ fn show_menu(
     mut selection_state: ResMut<SelectionState>,
     mut scale: ResMut<SimulationScale>,
     mut speed: ResMut<Speed>,
-    mut almanac: ResMut<AlmanacHolder>,
-    mut toasts: ResMut<ToastContainer>
 ) {
     CentralPanel::default()
         .show(&egui_context.ctx_mut().clone(), |ui| {
@@ -225,9 +223,9 @@ fn show_menu(
                                         }
                                     }
                                     if loading_button.clicked() {
-                                        select_scenario(&mut selected_scenario, &mut sim_state, &mut sim_state_type, &mut scale, &mut speed, &mut almanac, &mut toasts, scenario, typed_handle, SimStateType::Simulation);
+                                        select_scenario(&mut selected_scenario, &mut sim_state, &mut sim_state_type, &mut scale, &mut speed, scenario, typed_handle, SimStateType::Simulation);
                                     } else if edit_button.clicked() {
-                                        select_scenario(&mut selected_scenario, &mut sim_state, &mut sim_state_type, &mut scale, &mut speed, &mut almanac, &mut toasts, scenario, typed_handle, SimStateType::Editor);
+                                        select_scenario(&mut selected_scenario, &mut sim_state, &mut sim_state_type, &mut scale, &mut speed, scenario, typed_handle, SimStateType::Editor);
                                     }
                                 });
                             });
@@ -245,13 +243,10 @@ fn select_scenario(
     sim_state_type: &mut ResMut<SimStateType>,
     scale: &mut ResMut<SimulationScale>,
     speed: &mut ResMut<Speed>,
-    almanac: &mut ResMut<AlmanacHolder>,
-    toasts: &mut ResMut<ToastContainer>,
     data: &SimulationData,
     handle: Handle<SimulationData>,
     sim_type: SimStateType
 ) {
-    load_spk_files(data.data_sets.clone(), almanac, toasts);
     scale.0 = data.scale;
     speed.0 = data.timestep as f64;
     selected_scenario.handle = handle;

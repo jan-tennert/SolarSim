@@ -5,7 +5,7 @@ use bevy_egui::{egui, EguiContexts};
 use bevy_egui::egui::TextEdit;
 use chrono::NaiveDateTime;
 use crate::constants::DAY_IN_SECONDS;
-use crate::setup::ScenarioData;
+use crate::simulation::scenario::setup::ScenarioData;
 use crate::simulation::components::lock_on::LockOn;
 use crate::simulation::components::physics::{Pause, SubSteps};
 use crate::simulation::components::speed::Speed;

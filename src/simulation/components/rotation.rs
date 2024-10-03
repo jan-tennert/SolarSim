@@ -9,9 +9,9 @@ use bevy::time::Time;
 
 use crate::simulation::components::body::{AxialTilt, Diameter, RotationSpeed, Star};
 use crate::constants::DAY_IN_SECONDS;
-use crate::simulation::loading::LoadingState;
+use crate::simulation::scenario::loading::LoadingState;
 use crate::simulation::components::physics::{Pause, SubSteps};
-use crate::setup::setup_scenario;
+use crate::simulation::scenario::setup::setup_scenario;
 use crate::simulation::SimState;
 use crate::simulation::components::speed::Speed;
 use crate::utils::{sim_state_type_editor, sim_state_type_simulation};

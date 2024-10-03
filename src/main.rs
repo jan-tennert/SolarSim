@@ -10,16 +10,14 @@ use bevy::window::{PresentMode, Window, WindowPlugin};
 use bevy::DefaultPlugins;
 use bevy_egui::EguiPlugin;
 use bevy_mod_billboard::plugin::BillboardPlugin;
-use reqwest::blocking::Client;
 use crate::menu::MenuPlugin;
-use crate::setup::SetupPlugin;
+use simulation::scenario::setup::SetupPlugin;
 use crate::simulation::asset::SCENARIO_ASSET_SOURCE;
 use crate::simulation::asset::serialization::SerializationPlugin;
 use crate::simulation::components::editor::EditorPlugin;
 use crate::simulation::SimulationPlugin;
 
 mod constants;
-mod setup;
 mod menu;
 mod simulation;
 mod utils;

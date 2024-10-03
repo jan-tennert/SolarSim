@@ -6,7 +6,7 @@ use std::str::FromStr;
 use bevy::math::DVec3;
 use bevy::prelude::{Component, Plugin, Query, Res, ResMut, Resource};
 use chrono::NaiveDateTime;
-use crate::setup::ScenarioData;
+use crate::simulation::scenario::setup::ScenarioData;
 use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::ui::editor_body_panel::EditorPanelState;
 use crate::simulation::ui::toast::{error_toast, success_toast, ToastContainer};

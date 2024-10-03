@@ -5,7 +5,7 @@ use crate::simulation::SimState;
 use crate::simulation::components::body::SceneHandle;
 use crate::simulation::components::body::{Diameter, Scale};
 use crate::simulation::components::scale::SimulationScale;
-use crate::simulation::loading::LoadingState;
+use crate::simulation::scenario::loading::LoadingState;
 
 pub struct DiameterPlugin;
 

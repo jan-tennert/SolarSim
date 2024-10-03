@@ -2,14 +2,14 @@ use anise::prelude::Almanac;
 use bevy::prelude::{App, Camera, Commands, DespawnRecursiveExt, Entity, NextState, OnEnter, OnExit, Plugin, Query, Res, ResMut, Vec3, With, Without};
 
 use crate::{constants::{DEFAULT_SUB_STEPS, DEFAULT_TIMESTEP}};
-use crate::setup::ScenarioData;
+use crate::simulation::scenario::setup::ScenarioData;
 use crate::simulation::components::anise::AlmanacHolder;
 use crate::simulation::components::body::Mass;
 use crate::simulation::components::camera::{PanOrbitCamera, DEFAULT_CAM_RADIUS};
 use crate::simulation::components::physics::{Pause, SubSteps};
 use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::components::speed::Speed;
-use crate::simulation::loading::LoadingState;
+use crate::simulation::scenario::loading::LoadingState;
 use crate::simulation::SimState;
 use crate::simulation::ui::{SimTime, StepType, UiState};
 use crate::simulation::ui::scenario_selection::SelectedScenario;
