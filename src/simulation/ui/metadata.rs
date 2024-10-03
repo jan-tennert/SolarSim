@@ -10,7 +10,7 @@ use bevy_egui::egui::ComboBox;
 use chrono::{NaiveTime, Timelike};
 use egui_extras::DatePickerButton;
 use crate::simulation::scenario::setup::ScenarioData;
-use crate::simulation::components::anise::{load_spk_files, AlmanacHolder};
+use crate::simulation::components::anise::{load_spice_files, AlmanacHolder};
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::components::speed::Speed;
 use crate::simulation::SimState;
@@ -123,46 +123,46 @@ fn edit_simulation_settings(ui: &mut egui::Ui, scale: &mut SimulationScale, spee
 fn edit_spk_files(
     ui: &mut egui::Ui,
     scenario_data: &mut ScenarioData,
-    selected_spk_file: &mut String,
-    new_spk_file: &mut String,
+    selected_spice_file: &mut String,
+    new_spice_file: &mut String,
     toasts: &mut ToastContainer,
     almanac_holder: &mut AlmanacHolder
 ) {
-    ui.heading("SPK Files");
+    ui.heading("SPICE Files");
     ui.horizontal(|ui| {
-        let mut selected = selected_spk_file.clone();
+        let mut selected = selected_spice_file.clone();
         if selected.is_empty() {
             selected = "None".to_string();
         }
-        ui.label("Included SPK Files:");
+        ui.label("Loaded SPICE Files:");
         ComboBox::from_label("").selected_text(selected).show_ui(ui, |ui| {
-            for file in scenario_data.spk_files.clone() {
-                ui.selectable_value(selected_spk_file, file.clone(), file);
+            for file in scenario_data.spice_files.clone() {
+                ui.selectable_value(selected_spice_file, file.clone(), file);
             }
         });
-        if ui.button("Remove").on_hover_text("Remove selected SPK file").clicked() {
-            if let Some(index) = scenario_data.spk_files.iter().position(|f| f == selected_spk_file) {
-                scenario_data.spk_files.remove(index);
-                *selected_spk_file = "".to_string();
-                toasts.0.add(success_toast("SPK file removed"));
-                load_spk_files(scenario_data.spk_files.clone(), almanac_holder, toasts);
+        if ui.button("Remove").on_hover_text("Remove selected SPICE file").clicked() {
+            if let Some(index) = scenario_data.spice_files.iter().position(|f| f == selected_spice_file) {
+                scenario_data.spice_files.remove(index);
+                *selected_spice_file = "".to_string();
+                toasts.0.add(success_toast("SPICE file removed"));
+                load_spice_files(scenario_data.spice_files.clone(), almanac_holder, toasts);
             }
         }
     });
-    ui.text_edit_singleline(new_spk_file);
+    ui.text_edit_singleline(new_spice_file);
     ui.horizontal(|ui| {
-        if ui.button("Select SPK File").clicked() {
-            match tinyfiledialogs::open_file_dialog("Select BSP file", "data.bsp", Some((&["*.bsp"], "BSP files"))) {
+        if ui.button("Select SPICE File").clicked() {
+            match tinyfiledialogs::open_file_dialog("Select SPICE file", "data.bsp", Some((&["*.bsp", "*.pca"], "SPICE files"))) {
                 Some(file) => {
-                    *new_spk_file = file;
+                    *new_spice_file = file;
                 },
                 None => {
                     toasts.0.add(error_toast("No file selected"));
                 },
             }
         }
-        if ui.button("Load SPK File").clicked() {
-            if let Err(e) = load_scenario_file(scenario_data, selected_spk_file, new_spk_file, toasts, almanac_holder) {
+        if ui.button("Load SPICE File").clicked() {
+            if let Err(e) = load_scenario_file(scenario_data, selected_spice_file, new_spice_file, toasts, almanac_holder) {
                 toasts.0.add(error_toast(&e));
             }
         }
@@ -185,29 +185,32 @@ fn load_scenario_file(
     if new_spk_file.is_empty() {
         return Err("No file selected".to_string());
     }
+    let mut copied = false;
     if !fs::exists(&data_path).unwrap_or(false) {
+        copied = true;
         fs::copy(new_spk_file.clone(), &data_path).map_err(|_| "Failed to copy file".to_string())?;
-    } else if scenario_data.spk_files.contains(&file_name) {
-        return Err("SPK file already added".to_string());
+    } else if scenario_data.spice_files.contains(&file_name) {
+        return Err("SPICE file already added".to_string());
     }
     match load_spk(data_path.clone(), &almanac_holder.0) {
         Ok(almanac) => {
             almanac_holder.0 = almanac;
-            scenario_data.spk_files.push(file_name.clone());
+            scenario_data.spice_files.push(file_name.clone());
             *selected_spk_file = file_name;
             *new_spk_file = "".to_string();
-            toasts.0.add(success_toast("SPK file added and loaded"));
+            toasts.0.add(success_toast("SPICE file added and loaded"));
             Ok(())
         },
-        Err(_) => {
-            fs::remove_file(data_path).map_err(|_| "Failed to remove file".to_string())?;
-            Err("Failed to load SPK file".to_string())
+        Err(e) => {
+            if copied {
+                fs::remove_file(data_path).map_err(|_| "Failed to remove file".to_string())?;
+            }
+            Err("Failed to load SPICE file".to_string())
         }
     }
 }
 
 fn load_spk(path: String, almanac: &Almanac) -> Result<Almanac, ()> {
-    let daf = SPK::load(path.as_str()).map_err(|_| ())?;
-    let almanac = almanac.with_spk(daf).map_err(|_| ())?;
+    let almanac = almanac.load(&*path).map_err(|_| ())?;
     Ok(almanac)
 }

@@ -1,3 +1,4 @@
+use anise::structure::planetocentric::ellipsoid::Ellipsoid;
 use bevy::asset::io::file::FileAssetReader;
 use bevy::asset::io::{AssetSource, AssetSourceBuilder, AssetSourceId, Reader};
 use bevy::asset::AsyncReadExt;
@@ -67,6 +68,10 @@ pub struct SerializedBodyData {
     pub simulate: bool,
     #[serde(default = "default_id")]
     pub naif_id: i32,
+    #[serde(default = "default_id")]
+    pub orientation_id: i32,
+    #[serde(default = "default_ellipsoid")]
+    pub ellipsoid: Ellipsoid,
     pub light_source: Option<SerializedLightSource>
 }
 
@@ -76,6 +81,10 @@ fn default_id() -> i32 {
 
 fn default_spk() -> Vec<String> {
     Vec::new()
+}
+
+fn default_ellipsoid() -> Ellipsoid {
+    Ellipsoid::from_sphere(1.0)
 }
 
 #[derive(Debug, Serialize, Deserialize, TypePath, Clone)]

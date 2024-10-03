@@ -6,7 +6,8 @@ use bevy::math::{DVec3, Vec3};
 use bevy::prelude::{default, Bundle, Component, Entity, Handle, Reflect, Scene, Srgba, Transform};
 use bevy::render::primitives::Aabb;
 use std::collections::VecDeque;
-use crate::simulation::components::horizons::NaifIdComponent;
+use anise::structure::planetocentric::ellipsoid::Ellipsoid;
+use crate::simulation::components::horizons::AniseMetadata;
 
 #[derive(Component, Clone, Default, Reflect, Copy)]
 pub struct Mass(pub f64);
@@ -82,12 +83,21 @@ impl Default for OrbitSettings {
 #[derive(Component, Reflect, Clone, Default)]
 pub struct SimPosition(pub DVec3);
 
-#[derive(Component, Reflect, Clone, Default)]
+#[derive(Component, Reflect, Clone)]
 pub struct Diameter {
 
     pub num: f32,
     pub applied: bool,
-    pub aabb: Option<Aabb>
+    pub ellipsoid: Ellipsoid,
+    pub path: String,
+
+}
+
+impl Default for Diameter {
+
+    fn default() -> Self {
+        Diameter { num: 0.0, applied: false, ellipsoid: Ellipsoid::from_sphere(1.0), path: "".to_string() }
+    }
 
 }
 
@@ -130,7 +140,7 @@ pub struct BodyBundle {
     pub axial_tilt: AxialTilt,   
     pub diameter: Diameter,
     pub billboard_visible: BillboardVisible,
-    pub naif_id: NaifIdComponent,
+    pub naif_id: AniseMetadata,
 
 }
 
@@ -145,6 +155,8 @@ impl From<SerializedBody> for BodyBundle {
             model_path: ModelPath(format!("models/{}#Scene0", value.data.model_path)),
             diameter: Diameter {
                 num: (value.data.diameter * 1000.0) as f32,
+                path: value.data.model_path,
+                ellipsoid: value.data.ellipsoid,
                 ..default()
             },
             axial_tilt: AxialTilt {
@@ -152,7 +164,10 @@ impl From<SerializedBody> for BodyBundle {
                 ..default()
             },
             rotation_speed: RotationSpeed(value.data.rotation_speed),
-            naif_id: NaifIdComponent(value.data.naif_id),
+            naif_id: AniseMetadata {
+                target_id: value.data.naif_id,
+                orientation_id: value.data.orientation_id,
+            },
            ..default()
         }
     }

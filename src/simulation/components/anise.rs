@@ -1,17 +1,17 @@
-use crate::simulation::components::horizons::NaifIdComponent;
+use crate::simulation::components::horizons::AniseMetadata;
 use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::scenario::loading::LoadingState;
 use crate::simulation::scenario::setup::ScenarioData;
 use crate::simulation::ui::editor_body_panel::EditorPanelState;
 use crate::simulation::ui::toast::{error_toast, success_toast, ToastContainer};
-use crate::simulation::SimState;
-use anise::constants::frames::{JUPITER_BARYCENTER_J2000, SSB_J2000};
-use anise::constants::orientations::J2000;
+use crate::simulation::{SimState, SimStateType};
+use anise::constants::frames::{IAU_EARTH_FRAME, JUPITER_BARYCENTER_J2000, SSB_J2000};
+use anise::constants::orientations::{IAU_EARTH, J2000};
 use anise::math::Vector3;
 use anise::prelude::{Almanac, Epoch, Frame, SPK};
 use bevy::app::Plugin;
 use bevy::math::DVec3;
-use bevy::prelude::{in_state, IntoSystemConfigs, OnEnter, Query, Res, ResMut, Resource, Update};
+use bevy::prelude::{in_state, IntoSystemConfigs, OnEnter, Query, Res, ResMut, Resource, State, Update};
 use reqwest::get;
 
 pub struct AnisePlugin;
@@ -35,7 +35,7 @@ impl Default for AlmanacHolder {
 
 pub fn retrieve_starting_data(
     selected_entity: Res<SelectedEntity>,
-    bodies: Query<&NaifIdComponent>,
+    mut bodies: Query<&mut AniseMetadata>,
     almanac: Res<AlmanacHolder>,
     mut e_state: ResMut<EditorPanelState>,
     scenario: Res<ScenarioData>,
@@ -43,22 +43,30 @@ pub fn retrieve_starting_data(
 ) {
     // Define an Epoch in the dynamical barycentric time scale
     let epoch = Epoch::from_unix_milliseconds(scenario.starting_time_millis as f64);
-    let id = selected_entity.entity.map(|e| bodies.get(e).ok()).flatten().unwrap();
+    let mut metadata = selected_entity.entity.map(|e| bodies.get_mut(e).ok()).flatten().unwrap();
     let state = almanac.0
         .translate(
-            Frame::new(id.0, J2000), // Target
+            Frame::new(metadata.target_id, J2000), // Target
             SSB_J2000, // Observer
             epoch,
             None,
         );
 
     if let Ok(s) = state {
-        toasts.0.add(success_toast(&format!("Retrieved data for {}", id.0)));
+        toasts.0.add(success_toast(&format!("Retrieved data for {}", metadata.target_id)));
         e_state.new_velocity = vector3_to_dvec3(s.velocity_km_s);
         e_state.new_position = vector3_to_dvec3(s.radius_km);
     } else {
         println!("{:?}", state);
         toasts.0.add(error_toast(format!("Error: {:?}", state.unwrap_err()).as_str()));
+    }
+
+    let full_frame = almanac.0.frame_from_uid(Frame::new(metadata.target_id, metadata.orientation_id));
+
+    if let Ok(f) = full_frame {
+        e_state.ellipsoid = f.shape.unwrap();
+    } else {
+        toasts.0.add(error_toast(format!("Error: {:?}", full_frame.unwrap_err()).as_str()));
     }
 }
 
@@ -70,32 +78,31 @@ fn spk_file_loading(
     mut almanac: ResMut<AlmanacHolder>,
     mut toasts: ResMut<ToastContainer>,
     mut scenario_data: ResMut<ScenarioData>,
-    mut loading_state: ResMut<LoadingState>
+    mut loading_state: ResMut<LoadingState>,
+    sim_type: Res<SimStateType>
 ) {
-    if loading_state.loaded_spk_files || !loading_state.spawned_bodies {
+    if loading_state.loaded_spk_files || !loading_state.spawned_bodies || *sim_type == SimStateType::Simulation {
         return;
     }
-    load_spk_files(scenario_data.spk_files.clone(), &mut almanac, &mut toasts);
+    load_spice_files(scenario_data.spice_files.clone(), &mut almanac, &mut toasts);
     loading_state.loaded_spk_files = true;
 }
 
-pub fn load_spk_files(
+pub fn load_spice_files(
     paths: Vec<String>,
     almanac: &mut AlmanacHolder,
     toasts: &mut ToastContainer
 ) {
     let mut missing_paths = Vec::new();
     for path in paths {
-        let spk = SPK::load(format!("data/{}", path).as_str()).unwrap();
-        if let Ok(a) = almanac.0.with_spk(spk) {
+        if let Ok(a) = almanac.0.load(format!("data/{}", path).as_str()) {
             almanac.0 = a;
-           // get_target_frames(&almanac.0);
         } else {
             missing_paths.push(path);
         }
     }
     if !missing_paths.is_empty() {
-        toasts.0.add(error_toast(format!("Couldn't load the following SPK files: {}", missing_paths.join(", ")).as_str()));
+        toasts.0.add(error_toast(format!("Couldn't load the following SPICE files: {}", missing_paths.join(", ")).as_str()));
     }
 }
 

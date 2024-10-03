@@ -3,6 +3,7 @@ use crate::simulation::asset::serialization::SerializedVec;
 use bevy::utils::HashMap;
 use reqwest::blocking::Client;
 use std::str::FromStr;
+use anise::structure::planetocentric::ellipsoid::Ellipsoid;
 use bevy::math::DVec3;
 use bevy::prelude::{Component, Plugin, Query, Res, ResMut, Resource};
 use chrono::NaiveDateTime;
@@ -29,8 +30,24 @@ impl Default for HorizonsClient {
     }
 }
 
-#[derive(Component, Clone, Default)]
-pub struct NaifIdComponent(pub i32);
+#[derive(Component, Clone, Debug)]
+pub struct AniseMetadata {
+
+    pub target_id: i32,
+    pub orientation_id: i32,
+
+}
+
+impl Default for AniseMetadata {
+
+    fn default() -> Self {
+        Self {
+            target_id: -1,
+            orientation_id: -1,
+        }
+    }
+
+}
 
 const HORIZONS_API_URL: &'static str = "https://ssd.jpl.nasa.gov/api/horizons.api?format=text";
 
@@ -126,7 +143,7 @@ pub fn get_starting_data_horizons(
 
 pub fn retrieve_starting_data_horizons(
     selected_entity: Res<SelectedEntity>,
-    bodies: Query<&NaifIdComponent>,
+    bodies: Query<&AniseMetadata>,
     client: Res<HorizonsClient>,
     mut state: ResMut<EditorPanelState>,
     scenario: Res<ScenarioData>,
@@ -138,7 +155,7 @@ pub fn retrieve_starting_data_horizons(
         let stop_date = (starting_date + chrono::Duration::days(1)).format("%Y-%m-%d").to_string();
         let id = bodies.get(entity).unwrap();
         let parameters = HorizonsApiParameters::with_defaults()
-            .with_command(id.0)
+            .with_command(id.target_id)
             .with_start_time(start_date.as_str())
             .with_stop_time(stop_date.as_str());
         if let Ok((pos, vel)) = get_starting_data_horizons(parameters, client.0.clone()) {

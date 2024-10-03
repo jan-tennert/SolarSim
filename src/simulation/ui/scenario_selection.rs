@@ -12,7 +12,7 @@ use crate::simulation::scenario::setup::ScenarioData;
 use crate::simulation::{SimState, SimStateType};
 use crate::simulation::asset::{from_scenario_source, SCENARIO_ASSET_SOURCE};
 use crate::simulation::asset::serialization::SimulationData;
-use crate::simulation::components::anise::{load_spk_files, AlmanacHolder};
+use crate::simulation::components::anise::{load_spice_files, AlmanacHolder};
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::components::speed::Speed;
 use crate::simulation::ui::toast::{error_toast, ToastContainer};

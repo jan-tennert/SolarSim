@@ -1,6 +1,7 @@
 use bevy::{app::{App, Plugin}, math::Vec3A, prelude::{in_state, Children, GlobalTransform, Handle, IntoSystemConfigs, Mesh, Query, Res, ResMut, Transform, Update, Vec3, With}, render::primitives::{Aabb, Sphere}, scene::{SceneInstance, SceneSpawner}};
 use bevy::ecs::query::QueryManyIter;
-use bevy::prelude::{AssetServer, Entity, Name};
+use bevy::prelude::{AssetServer, Entity, Local, Name};
+use bevy::utils::HashMap;
 use crate::simulation::SimState;
 use crate::simulation::components::body::SceneHandle;
 use crate::simulation::components::body::{Diameter, Scale};
@@ -25,7 +26,8 @@ pub fn apply_real_diameter(
     spawner: Res<SceneSpawner>,
     mut loading_state: ResMut<LoadingState>,
     asset_server: Res<AssetServer>,
-    s_scale: Res<SimulationScale>
+    s_scale: Res<SimulationScale>,
+    mut aabbs: Local<HashMap<String, Aabb>>
 ) {
     if !bodies.is_empty() && bodies.iter().all(|(_, _, _, diameter, _, _)| {
         diameter.applied
@@ -41,12 +43,12 @@ pub fn apply_real_diameter(
                 if !spawner.instance_is_ready(**scene) {
                     continue;
                 }
-                let aabb = if let Some(aabb) = diameter.aabb {
-                    aabb
+                let aabb = if let Some(aabb) = aabbs.get(&diameter.path.clone()) {
+                    *aabb
                 } else {
                     let m = meshes.iter_many(spawner.iter_instance_entities(**scene));
                     let aabb = calculate_aabb(m);
-                    diameter.aabb = Some(aabb);
+                    aabbs.insert(diameter.path.clone(), aabb);
                     aabb
                 };
                 transform.scale = Vec3::splat(s_scale.m_to_unit_32(diameter.num) / 1.7) / (Vec3::from(aabb.half_extents)); //not dividing by 1.7 for the diameter makes them to big which doesn't work with satellites very close to their planet

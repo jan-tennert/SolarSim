@@ -1,3 +1,4 @@
+use anise::structure::planetocentric::ellipsoid::Ellipsoid;
 use bevy::asset::{AssetServer, Assets};
 use crate::simulation::components::apsis::ApsisBody;
 use crate::simulation::components::body::{AxialTilt, BodyChildren, BodyParent, Diameter, LightSource, Mass, ModelPath, OrbitSettings, RotationSpeed, Scale, SceneEntity, SceneHandle, SimPosition, Velocity};
@@ -11,7 +12,7 @@ use bevy_egui::{egui, EguiContexts};
 use egui_toast::{Toast, ToastKind, ToastOptions};
 use crate::simulation::scenario::setup::spawn_scene;
 use crate::simulation::components::editor::{EditorSystemType, EditorSystems};
-use crate::simulation::components::horizons::NaifIdComponent;
+use crate::simulation::components::horizons::AniseMetadata;
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::render::star_billboard::StarBillboard;
 use crate::simulation::ui::components::vector_field;
@@ -19,12 +20,13 @@ use crate::simulation::ui::toast::{success_toast, ToastContainer};
 use crate::simulation::ui::UiState;
 use crate::simulation::units::converter::{km_to_m, km_to_m_dvec, km_to_m_f64, m_to_km, m_to_km_dvec, m_to_km_f64, scale_lumen, unscale_lumen};
 
-#[derive(Debug, Default, Clone, Resource)]
+#[derive(Debug, Clone, Resource)]
 pub struct EditorPanelState {
     pub entity: Option<Entity>,
     pub new_name: String,
     pub new_position: DVec3,
     pub new_velocity: DVec3,
+    pub ellipsoid: Ellipsoid,
     pub new_mass: f64,
     pub new_diameter: f32,
     pub new_rotation_speed: f64,
@@ -33,6 +35,28 @@ pub struct EditorPanelState {
     pub show_delete_confirm: bool,
     pub new_light_settings: Option<LightSettings>,
     pub naif_id: i32,
+    pub orientation_id: i32,
+}
+
+impl Default for EditorPanelState {
+    fn default() -> Self {
+        Self {
+            entity: None,
+            new_name: "".to_string(),
+            new_position: DVec3::ZERO,
+            new_velocity: DVec3::ZERO,
+            ellipsoid: Ellipsoid::from_sphere(1.0),
+            new_mass: 0.0,
+            new_diameter: 0.0,
+            new_rotation_speed: 0.0,
+            new_axial_tilt: 0.0,
+            new_model_path: "".to_string(),
+            show_delete_confirm: false,
+            new_light_settings: None,
+            naif_id: -1,
+            orientation_id: -1,
+        }
+    }
 }
 
 #[derive(Debug, Default, Clone, Copy)]
@@ -46,7 +70,7 @@ pub struct LightSettings {
 pub fn editor_body_panel(
     mut egui_context: EguiContexts,
     selected_entity: Res<SelectedEntity>,
-    mut query: Query<(Entity, &mut Name, &mut SimPosition, &mut Velocity, &mut Mass, &mut Diameter, &mut RotationSpeed, &mut AxialTilt, &mut ModelPath, &mut SceneHandle, &mut NaifIdComponent), With<Mass>>,
+    mut query: Query<(Entity, &mut Name, &mut SimPosition, &mut Velocity, &mut Mass, &mut Diameter, &mut RotationSpeed, &mut AxialTilt, &mut ModelPath, &mut SceneHandle, &mut AniseMetadata), With<Mass>>,
     scene_query: Query<Entity, With<SceneEntity>>,
     mut state: ResMut<EditorPanelState>,
     mut commands: Commands,
@@ -92,7 +116,7 @@ fn initialize_state(
     model_path: &ModelPath,
     light: Option<&(Mut<PointLight>, &LightSource, Mut<Visibility>)>,
     scale: &SimulationScale,
-    horizons_id: &Mut<NaifIdComponent>,
+    anise_metadata: &Mut<AniseMetadata>,
 ) {
     *state = EditorPanelState {
         entity: Some(s_entity),
@@ -111,7 +135,9 @@ fn initialize_state(
             enabled: **visible == Visibility::Visible,
             range: scale.unit_to_m_32(light.range),
         }),
-        naif_id: horizons_id.0,
+        naif_id: anise_metadata.target_id,
+        ellipsoid: diameter.ellipsoid,
+        orientation_id: anise_metadata.orientation_id,
     };
 }
 
@@ -127,7 +153,7 @@ fn display_body_panel(
     tilt: &mut AxialTilt,
     model_path: &mut ModelPath,
     scene: &mut SceneHandle,
-    horizons: &mut Mut<NaifIdComponent>,
+    horizons: &mut Mut<AniseMetadata>,
     commands: &mut Commands,
     systems: &Res<EditorSystems>,
     assets: &Res<AssetServer>,
@@ -162,6 +188,10 @@ fn display_body_properties(ui: &mut egui::Ui, state: &mut EditorPanelState) {
         ui.add(egui::DragValue::new(&mut state.naif_id));
     });
     ui.horizontal(|ui| {
+        ui.label("Orientation ID");
+        ui.add(egui::DragValue::new(&mut state.orientation_id));
+    });
+    ui.horizontal(|ui| {
         ui.label("Model Path");
         ui.text_edit_singleline(&mut state.new_model_path);
     });
@@ -183,6 +213,25 @@ fn display_body_properties(ui: &mut egui::Ui, state: &mut EditorPanelState) {
     });
     vector_field(ui, "Position (km)", &mut state.new_position);
     vector_field(ui, "Velocity (km/s)", &mut state.new_velocity);
+    ellipsoid(ui, state);
+}
+
+fn ellipsoid(ui: &mut egui::Ui, state: &mut EditorPanelState) {
+    ui.vertical(|ui| {
+        ui.heading("Ellipsoid");
+        ui.horizontal(|ui| {
+            ui.label("Polar Radius (km)");
+            ui.add(egui::DragValue::new(&mut state.ellipsoid.polar_radius_km));
+        });
+        ui.horizontal(|ui| {
+            ui.label("Semi major equatorial radius (km)");
+            ui.add(egui::DragValue::new(&mut state.ellipsoid.semi_major_equatorial_radius_km));
+        });
+        ui.horizontal(|ui| {
+            ui.label("Semi minor equatorial radius (km)");
+            ui.add(egui::DragValue::new(&mut state.ellipsoid.semi_minor_equatorial_radius_km));
+        });
+    });
 }
 
 fn display_light_source(ui: &mut egui::Ui, state: &mut EditorPanelState) {
@@ -228,7 +277,7 @@ fn display_bottom_buttons(
     tilt: &mut AxialTilt,
     model_path: &mut ModelPath,
     scene: &mut SceneHandle,
-    horizons: &mut Mut<NaifIdComponent>,
+    horizons: &mut Mut<AniseMetadata>,
     commands: &mut Commands,
     systems: &Res<EditorSystems>,
     assets: &Res<AssetServer>,
@@ -281,7 +330,7 @@ fn apply_changes(
     tilt: &mut AxialTilt,
     model_path: &mut ModelPath,
     scene: &mut SceneHandle,
-    horizons_id: &mut NaifIdComponent,
+    anise_metadata: &mut AniseMetadata,
     commands: &mut Commands,
     systems: &Res<EditorSystems>,
     assets: &Res<AssetServer>,
@@ -298,11 +347,15 @@ fn apply_changes(
     let new_diameter = km_to_m(state.new_diameter);
     diameter.applied = new_diameter == diameter.num;
     diameter.num = new_diameter;
+    diameter.ellipsoid = state.ellipsoid;
     rotation_speed.0 = state.new_rotation_speed;
     let new_tilt = state.new_axial_tilt;
     tilt.applied = new_tilt == tilt.num;
     tilt.num = new_tilt;
-    *horizons_id = NaifIdComponent(state.naif_id);
+    *anise_metadata = AniseMetadata {
+        target_id: state.naif_id,
+        orientation_id: state.orientation_id,
+    };
     if let Some((mut light, _, mut visible)) = light {
         light.color = state.new_light_settings.as_ref().unwrap().color;
         if let Some(material) = billboard_material {
@@ -341,6 +394,7 @@ fn apply_changes(
     }
     if model_path.cleaned() != state.new_model_path {
         *model_path = ModelPath::from_cleaned(state.new_model_path.as_str());
+        diameter.path = model_path.0.clone();
         let asset_handle: Handle<Scene> = assets.load(model_path.clone().0);
         commands.entity(scene_query.get(scene.1).unwrap()).despawn_recursive();
         scene.0 = asset_handle.clone();
@@ -351,8 +405,6 @@ fn apply_changes(
                 parent
             );
         });
-
-        diameter.aabb = None;
     }
     commands.run_system(systems.0[EditorSystemType::UPDATE_POSITIONS]);
     commands.run_system(systems.0[EditorSystemType::UPDATE_DIAMETER]);

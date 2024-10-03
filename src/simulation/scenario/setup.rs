@@ -46,7 +46,7 @@ pub struct ScenarioData {
     pub description: String,
     pub timestep: i32,
     pub scale: f32,
-    pub spk_files: Vec<String>
+    pub spice_files: Vec<String>
 
 }
 
@@ -59,7 +59,7 @@ impl From<SimulationData> for ScenarioData {
             description: value.description,
             timestep: value.timestep,
             scale: value.scale,
-            spk_files: value.data_sets
+            spice_files: value.data_sets
         }
     }
 }
