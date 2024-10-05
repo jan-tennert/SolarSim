@@ -162,7 +162,7 @@ fn display_body_panel(
     billboard_material: Option<&mut Handle<StandardMaterial>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
     apply: &mut bool,
-    scale: &SimulationScale
+    scale: &SimulationScale,
 ) {
     egui::SidePanel::right("body_panel")
         .resizable(true)
@@ -184,7 +184,7 @@ fn display_body_properties(ui: &mut egui::Ui, state: &mut EditorPanelState) {
         ui.text_edit_singleline(&mut state.new_name);
     });
     ui.horizontal(|ui| {
-        ui.label("Naif ID");
+        ui.label("Ephemeris ID");
         ui.add(egui::DragValue::new(&mut state.naif_id));
     });
     ui.horizontal(|ui| {
@@ -286,7 +286,7 @@ fn display_bottom_buttons(
     billboard_material: Option<&mut Handle<StandardMaterial>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
     apply: &mut bool,
-    scale: &SimulationScale
+    scale: &SimulationScale,
 ) {
     ui.with_layout(Layout::bottom_up(Align::Center), |ui| {
         ui.horizontal(|ui| {
@@ -338,7 +338,7 @@ fn apply_changes(
     scene_query: Query<Entity, With<SceneEntity>>,
     billboard_material: Option<&mut Handle<StandardMaterial>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
-    scale: &SimulationScale
+    scale: &SimulationScale,
 ) {
     name.set(state.new_name.clone());
     pos.0 = km_to_m_dvec(state.new_position);

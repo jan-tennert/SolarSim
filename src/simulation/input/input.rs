@@ -10,7 +10,7 @@ pub fn key_window(
     mut egui_ctx: EguiContexts,
     mut ui_state: ResMut<UiState>,
 ) {
-    if !ui_state.visible {
+    if !ui_state.visible || egui_ctx.try_ctx_mut().is_none() {
         return;
     }
     egui::Window::new("Keybind Information")

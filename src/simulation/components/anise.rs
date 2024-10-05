@@ -7,11 +7,15 @@ use crate::simulation::ui::toast::{error_toast, success_toast, ToastContainer};
 use crate::simulation::{SimState, SimStateType};
 use anise::constants::frames::{IAU_EARTH_FRAME, JUPITER_BARYCENTER_J2000, SSB_J2000};
 use anise::constants::orientations::{IAU_EARTH, J2000};
+use anise::errors::AlmanacError;
+use anise::math::cartesian::CartesianState;
 use anise::math::Vector3;
 use anise::prelude::{Almanac, Epoch, Frame, SPK};
+use anise::structure::planetocentric::ellipsoid::Ellipsoid;
 use bevy::app::Plugin;
 use bevy::math::DVec3;
-use bevy::prelude::{in_state, IntoSystemConfigs, OnEnter, Query, Res, ResMut, Resource, State, Update};
+use bevy::prelude::{in_state, IntoSystemConfigs, Local, OnEnter, Query, Res, ResMut, Resource, State, Update};
+use bevy_async_task::{AsyncTaskRunner, AsyncTaskStatus};
 use reqwest::get;
 
 pub struct AnisePlugin;
@@ -51,20 +55,18 @@ pub fn retrieve_starting_data(
             epoch,
             None,
         );
-
     if let Ok(s) = state {
         toasts.0.add(success_toast(&format!("Retrieved data for {}", metadata.target_id)));
         e_state.new_velocity = vector3_to_dvec3(s.velocity_km_s);
         e_state.new_position = vector3_to_dvec3(s.radius_km);
     } else {
-        println!("{:?}", state);
         toasts.0.add(error_toast(format!("Error: {:?}", state.unwrap_err()).as_str()));
     }
 
     let full_frame = almanac.0.frame_from_uid(Frame::new(metadata.target_id, metadata.orientation_id));
 
     if let Ok(f) = full_frame {
-        e_state.ellipsoid = f.shape.unwrap();
+        e_state.ellipsoid = f.shape.unwrap_or(e_state.ellipsoid);
     } else {
         toasts.0.add(error_toast(format!("Error: {:?}", full_frame.unwrap_err()).as_str()));
     }
@@ -79,13 +81,47 @@ fn spk_file_loading(
     mut toasts: ResMut<ToastContainer>,
     mut scenario_data: ResMut<ScenarioData>,
     mut loading_state: ResMut<LoadingState>,
-    sim_type: Res<SimStateType>
+    mut task_executor: AsyncTaskRunner<Result<Almanac, AlmanacError>>,
+    mut to_load: Local<Option<Vec<String>>>
 ) {
-    if loading_state.loaded_spk_files || !loading_state.spawned_bodies || *sim_type == SimStateType::Simulation {
+    if loading_state.loaded_spice_files || !loading_state.spawned_bodies {
         return;
     }
-    load_spice_files(scenario_data.spice_files.clone(), &mut almanac, &mut toasts);
-    loading_state.loaded_spk_files = true;
+    if to_load.is_none() {
+        *to_load = Some(scenario_data.spice_files.clone());
+        loading_state.spice_total = to_load.as_ref().unwrap().len() as i32;
+    }
+    let to_load_v = to_load.as_mut().unwrap();
+    match task_executor.poll() {
+        AsyncTaskStatus::Idle => {
+            if !to_load_v.is_empty() {
+                println!("Loading SPICE file: {}", to_load_v.last().unwrap());
+                let path = to_load_v.pop().unwrap();
+                task_executor.start(load_spice_file(path, almanac.0.clone()));
+            } else {
+                loading_state.loaded_spice_files = true;
+                *to_load = None;
+            }
+        }
+        AsyncTaskStatus::Pending => {
+            // <Insert loading screen>
+        }
+        AsyncTaskStatus::Finished(r) => {
+            if let Ok(v) = r {
+                almanac.0 = v;
+            } else if let Err(e) = r {
+                toasts.0.add(error_toast(format!("Couldn't load SPICE file: {}", e).as_str()));
+            }
+            loading_state.spice_loaded += 1;
+        }
+    }
+}
+
+async fn load_spice_file(
+    path: String,
+    almanac: Almanac
+) -> Result<Almanac, AlmanacError> {
+    almanac.load(format!("data/{}", path).as_str())
 }
 
 pub fn load_spice_files(

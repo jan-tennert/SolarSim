@@ -25,7 +25,9 @@ pub struct LoadingState {
     pub scaled_bodies_count: i32,
     pub total_bodies: i32,
     pub tilted_bodies: bool,
-    pub loaded_spk_files: bool,
+    pub spice_loaded: i32,
+    pub spice_total: i32,
+    pub loaded_spice_files: bool,
     pub spawned_bodies: bool
 
 }
@@ -35,14 +37,16 @@ impl LoadingState {
     pub fn reset(&mut self) {
         self.scaled_bodies = false;
         self.tilted_bodies = false;
-        self.loaded_spk_files = false;
+        self.spice_loaded = 0;
+        self.spice_total = 0;
         self.spawned_bodies = false;
         self.scaled_bodies_count = 0;
+        self.loaded_spice_files = false;
         self.total_bodies = 0;
     }
     
-    pub fn is_done(&self, is_sim: bool) -> bool {
-        self.scaled_bodies && self.tilted_bodies && (self.loaded_spk_files || is_sim) && self.spawned_bodies
+    pub fn is_done(&self) -> bool {
+        self.scaled_bodies && self.tilted_bodies && self.loaded_spice_files && self.spawned_bodies
     }
     
 }
@@ -105,9 +109,8 @@ fn spawn_loading(
 fn loading_system(
     loading_state: ResMut<LoadingState>,
     mut sim_state: ResMut<NextState<SimState>>,
-    sim_type: Res<SimStateType>
 ) {
-    if loading_state.is_done(*sim_type == SimStateType::Simulation) {
+    if loading_state.is_done() {
         sim_state.set(SimState::Loaded)
     }
 }
@@ -120,7 +123,7 @@ fn update_progress(
     let text0 = loading_text("Spawning bodies", loading_state.spawned_bodies, false);
     let text1 = loading_text(format!("Scaling bodies: {}/{}", loading_state.scaled_bodies_count, loading_state.total_bodies).as_str(), loading_state.scaled_bodies, false);
     let text2 = loading_text("Rotating bodies", loading_state.tilted_bodies, false);
-    let text3 = loading_text("Loading SPK files", loading_state.loaded_spk_files, *sim_type == SimStateType::Simulation);
+    let text3 = loading_text(format!("Loading SPK files: {}/{}", loading_state.spice_loaded, loading_state.spice_total).as_str(), loading_state.loaded_spice_files, false);
     let new_text = format!("{}\n{}\n{}\n{}", text0, text1, text2, text3);
     if let Ok(mut text) = marker.get_single_mut() {
         let old_text = text.sections.first_mut().unwrap();

@@ -29,7 +29,6 @@ impl Plugin for PhysicsPlugin {
             .register_type::<Velocity>()
             .register_type::<Acceleration>()
             .register_type::<Mass>()
-            .register_type::<SimPosition>()
             .register_type::<OrbitSettings>()
             .register_diagnostic(Diagnostic::new(NBODY_STEP_TIME).with_max_history_length(50))
             .register_diagnostic(Diagnostic::new(NBODY_TOTAL_TIME).with_max_history_length(50))

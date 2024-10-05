@@ -1,6 +1,10 @@
+use std::f32::consts::PI;
 use bevy::{prelude::{in_state, App, Camera, Entity, Gizmos, IntoSystemConfigs, Plugin, PreUpdate, Query, Res, Resource, Transform, Vec3, With, Without}, time::Time};
-
-use crate::simulation::components::body::{BillboardVisible, BodyChildren, Diameter, Moon, OrbitSettings, Planet, SimPosition, Star};
+use bevy::color::palettes::basic::RED;
+use bevy::math::DVec3;
+use bevy::prelude::{Quat, Vec2};
+use crate::simulation::components::apsis::ApsisBody;
+use crate::simulation::components::body::{BillboardVisible, BodyChildren, BodyParent, Diameter, Moon, OrbitSettings, Planet, SimPosition, Star, Velocity};
 use crate::simulation::components::camera::PanOrbitCamera;
 use crate::simulation::components::physics::{apply_physics, Pause, SubSteps};
 use crate::simulation::components::scale::SimulationScale;
@@ -15,7 +19,7 @@ impl Plugin for OrbitLinePlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<OrbitOffset>()
-            .add_systems(PreUpdate, (update_lines.after(apply_physics), draw_orbit_line.after(update_lines)).run_if(in_state(SimState::Loaded)));
+            .add_systems(PreUpdate, (update_lines.after(apply_physics), (draw_orbit_line).after(update_lines)).run_if(in_state(SimState::Loaded)));
     }
 }
 
@@ -117,6 +121,43 @@ fn draw_orbit_line(
         }
     }
 }
+
+/*fn draw_orbit_line_ellipse(
+    offset: Res<OrbitOffset>,
+    mut gizmos: Gizmos,
+    bodies: Query<(Option<&ApsisBody>, Option<&BodyParent>, Option<&OrbitSettings>,&Velocity, &Transform)>,
+    simulation_scale: Res<SimulationScale>
+) {
+    for (apsis, parent, orbit, vel, transform) in &bodies {
+        if parent.is_none() {
+            continue;
+        }
+
+        let parent_pos = bodies.get(parent.unwrap().0).unwrap().4.translation;
+        let apsis = apsis.unwrap();
+
+        let ecc = (apsis.aphelion.distance - apsis.perihelion.distance) / (apsis.aphelion.distance + apsis.perihelion.distance);
+        let semi_major = (apsis.aphelion.distance + apsis.perihelion.distance) / 2.0;
+        let semi_minor = semi_major * (1.0 - ecc.powi(2)).sqrt();
+        let half_size = simulation_scale.0 * Vec2::new(semi_major, semi_minor);
+
+        // 1. Calculate the orbital angular momentum vector
+        let relative_position = transform.translation - parent_pos;
+        let relative_velocity = vel.0.as_vec3();
+        let angular_momentum = relative_position.cross(relative_velocity);
+
+        // 2. Inclination (angle between angular momentum vector and z-axis)
+        let h_z = angular_momentum.z;
+        let h_magnitude = angular_momentum.length();
+        let inclination = (h_z / h_magnitude).acos();
+
+        // 3. Apply only the inclination rotation (ignore periapsis for now)
+        let inclination_rotation = Quat::from_rotation_x(inclination);
+        let pos = (apsis.perihelion.position + apsis.aphelion.position) / 2.0;
+        // 4. Draw the ellipse with only inclination applied
+        gizmos.ellipse(pos.as_vec3() * simulation_scale.0 + offset.value, inclination_rotation, half_size, orbit.unwrap().color).resolution(64);
+    }
+}*/
 
 pub fn draw_lines(orbit: &OrbitSettings, offset: Vec3, gizmos: &mut Gizmos, current_pos: Vec3) {
     for (index, first) in orbit.lines.iter().enumerate() {

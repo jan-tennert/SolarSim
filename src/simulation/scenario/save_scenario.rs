@@ -8,6 +8,7 @@ use bevy::ecs::system::SystemParam;
 use bevy::math::DVec3;
 use bevy::prelude::{default, AssetServer, Assets, Entity, PointLight, Query, Res, ResMut, Visibility};
 use std::fs;
+use anise::structure::planetocentric::ellipsoid::Ellipsoid;
 use egui_toast::{Toast, ToastKind, ToastOptions};
 use crate::simulation::asset::serialization::{SerializedBody, SerializedBodyData, SerializedLightSource, SerializedVec, SimulationData};
 use crate::simulation::components::horizons::AniseMetadata;
@@ -100,7 +101,7 @@ fn collect_moons(system_panel_set: &SystemPanelSet, children: BodyChildren) -> V
 fn find_body_data(system_panel_set: &SystemPanelSet, entity: Entity) -> Option<(SerializedBodyData, Option<BodyChildren>)> {
     system_panel_set.bodies.iter().find(|(e, _, _, _, _, _, _, _, _, _, _, _)| *e == entity)
         .map(|(_, m, p, v, n, mp, d, rs, at, child, naif, _)| (
-            create_serialized_body_data(m.0, p.0 / 1000.0, v.0 / 1000.0, n.to_string(), mp.cleaned(), d.num as f64 / 1000.0, rs.0, at.num, None, naif.clone()),
+            create_serialized_body_data(m.0, p.0 / 1000.0, v.0 / 1000.0, n.to_string(), mp.cleaned(), d.num as f64 / 1000.0, rs.0, at.num, None, naif.clone(), d.ellipsoid),
             child.map(|c| c.clone())
         ))
 }
@@ -115,6 +116,7 @@ fn create_serialized_body_data(
     axial_tilt: f32,
     light_source: Option<SerializedLightSource>,
     anise_metadata: AniseMetadata,
+    ellipsoid: Ellipsoid,
 ) -> SerializedBodyData {
     SerializedBodyData {
         mass,
@@ -126,10 +128,10 @@ fn create_serialized_body_data(
         rotation_speed,
         axial_tilt,
         simulate: true,
-        ellipsoid: anise_metadata.ellipsoid,
+        ellipsoid,
         light_source,
         naif_id: anise_metadata.target_id,
-        orientation_id: anise_metadata.target_id
+        orientation_id: anise_metadata.target_id,
     }
 }
 

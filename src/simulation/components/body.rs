@@ -12,19 +12,19 @@ use crate::simulation::components::horizons::AniseMetadata;
 #[derive(Component, Clone, Default, Reflect, Copy)]
 pub struct Mass(pub f64);
 
-#[derive(Default, Component, Reflect, Clone)]
+#[derive(Default, Component, Reflect, Clone, Copy)]
 pub struct Velocity(pub DVec3);
 
-#[derive(Default, Component, Reflect, Clone)]
+#[derive(Default, Component, Reflect, Clone, Copy)]
 pub struct Acceleration(pub DVec3);
 
-#[derive(Component, Reflect, Clone, Default)]
+#[derive(Component, Reflect, Clone, Default, Copy)]
 pub struct Scale(pub f32);
 
-#[derive(Component, Reflect, Clone, Default)]
+#[derive(Component, Reflect, Clone, Default, Copy)]
 pub struct RotationSpeed(pub f64);
 
-#[derive(Component, Reflect, Clone, Default)]
+#[derive(Component, Reflect, Clone, Default, Copy)]
 pub struct AxialTilt {
     pub num: f32,
     pub axis: Option<Vec3>,
@@ -80,10 +80,10 @@ impl Default for OrbitSettings {
     
 }
 
-#[derive(Component, Reflect, Clone, Default)]
+#[derive(Component, Clone, Default)]
 pub struct SimPosition(pub DVec3);
 
-#[derive(Component, Reflect, Clone)]
+#[derive(Component, Clone)]
 pub struct Diameter {
 
     pub num: f32,
