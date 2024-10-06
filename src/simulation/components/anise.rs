@@ -63,7 +63,8 @@ pub fn retrieve_starting_data(
         toasts.0.add(error_toast(format!("Error: {:?}", state.unwrap_err()).as_str()));
     }
 
-    let full_frame = almanac.0.frame_from_uid(Frame::new(metadata.target_id, metadata.orientation_id));
+    let fixed_frame = Frame::new(metadata.target_id, metadata.orientation_id);
+    let full_frame = almanac.0.frame_from_uid(fixed_frame);
 
     if let Ok(f) = full_frame {
         e_state.ellipsoid = f.shape.unwrap_or(e_state.ellipsoid);
@@ -71,7 +72,7 @@ pub fn retrieve_starting_data(
         toasts.0.add(error_toast(format!("Error: {:?}", full_frame.unwrap_err()).as_str()));
     }
 
-    let dcm = almanac.0.rotation_to_parent(Frame::new(metadata.target_id, metadata.orientation_id), epoch);
+    let dcm = almanac.0.rotation_to_parent(fixed_frame, epoch);
 
     if let Ok(d) = dcm {
         e_state.rotation_matrix = matrix3_to_mat3(d.rot_mat);
