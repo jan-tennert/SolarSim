@@ -33,6 +33,8 @@ impl Default for HorizonsClient {
 #[derive(Component, Clone, Debug)]
 pub struct AniseMetadata {
 
+    pub ephemeris_id: i32,
+    //For constants and rotation
     pub target_id: i32,
     pub orientation_id: i32,
 
@@ -42,8 +44,9 @@ impl Default for AniseMetadata {
 
     fn default() -> Self {
         Self {
-            target_id: -1,
+            ephemeris_id: -1,
             orientation_id: -1,
+            target_id: -1
         }
     }
 
@@ -155,7 +158,7 @@ pub fn retrieve_starting_data_horizons(
         let stop_date = (starting_date + chrono::Duration::days(1)).format("%Y-%m-%d").to_string();
         let id = bodies.get(entity).unwrap();
         let parameters = HorizonsApiParameters::with_defaults()
-            .with_command(id.target_id)
+            .with_command(id.ephemeris_id)
             .with_start_time(start_date.as_str())
             .with_stop_time(stop_date.as_str());
         if let Ok((pos, vel)) = get_starting_data_horizons(parameters, client.0.clone()) {

@@ -67,7 +67,7 @@ pub fn sim_body_panel(
                }
            }
            if parent.is_some() {
-               let id = parent.as_ref().unwrap().4.target_id;
+               let id = parent.as_ref().unwrap().4.ephemeris_id;
                let vel = &*selected.as_ref().unwrap().3;
                let pos = selected.as_ref().unwrap().2;
                let frame = Frame::new(id, J2000);

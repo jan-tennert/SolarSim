@@ -50,3 +50,13 @@ pub fn error_toast(text: &str) -> Toast {
         ..default()
     }
 }
+
+pub fn important_error_toast(text: &str) -> Toast {
+    Toast {
+        text: text.into(),
+        kind: ToastKind::Error,
+        options: ToastOptions::default()
+            .duration_in_seconds(5.0),
+        ..default()
+    }
+}

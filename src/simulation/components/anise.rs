@@ -14,7 +14,7 @@ use anise::prelude::{Almanac, Epoch, Frame, SPK};
 use anise::structure::planetocentric::ellipsoid::Ellipsoid;
 use bevy::app::Plugin;
 use bevy::math::DVec3;
-use bevy::prelude::{in_state, IntoSystemConfigs, Local, OnEnter, Query, Res, ResMut, Resource, State, Update};
+use bevy::prelude::{in_state, IntoSystemConfigs, Local, OnEnter, Quat, Query, Res, ResMut, Resource, State, Update};
 use bevy_async_task::{AsyncTaskRunner, AsyncTaskStatus};
 use reqwest::get;
 
@@ -50,13 +50,13 @@ pub fn retrieve_starting_data(
     let mut metadata = selected_entity.entity.map(|e| bodies.get_mut(e).ok()).flatten().unwrap();
     let state = almanac.0
         .translate(
-            Frame::new(metadata.target_id, J2000), // Target
+            Frame::new(metadata.ephemeris_id, J2000), // Target
             SSB_J2000, // Observer
             epoch,
             None,
         );
     if let Ok(s) = state {
-        toasts.0.add(success_toast(&format!("Retrieved data for {}", metadata.target_id)));
+        toasts.0.add(success_toast(&format!("Retrieved data for {}", metadata.ephemeris_id)));
         e_state.new_velocity = vector3_to_dvec3(s.velocity_km_s);
         e_state.new_position = vector3_to_dvec3(s.radius_km);
     } else {
@@ -70,6 +70,22 @@ pub fn retrieve_starting_data(
     } else {
         toasts.0.add(error_toast(format!("Error: {:?}", full_frame.unwrap_err()).as_str()));
     }
+
+    let dcm = almanac.0.rotation_to_parent(Frame::new(metadata.target_id, metadata.orientation_id), epoch);
+
+    if let Ok(d) = dcm {
+        e_state.rotation_matrix = matrix3_to_mat3(d.rot_mat);
+    } else {
+        toasts.0.add(error_toast(format!("Error: {:?}", dcm.unwrap_err()).as_str()));
+    }
+}
+
+fn matrix3_to_mat3(m: anise::math::Matrix3) -> bevy::math::Mat3 {
+    bevy::math::Mat3::from_cols(
+        bevy::math::Vec3::new(m.data.0[0][0] as f32, m.data.0[0][1] as f32, m.data.0[0][2] as f32),
+        bevy::math::Vec3::new(m.data.0[1][0] as f32, m.data.0[1][1] as f32, m.data.0[1][2] as f32),
+        bevy::math::Vec3::new(m.data.0[2][0] as f32, m.data.0[2][1] as f32, m.data.0[2][2] as f32)
+    )
 }
 
 fn vector3_to_dvec3(v: Vector3) -> DVec3 {

@@ -1,12 +1,12 @@
 use anise::structure::planetocentric::ellipsoid::Ellipsoid;
 use bevy::asset::{AssetServer, Assets};
 use crate::simulation::components::apsis::ApsisBody;
-use crate::simulation::components::body::{AxialTilt, BodyChildren, BodyParent, Diameter, LightSource, Mass, ModelPath, OrbitSettings, RotationSpeed, Scale, SceneEntity, SceneHandle, SimPosition, Velocity};
+use crate::simulation::components::body::{BodyRotation, BodyChildren, BodyParent, Diameter, LightSource, Mass, ModelPath, OrbitSettings, RotationSpeed, Scale, SceneEntity, SceneHandle, SimPosition, Velocity};
 use crate::simulation::components::selection::SelectedEntity;
 use bevy::core::Name;
 use bevy::math::DVec3;
 use bevy::pbr::StandardMaterial;
-use bevy::prelude::{default, BuildChildren, Camera, Color, Commands, DespawnRecursiveExt, Entity, Handle, Mesh, Mut, PointLight, PointLightBundle, Query, Res, ResMut, Resource, Scene, Srgba, Transform, Vec3, Visibility, With, Without};
+use bevy::prelude::{default, BuildChildren, Camera, Color, Commands, DespawnRecursiveExt, Entity, Handle, Mat3, Mesh, Mut, PointLight, PointLightBundle, Query, Res, ResMut, Resource, Scene, Srgba, Transform, Vec3, Visibility, With, Without};
 use bevy_egui::egui::{Align, Context, Layout, RichText, ScrollArea};
 use bevy_egui::{egui, EguiContexts};
 use egui_toast::{Toast, ToastKind, ToastOptions};
@@ -30,12 +30,13 @@ pub struct EditorPanelState {
     pub new_mass: f64,
     pub new_diameter: f32,
     pub new_rotation_speed: f64,
-    pub new_axial_tilt: f32,
     pub new_model_path: String,
     pub show_delete_confirm: bool,
     pub new_light_settings: Option<LightSettings>,
-    pub naif_id: i32,
+    pub ephemeris_id: i32,
     pub orientation_id: i32,
+    pub target_id: i32,
+    pub rotation_matrix: Mat3
 }
 
 impl Default for EditorPanelState {
@@ -49,12 +50,13 @@ impl Default for EditorPanelState {
             new_mass: 0.0,
             new_diameter: 0.0,
             new_rotation_speed: 0.0,
-            new_axial_tilt: 0.0,
             new_model_path: "".to_string(),
             show_delete_confirm: false,
             new_light_settings: None,
-            naif_id: -1,
+            ephemeris_id: -1,
             orientation_id: -1,
+            target_id: -1,
+            rotation_matrix: Mat3::IDENTITY
         }
     }
 }
@@ -70,7 +72,7 @@ pub struct LightSettings {
 pub fn editor_body_panel(
     mut egui_context: EguiContexts,
     selected_entity: Res<SelectedEntity>,
-    mut query: Query<(Entity, &mut Name, &mut SimPosition, &mut Velocity, &mut Mass, &mut Diameter, &mut RotationSpeed, &mut AxialTilt, &mut ModelPath, &mut SceneHandle, &mut AniseMetadata), With<Mass>>,
+    mut query: Query<(Entity, &mut Name, &mut SimPosition, &mut Velocity, &mut Mass, &mut Diameter, &mut RotationSpeed, &mut BodyRotation, &mut ModelPath, &mut SceneHandle, &mut AniseMetadata), With<Mass>>,
     scene_query: Query<Entity, With<SceneEntity>>,
     mut state: ResMut<EditorPanelState>,
     mut commands: Commands,
@@ -87,13 +89,13 @@ pub fn editor_body_panel(
     }
     let mut apply  = false;
     if let Some(s_entity) = selected_entity.entity {
-        if let Ok((entity, mut name, mut pos, mut vel, mut mass, mut diameter, mut rotation_speed, mut tilt, mut model_path, mut scene, mut horizons_id)) = query.get_mut(s_entity) {
+        if let Ok((entity, mut name, mut pos, mut vel, mut mass, mut diameter, mut rotation_speed, mut rotation, mut model_path, mut scene, mut horizons_id)) = query.get_mut(s_entity) {
             let light = light_query.iter_mut().find(|(_, l, _)| l.0 == entity).map(|(a,b,c)| (a,b,c));
             let mut billboard_material = billboards.iter_mut().find(|(b, _)| b.0 == entity).map(|(_, m)| m.clone());
             if state.entity.is_none() || state.entity.unwrap() != s_entity {
-                initialize_state(state.as_mut(), s_entity, &name, &pos, &vel, &mass, &diameter, &rotation_speed, &tilt, &model_path, light.as_ref(), &scale, &horizons_id);
+                initialize_state(state.as_mut(), s_entity, &name, &pos, &vel, &mass, &diameter, &rotation_speed,&model_path, light.as_ref(), &scale, &horizons_id, &rotation);
             }
-            display_body_panel(egui_context.ctx_mut(), state.as_mut(), &mut name, &mut pos, &mut vel, &mut mass, &mut diameter, &mut rotation_speed, &mut tilt, &mut model_path, &mut scene, &mut horizons_id, &mut commands, &systems, &assets, light, scene_query, billboard_material.as_mut(), &mut materials, &mut apply, &scale);
+            display_body_panel(egui_context.ctx_mut(), state.as_mut(), &mut name, &mut pos, &mut vel, &mut mass, &mut diameter, &mut rotation_speed, &mut rotation, &mut model_path, &mut scene, &mut horizons_id, &mut commands, &systems, &assets, light, scene_query, billboard_material.as_mut(), &mut materials, &mut apply, &scale);
         }
     } else {
         state.entity = None;
@@ -112,11 +114,11 @@ fn initialize_state(
     mass: &Mass,
     diameter: &Diameter,
     rotation_speed: &RotationSpeed,
-    tilt: &AxialTilt,
     model_path: &ModelPath,
     light: Option<&(Mut<PointLight>, &LightSource, Mut<Visibility>)>,
     scale: &SimulationScale,
     anise_metadata: &Mut<AniseMetadata>,
+    rotation: &BodyRotation,
 ) {
     *state = EditorPanelState {
         entity: Some(s_entity),
@@ -126,7 +128,6 @@ fn initialize_state(
         new_mass: mass.0,
         new_diameter: m_to_km(diameter.num),
         new_rotation_speed: rotation_speed.0,
-        new_axial_tilt: tilt.num,
         new_model_path: model_path.cleaned(),
         show_delete_confirm: false,
         new_light_settings: light.map(|(light, _, visible)| LightSettings {
@@ -135,9 +136,11 @@ fn initialize_state(
             enabled: **visible == Visibility::Visible,
             range: scale.unit_to_m_32(light.range),
         }),
-        naif_id: anise_metadata.target_id,
+        ephemeris_id: anise_metadata.ephemeris_id,
         ellipsoid: diameter.ellipsoid,
         orientation_id: anise_metadata.orientation_id,
+        rotation_matrix: rotation.matrix,
+        target_id: anise_metadata.target_id
     };
 }
 
@@ -150,7 +153,7 @@ fn display_body_panel(
     mass: &mut Mass,
     diameter: &mut Diameter,
     rotation_speed: &mut RotationSpeed,
-    tilt: &mut AxialTilt,
+    tilt: &mut BodyRotation,
     model_path: &mut ModelPath,
     scene: &mut SceneHandle,
     horizons: &mut Mut<AniseMetadata>,
@@ -185,10 +188,12 @@ fn display_body_properties(ui: &mut egui::Ui, state: &mut EditorPanelState) {
     });
     ui.horizontal(|ui| {
         ui.label("Ephemeris ID");
-        ui.add(egui::DragValue::new(&mut state.naif_id));
+        ui.add(egui::DragValue::new(&mut state.ephemeris_id));
     });
     ui.horizontal(|ui| {
-        ui.label("Orientation ID");
+        ui.label("Fixed Frame IDs");
+        ui.add(egui::DragValue::new(&mut state.target_id));
+        ui.label("/");
         ui.add(egui::DragValue::new(&mut state.orientation_id));
     });
     ui.horizontal(|ui| {
@@ -207,12 +212,9 @@ fn display_body_properties(ui: &mut egui::Ui, state: &mut EditorPanelState) {
         ui.label("Rotation Speed (min/rotation)");
         ui.add(egui::DragValue::new(&mut state.new_rotation_speed));
     });
-    ui.horizontal(|ui| {
-        ui.label("Axial Tilt (degrees)");
-        ui.add(egui::DragValue::new(&mut state.new_axial_tilt));
-    });
     vector_field(ui, "Position (km)", &mut state.new_position);
     vector_field(ui, "Velocity (km/s)", &mut state.new_velocity);
+    rotation_matrix(ui, state);
     ellipsoid(ui, state);
 }
 
@@ -230,6 +232,36 @@ fn ellipsoid(ui: &mut egui::Ui, state: &mut EditorPanelState) {
         ui.horizontal(|ui| {
             ui.label("Semi minor equatorial radius (km)");
             ui.add(egui::DragValue::new(&mut state.ellipsoid.semi_minor_equatorial_radius_km));
+        });
+    });
+}
+
+fn rotation_matrix(ui: &mut egui::Ui, state: &mut EditorPanelState) {
+    ui.vertical(|ui| {
+        ui.heading("Rotation Matrix");
+        ui.horizontal(|ui| {
+            ui.label("Row 1");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut state.rotation_matrix.x_axis[0]));
+                ui.add(egui::DragValue::new(&mut state.rotation_matrix.x_axis[1]));
+                ui.add(egui::DragValue::new(&mut state.rotation_matrix.x_axis[2]));
+            });
+        });
+        ui.horizontal(|ui| {
+            ui.label("Row 2");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut state.rotation_matrix.y_axis[0]));
+                ui.add(egui::DragValue::new(&mut state.rotation_matrix.y_axis[1]));
+                ui.add(egui::DragValue::new(&mut state.rotation_matrix.y_axis[2]));
+            });
+        });
+        ui.horizontal(|ui| {
+            ui.label("Row 3");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut state.rotation_matrix.z_axis[0]));
+                ui.add(egui::DragValue::new(&mut state.rotation_matrix.z_axis[1]));
+                ui.add(egui::DragValue::new(&mut state.rotation_matrix.z_axis[2]));
+            });
         });
     });
 }
@@ -274,7 +306,7 @@ fn display_bottom_buttons(
     mass: &mut Mass,
     diameter: &mut Diameter,
     rotation_speed: &mut RotationSpeed,
-    tilt: &mut AxialTilt,
+    tilt: &mut BodyRotation,
     model_path: &mut ModelPath,
     scene: &mut SceneHandle,
     horizons: &mut Mut<AniseMetadata>,
@@ -313,7 +345,7 @@ fn display_bottom_buttons(
             }
         });
         ui.separator();
-        if ui.button("Use starting data from ANISE").on_hover_text("Use starting data from ANISE").clicked() {
+        if ui.button("Load starting data from included SPK kernels").on_hover_text("Use starting data from ANISE").clicked() {
             commands.run_system(systems.0[EditorSystemType::RETRIEVE_DATA]);
         }
     });
@@ -327,7 +359,7 @@ fn apply_changes(
     mass: &mut Mass,
     diameter: &mut Diameter,
     rotation_speed: &mut RotationSpeed,
-    tilt: &mut AxialTilt,
+    rotation: &mut BodyRotation,
     model_path: &mut ModelPath,
     scene: &mut SceneHandle,
     anise_metadata: &mut AniseMetadata,
@@ -345,16 +377,16 @@ fn apply_changes(
     vel.0 = km_to_m_dvec(state.new_velocity);
     mass.0 = state.new_mass;
     let new_diameter = km_to_m(state.new_diameter);
-    diameter.applied = new_diameter == diameter.num;
+    diameter.applied = new_diameter == diameter.num && state.ellipsoid == diameter.ellipsoid;
     diameter.num = new_diameter;
     diameter.ellipsoid = state.ellipsoid;
     rotation_speed.0 = state.new_rotation_speed;
-    let new_tilt = state.new_axial_tilt;
-    tilt.applied = new_tilt == tilt.num;
-    tilt.num = new_tilt;
+    rotation.applied = state.rotation_matrix == rotation.matrix;
+    rotation.matrix = state.rotation_matrix;
     *anise_metadata = AniseMetadata {
-        target_id: state.naif_id,
+        ephemeris_id: state.ephemeris_id,
         orientation_id: state.orientation_id,
+        target_id: state.target_id,
     };
     if let Some((mut light, _, mut visible)) = light {
         light.color = state.new_light_settings.as_ref().unwrap().color;

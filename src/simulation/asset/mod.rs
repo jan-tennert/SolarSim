@@ -3,6 +3,7 @@ use bevy::asset::AssetPath;
 use bevy::asset::io::AssetSourceId;
 
 pub mod serialization;
+mod default_values;
 
 pub const SCENARIO_ASSET_SOURCE: &str = "scenarios";
 

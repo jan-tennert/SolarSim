@@ -2,7 +2,7 @@ use crate::simulation::asset::serialization::SerializedBody;
 use bevy::color::palettes::css;
 use bevy::color::Color;
 use bevy::core::Name;
-use bevy::math::{DVec3, Vec3};
+use bevy::math::{DVec3, Mat3, Vec3};
 use bevy::prelude::{default, Bundle, Component, Entity, Handle, Reflect, Scene, Srgba, Transform};
 use bevy::render::primitives::Aabb;
 use std::collections::VecDeque;
@@ -25,9 +25,9 @@ pub struct Scale(pub f32);
 pub struct RotationSpeed(pub f64);
 
 #[derive(Component, Reflect, Clone, Default, Copy)]
-pub struct AxialTilt {
-    pub num: f32,
-    pub axis: Option<Vec3>,
+pub struct BodyRotation {
+    pub matrix: Mat3,
+    pub axis: Vec3,
     pub applied: bool
 }
 
@@ -137,7 +137,7 @@ pub struct BodyBundle {
     pub model_path: ModelPath,
     pub orbit: OrbitSettings,
     pub rotation_speed: RotationSpeed,
-    pub axial_tilt: AxialTilt,   
+    pub rotation: BodyRotation,
     pub diameter: Diameter,
     pub billboard_visible: BillboardVisible,
     pub naif_id: AniseMetadata,
@@ -159,14 +159,15 @@ impl From<SerializedBody> for BodyBundle {
                 ellipsoid: value.data.ellipsoid,
                 ..default()
             },
-            axial_tilt: AxialTilt {
-                num: value.data.axial_tilt,
+            rotation: BodyRotation {
+                matrix: Mat3::from(value.data.rotation_matrix),
                 ..default()
             },
             rotation_speed: RotationSpeed(value.data.rotation_speed),
             naif_id: AniseMetadata {
-                target_id: value.data.naif_id,
-                orientation_id: value.data.orientation_id,
+                ephemeris_id: value.data.naif_id,
+                orientation_id: value.data.fixed_body_frame.orientation_id,
+                target_id: value.data.fixed_body_frame.target_id,
             },
            ..default()
         }
@@ -187,8 +188,8 @@ impl BodyBundle {
                 num: 0.0,
                 ..default()
             },
-            axial_tilt: AxialTilt {
-                num: 0.0,
+            rotation: BodyRotation {
+                matrix: Mat3::IDENTITY,
                 ..default()
             },
             rotation_speed: RotationSpeed(0.0),

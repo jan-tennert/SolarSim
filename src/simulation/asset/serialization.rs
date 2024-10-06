@@ -2,13 +2,14 @@ use anise::structure::planetocentric::ellipsoid::Ellipsoid;
 use bevy::asset::io::file::FileAssetReader;
 use bevy::asset::io::{AssetSource, AssetSourceBuilder, AssetSourceId, Reader};
 use bevy::asset::AsyncReadExt;
-use bevy::prelude::{Asset, AssetApp};
+use bevy::prelude::{Asset, AssetApp, Mat3, Vec3};
 use bevy::{
     asset::{AssetLoader, LoadContext},
     math::DVec3,
     prelude::Plugin, reflect::TypePath, utils::BoxedFuture,
 };
 use serde::{Deserialize, Serialize};
+use crate::simulation::asset::default_values::*;
 
 #[derive(Debug, Deserialize, Serialize, TypePath, Asset, Clone)]
 pub struct SimulationData {
@@ -35,6 +36,33 @@ pub struct SerializedVec {
     pub z: f64
 }
 
+#[derive(Debug, Deserialize, Serialize, TypePath, Clone, Copy)]
+pub struct SerializedMat3 {
+    pub x: SerializedVec,
+    pub y: SerializedVec,
+    pub z: SerializedVec
+}
+
+impl From<Mat3> for SerializedMat3 {
+
+    fn from(value: Mat3) -> Self {
+        SerializedMat3 {
+            x: SerializedVec::from(value.x_axis.as_dvec3()),
+            y: SerializedVec::from(value.y_axis.as_dvec3()),
+            z: SerializedVec::from(value.z_axis.as_dvec3())
+        }
+    }
+
+}
+
+impl From<SerializedMat3> for Mat3 {
+
+    fn from(value: SerializedMat3) -> Self {
+        Mat3::from_cols(value.x.into(), value.y.into(), value.z.into())
+    }
+
+}
+
 impl From<SerializedVec> for DVec3 {
     
     fn from(value: SerializedVec) -> Self {
@@ -42,6 +70,15 @@ impl From<SerializedVec> for DVec3 {
     }
     
 }
+
+impl From<SerializedVec> for Vec3 {
+
+    fn from(value: SerializedVec) -> Self {
+        DVec3::new(value.x, value.y, value.z).as_vec3()
+    }
+
+}
+
 
 impl From<DVec3> for SerializedVec {
 
@@ -64,27 +101,22 @@ pub struct SerializedBodyData {
     pub model_path: String,
     pub diameter: f64,
     pub rotation_speed: f64,
-    pub axial_tilt: f32,
     pub simulate: bool,
     #[serde(default = "default_id")]
     pub naif_id: i32,
-    #[serde(default = "default_id")]
-    pub orientation_id: i32,
+    #[serde(default = "default_frame")]
+    pub fixed_body_frame: SerializedFixedBodyFrame,
     #[serde(default = "default_ellipsoid")]
     pub ellipsoid: Ellipsoid,
-    pub light_source: Option<SerializedLightSource>
+    pub light_source: Option<SerializedLightSource>,
+    #[serde(default = "default_rot_matrix")]
+    pub rotation_matrix: SerializedMat3
 }
 
-fn default_id() -> i32 {
-    -1
-}
-
-fn default_spk() -> Vec<String> {
-    Vec::new()
-}
-
-fn default_ellipsoid() -> Ellipsoid {
-    Ellipsoid::from_sphere(1.0)
+#[derive(Debug, Serialize, Deserialize, TypePath, Clone)]
+pub struct SerializedFixedBodyFrame {
+    pub target_id: i32,
+    pub orientation_id: i32
 }
 
 #[derive(Debug, Serialize, Deserialize, TypePath, Clone)]
