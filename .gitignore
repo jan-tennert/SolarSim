@@ -2,6 +2,7 @@
 /.lapce
 /.idea
 /.fleet
+/data/*
 /wasm/assets
 /wasm/Simulation.js
 /wasm/Simulation_bg.wasm

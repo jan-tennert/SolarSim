@@ -1,14 +1,14 @@
-use bevy::{app::{App, Plugin}, math::Vec3A, prelude::{in_state, Children, GlobalTransform, Handle, IntoSystemConfigs, Mesh, Query, Res, ResMut, Transform, Update, Vec3, With}, render::primitives::{Aabb, Sphere}, scene::{SceneInstance, SceneSpawner}};
-use bevy::asset::LoadState;
-use bevy::ecs::query::QueryManyIter;
-use bevy::prelude::{AssetServer, Entity, Local, Name, Resource};
-use bevy::utils::HashMap;
-use crate::simulation::SimState;
 use crate::simulation::components::body::SceneHandle;
-use crate::simulation::components::body::{Diameter, Scale};
+use crate::simulation::components::body::BodyShape;
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::scenario::loading::LoadingState;
 use crate::simulation::ui::toast::{important_error_toast, ToastContainer};
+use crate::simulation::SimState;
+use bevy::asset::LoadState;
+use bevy::ecs::query::QueryManyIter;
+use bevy::prelude::{AssetServer, Entity, Name, Resource};
+use bevy::utils::HashMap;
+use bevy::{app::{App, Plugin}, math::Vec3A, prelude::{in_state, Children, GlobalTransform, Handle, IntoSystemConfigs, Mesh, Query, Res, ResMut, Transform, Update, Vec3, With}, render::primitives::{Aabb, Sphere}, scene::{SceneInstance, SceneSpawner}};
 
 pub struct DiameterPlugin;
 
@@ -26,7 +26,7 @@ impl Plugin for DiameterPlugin {
 pub struct SavedAabbs(HashMap<String, Aabb>);
 
 pub fn apply_real_diameter(
-    mut bodies: Query<(&Children, &Name, &SceneHandle, &mut Diameter, &mut Transform, &mut Scale)>,
+    mut bodies: Query<(&Children, &Name, &SceneHandle, &mut BodyShape, &mut Transform)>,
     scenes: Query<&SceneInstance>,
     meshes: Query<(&GlobalTransform, Option<&Aabb>), With<Handle<Mesh>>>,
     spawner: Res<SceneSpawner>,
@@ -36,14 +36,14 @@ pub fn apply_real_diameter(
     mut toasts: ResMut<ToastContainer>,
     mut aabbs: ResMut<SavedAabbs>
 ) {
-    if !bodies.is_empty() && bodies.iter().all(|(_, _, _, diameter, _, _)| {
+    if !bodies.is_empty() && bodies.iter().all(|(_, _, _, diameter, _)| {
         diameter.applied
     }) {
         loading_state.scaled_bodies = true;
     }
-    for (children, name, handle, mut diameter, mut transform, mut scale) in &mut bodies {
-        if diameter.applied || asset_server.get_load_state(&handle.0) != Some(LoadState::Loaded) {
-            if !diameter.applied {
+    for (children, name, handle, mut shape, mut transform) in &mut bodies {
+        if shape.applied || asset_server.get_load_state(&handle.0) != Some(LoadState::Loaded) {
+            if !shape.applied {
                 match asset_server.get_load_state(&handle.0) {
                     None => {}
                     Some(a) => {
@@ -53,7 +53,7 @@ pub fn apply_real_diameter(
                             LoadState::Loaded => {}
                             LoadState::Failed(e) => {
                                 toasts.0.add(important_error_toast(format!("Failed to load asset for body '{}': {}", name.as_str(), e).as_str()));
-                                diameter.applied = true;
+                                shape.applied = true;
                             }
                         }
                     }
@@ -66,25 +66,23 @@ pub fn apply_real_diameter(
                 if !spawner.instance_is_ready(**scene) {
                     continue;
                 }
-                let aabb = if let Some(aabb) = aabbs.0.get(&diameter.path.clone()) {
+                let aabb = if let Some(aabb) = aabbs.0.get(&shape.path.clone()) {
                     *aabb
                 } else {
                     let m = meshes.iter_many(spawner.iter_instance_entities(**scene));
                     let aabb = calculate_aabb(m);
-                    aabbs.0.insert(diameter.path.clone(), aabb);
+                    aabbs.0.insert(shape.path.clone(), aabb);
                     aabb
                 };
-                //TODO: Fix this
-                let semi_major_radius_units = s_scale.m_to_unit_32((diameter.ellipsoid.semi_major_equatorial_radius_km * 1000.0) as f32); // km to meters
-                let semi_minor_radius_units = s_scale.m_to_unit_32((diameter.ellipsoid.semi_minor_equatorial_radius_km * 1000.0) as f32);
-                let polar_radius_units = s_scale.m_to_unit_32((diameter.ellipsoid.polar_radius_km * 1000.0) as f32);
+                let semi_major_radius_units = s_scale.m_to_unit_32((shape.ellipsoid.semi_major_equatorial_radius_km * 1000.0) as f32); // km to meters
+                let semi_minor_radius_units = s_scale.m_to_unit_32((shape.ellipsoid.semi_minor_equatorial_radius_km * 1000.0) as f32);
+                let polar_radius_units = s_scale.m_to_unit_32((shape.ellipsoid.polar_radius_km * 1000.0) as f32);
                 transform.scale = Vec3::new(
                     semi_major_radius_units / (aabb.half_extents.x * 2.0),
                     polar_radius_units / (aabb.half_extents.y * 2.0),
                     semi_minor_radius_units / (aabb.half_extents.z * 2.0)
                 );
-                scale.0 = transform.scale.x;
-                diameter.applied = true;
+                shape.applied = true;
                 loading_state.scaled_bodies_count += 1;
             }
         }

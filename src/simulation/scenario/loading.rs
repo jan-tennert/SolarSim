@@ -1,7 +1,7 @@
-use bevy::{app::{App, Plugin}, prelude::{AssetServer, BuildChildren, Color, Commands, Component, default, Entity, in_state, IntoSystemConfigs, Label, NextState, NodeBundle, OnEnter, OnExit, Query, Res, ResMut, Resource, TextBundle, Update, With, Visibility, Has, Children, DespawnRecursiveExt}, text::{Text, TextStyle}, ui::{AlignItems, FlexDirection, JustifyContent, Node, Style, UiImage, UiRect, Val}};
+use bevy::{app::{App, Plugin}, prelude::{default, in_state, BuildChildren, Children, Color, Commands, Component, DespawnRecursiveExt, Entity, IntoSystemConfigs, Label, NextState, OnEnter, OnExit, Query, Res, ResMut, Resource, TextBundle, Update, Visibility, With}, text::{Text, TextStyle}, ui::{Node, Style, UiRect, Val}};
 
-use crate::{menu::BackgroundImage};
 use crate::simulation::{SimState, SimStateType};
+use crate::menu::BackgroundImage;
 
 pub struct LoadingPlugin;
 
@@ -123,7 +123,7 @@ fn update_progress(
     let text0 = loading_text("Spawning bodies", loading_state.spawned_bodies, false);
     let text1 = loading_text(format!("Scaling bodies: {}/{}", loading_state.scaled_bodies_count, loading_state.total_bodies).as_str(), loading_state.scaled_bodies, false);
     let text2 = loading_text("Rotating bodies", loading_state.tilted_bodies, false);
-    let text3 = loading_text(format!("Loading SPK files: {}/{}", loading_state.spice_loaded, loading_state.spice_total).as_str(), loading_state.loaded_spice_files, false);
+    let text3 = loading_text(format!("Loading SPK files: {}/{}", loading_state.spice_loaded, loading_state.spice_total).as_str(), loading_state.loaded_spice_files, *sim_type == SimStateType::Simulation);
     let new_text = format!("{}\n{}\n{}\n{}", text0, text1, text2, text3);
     if let Ok(mut text) = marker.get_single_mut() {
         let old_text = text.sections.first_mut().unwrap();

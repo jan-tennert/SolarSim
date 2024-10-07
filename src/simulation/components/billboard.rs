@@ -1,17 +1,16 @@
 use bevy::app::{App, Plugin};
 use bevy::math::Vec3;
-use bevy::prelude::{Children, in_state, IntoSystemConfigs, Query, Res, Resource, Transform, Update, Visibility, With, Without, Has, Name, Window, Camera, GlobalTransform, Vec2, Projection, PerspectiveProjection, Entity, Gizmos, Srgba};
-use bevy::render::camera::CameraProjection;
+use bevy::prelude::{in_state, Camera, Children, Entity, Gizmos, GlobalTransform, Has, IntoSystemConfigs, Name, Query, Res, Resource, Transform, Update, Vec2, Visibility, With, Without};
 use bevy::text::Text;
 use bevy::utils::HashMap;
 use bevy_mod_billboard::text::BillboardTextBounds;
 
 use crate::simulation::components::apsis::ApsisBody;
-use crate::simulation::components::body::{Diameter, Moon, Planet, Star, BillboardVisible, BodyParent};
-use crate::simulation::components::camera::{pan_orbit_camera, PanOrbitCamera};
+use crate::simulation::components::body::{BillboardVisible, BodyParent, BodyShape, Moon, Planet, Star};
+use crate::simulation::components::camera::pan_orbit_camera;
 use crate::simulation::components::scale::SimulationScale;
-use crate::simulation::SimState;
 use crate::simulation::render::star_billboard::STAR_IMPOSTER_DIVIDER;
+use crate::simulation::SimState;
 
 const STAR_VISIBILITY_THRESHOLD: f32 = 40_000_000.0; //if the camera's radius is less than this, stars' names will be hidden
 const PLANET_VISIBILITY_THRESHOLD: f32 = 1700.0; //if the camera's radius is less than this, planets' names will be hidden
@@ -45,7 +44,7 @@ impl Default for BillboardSettings {
 }
 
 fn auto_scale_billboards(
-    mut bodies: Query<(Entity, &Name, &Children, &Transform, &Diameter, &mut BillboardVisible, Option<&ApsisBody>, Has<Planet>, Has<Star>, Option<&BodyParent>), Without<Text>>,
+    mut bodies: Query<(Entity, &Name, &Children, &Transform, &BodyShape, &mut BillboardVisible, Option<&ApsisBody>, Has<Planet>, Has<Star>, Option<&BodyParent>), Without<Text>>,
     mut billboards: Query<(&Text, &mut Transform, &mut Visibility), With<BillboardTextBounds>>,
     camera: Query<(&Transform, &GlobalTransform, &Camera), (Without<BillboardTextBounds>, Without<Planet>, Without<Moon>, Without<Star>)>,
     settings: Res<BillboardSettings>,
@@ -63,7 +62,7 @@ fn auto_scale_billboards(
     for (entity, n, _, transform, _, _, _, _, _, p) in &mut bodies {
         parent_pos.insert(entity, transform.translation.clone());
     }
-    for (_, name, children, p_transform, diameter, mut billboard_visible, apsis, planet, star, p) in bodies.iter_mut() {
+    for (_, name, children, p_transform, shape, mut billboard_visible, apsis, planet, star, p) in bodies.iter_mut() {
         let mut predicate = true;
         if p.is_some() {
             let parent_transform = parent_pos.get(&p.unwrap().0).unwrap_or(&Vec3::ZERO);
@@ -76,7 +75,7 @@ fn auto_scale_billboards(
         let offset = if star {
             distance_to_cam
         } else {
-            diameter.num * scale.0
+            shape.ellipsoid.mean_equatorial_radius_km() as f32 * 2. * scale.0
         };
         billboard_visible.0 = !settings.dynamic_hide || predicate;
         billboard(

@@ -1,4 +1,6 @@
 use crate::simulation::asset::serialization::SerializedBody;
+use crate::simulation::components::horizons::AniseMetadata;
+use anise::structure::planetocentric::ellipsoid::Ellipsoid;
 use bevy::color::palettes::css;
 use bevy::color::Color;
 use bevy::core::Name;
@@ -6,8 +8,6 @@ use bevy::math::{DVec3, Mat3, Vec3};
 use bevy::prelude::{default, Bundle, Component, Entity, Handle, Reflect, Scene, Srgba, Transform};
 use bevy::render::primitives::Aabb;
 use std::collections::VecDeque;
-use anise::structure::planetocentric::ellipsoid::Ellipsoid;
-use crate::simulation::components::horizons::AniseMetadata;
 
 #[derive(Component, Clone, Default, Reflect, Copy)]
 pub struct Mass(pub f64);
@@ -17,9 +17,6 @@ pub struct Velocity(pub DVec3);
 
 #[derive(Default, Component, Reflect, Clone, Copy)]
 pub struct Acceleration(pub DVec3);
-
-#[derive(Component, Reflect, Clone, Default, Copy)]
-pub struct Scale(pub f32);
 
 #[derive(Component, Reflect, Clone, Default, Copy)]
 pub struct RotationSpeed(pub f64);
@@ -84,19 +81,18 @@ impl Default for OrbitSettings {
 pub struct SimPosition(pub DVec3);
 
 #[derive(Component, Clone)]
-pub struct Diameter {
+pub struct BodyShape {
 
-    pub num: f32,
     pub applied: bool,
     pub ellipsoid: Ellipsoid,
     pub path: String,
 
 }
 
-impl Default for Diameter {
+impl Default for BodyShape {
 
     fn default() -> Self {
-        Diameter { num: 0.0, applied: false, ellipsoid: Ellipsoid::from_sphere(1.0), path: "".to_string() }
+        BodyShape { applied: false, ellipsoid: Ellipsoid::from_sphere(1.0), path: "".to_string() }
     }
 
 }
@@ -132,13 +128,12 @@ pub struct BodyBundle {
     pub sim_position: SimPosition,
     pub vel: Velocity,
     pub acc: Acceleration,
-    pub scale: Scale,
     pub name: Name,
     pub model_path: ModelPath,
     pub orbit: OrbitSettings,
     pub rotation_speed: RotationSpeed,
     pub rotation: BodyRotation,
-    pub diameter: Diameter,
+    pub diameter: BodyShape,
     pub billboard_visible: BillboardVisible,
     pub naif_id: AniseMetadata,
 
@@ -153,8 +148,7 @@ impl From<SerializedBody> for BodyBundle {
             vel: Velocity(DVec3::from(value.data.starting_velocity) * 1000.0),
             name: Name::new(value.data.name),
             model_path: ModelPath(format!("models/{}#Scene0", value.data.model_path)),
-            diameter: Diameter {
-                num: (value.data.diameter * 1000.0) as f32,
+            diameter: BodyShape {
                 path: value.data.model_path,
                 ellipsoid: value.data.ellipsoid,
                 ..default()
@@ -184,8 +178,7 @@ impl BodyBundle {
             vel: Velocity(DVec3::ZERO),
             name: Name::new(format!("New body {}", index)),
             model_path: ModelPath("models/earth.glb#Scene0".to_string()),
-            diameter: Diameter {
-                num: 0.0,
+            diameter: BodyShape {
                 ..default()
             },
             rotation: BodyRotation {

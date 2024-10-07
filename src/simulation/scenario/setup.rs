@@ -38,7 +38,7 @@ impl Plugin for SetupPlugin {
     }
 }
 
-#[derive(Resource, Default)]
+#[derive(Resource, Default, Clone, Debug)]
 pub struct ScenarioData {
 
     pub starting_time_millis: i64,
@@ -113,7 +113,7 @@ pub fn setup_scenario(
                         intensity: scale_lumen(source.intensity, &scale),
                         shadows_enabled: true,
                         range: scale.m_to_unit_32(source.range as f32), //TODO: make this a variable
-                        radius: scale.m_to_unit_32(entry.data.diameter as f32 / 2.0),
+                        radius: scale.m_to_unit_32(entry.data.ellipsoid.mean_equatorial_radius_km() as f32),
                         ..default()
                     },
                     visibility: if source.enabled { Visibility::Visible } else { Visibility::Hidden },
@@ -285,7 +285,7 @@ fn spawn_imposter(
     scale: &SimulationScale
 ) {
     parent.spawn(PbrBundle {
-        mesh: meshes.add(Circle::new(scale.m_to_unit_32(bundle.diameter.num  * 3.0))),
+        mesh: meshes.add(Circle::new(scale.m_to_unit_32(bundle.diameter.ellipsoid.mean_equatorial_radius_km() as f32 * 6.0))),
         material: materials.add(color),
         visibility: Visibility::Hidden,
         ..default()

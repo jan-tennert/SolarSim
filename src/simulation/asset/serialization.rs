@@ -1,3 +1,4 @@
+use crate::simulation::asset::default_values::*;
 use anise::structure::planetocentric::ellipsoid::Ellipsoid;
 use bevy::asset::io::file::FileAssetReader;
 use bevy::asset::io::{AssetSource, AssetSourceBuilder, AssetSourceId, Reader};
@@ -9,7 +10,6 @@ use bevy::{
     prelude::Plugin, reflect::TypePath, utils::BoxedFuture,
 };
 use serde::{Deserialize, Serialize};
-use crate::simulation::asset::default_values::*;
 
 #[derive(Debug, Deserialize, Serialize, TypePath, Asset, Clone)]
 pub struct SimulationData {
@@ -99,7 +99,6 @@ pub struct SerializedBodyData {
     pub starting_velocity: SerializedVec,
     pub name: String,
     pub model_path: String,
-    pub diameter: f64,
     pub rotation_speed: f64,
     pub simulate: bool,
     #[serde(default = "default_id")]

@@ -1,24 +1,21 @@
-use anise::structure::planetocentric::ellipsoid::Ellipsoid;
-use bevy::asset::{AssetServer, Assets};
-use crate::simulation::components::apsis::ApsisBody;
-use crate::simulation::components::body::{BodyRotation, BodyChildren, BodyParent, Diameter, LightSource, Mass, ModelPath, OrbitSettings, RotationSpeed, Scale, SceneEntity, SceneHandle, SimPosition, Velocity};
-use crate::simulation::components::selection::SelectedEntity;
-use bevy::core::Name;
-use bevy::math::DVec3;
-use bevy::pbr::StandardMaterial;
-use bevy::prelude::{default, BuildChildren, Camera, Color, Commands, DespawnRecursiveExt, Entity, Handle, Mat3, Mesh, Mut, PointLight, PointLightBundle, Query, Res, ResMut, Resource, Scene, Srgba, Transform, Vec3, Visibility, With, Without};
-use bevy_egui::egui::{Align, Context, Layout, RichText, ScrollArea};
-use bevy_egui::{egui, EguiContexts};
-use egui_toast::{Toast, ToastKind, ToastOptions};
-use crate::simulation::scenario::setup::spawn_scene;
+use crate::simulation::components::body::{BodyRotation, BodyShape, LightSource, Mass, ModelPath, RotationSpeed, SceneEntity, SceneHandle, SimPosition, Velocity};
 use crate::simulation::components::editor::{EditorSystemType, EditorSystems};
 use crate::simulation::components::horizons::AniseMetadata;
 use crate::simulation::components::scale::SimulationScale;
+use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::render::star_billboard::StarBillboard;
+use crate::simulation::scenario::setup::spawn_scene;
 use crate::simulation::ui::components::vector_field;
 use crate::simulation::ui::toast::{success_toast, ToastContainer};
-use crate::simulation::ui::UiState;
-use crate::simulation::units::converter::{km_to_m, km_to_m_dvec, km_to_m_f64, m_to_km, m_to_km_dvec, m_to_km_f64, scale_lumen, unscale_lumen};
+use crate::simulation::units::converter::{km_to_m_dvec, m_to_km_dvec, scale_lumen, unscale_lumen};
+use anise::structure::planetocentric::ellipsoid::Ellipsoid;
+use bevy::asset::{AssetServer, Assets};
+use bevy::core::Name;
+use bevy::math::DVec3;
+use bevy::pbr::StandardMaterial;
+use bevy::prelude::{default, BuildChildren, Color, Commands, DespawnRecursiveExt, Entity, Handle, Mat3, Mut, PointLight, PointLightBundle, Query, Res, ResMut, Resource, Scene, Srgba, Visibility, With};
+use bevy_egui::egui::{Align, Context, Layout, ScrollArea};
+use bevy_egui::{egui, EguiContexts};
 
 #[derive(Debug, Clone, Resource)]
 pub struct EditorPanelState {
@@ -28,7 +25,6 @@ pub struct EditorPanelState {
     pub new_velocity: DVec3,
     pub ellipsoid: Ellipsoid,
     pub new_mass: f64,
-    pub new_diameter: f32,
     pub new_rotation_speed: f64,
     pub new_model_path: String,
     pub show_delete_confirm: bool,
@@ -48,7 +44,6 @@ impl Default for EditorPanelState {
             new_velocity: DVec3::ZERO,
             ellipsoid: Ellipsoid::from_sphere(1.0),
             new_mass: 0.0,
-            new_diameter: 0.0,
             new_rotation_speed: 0.0,
             new_model_path: "".to_string(),
             show_delete_confirm: false,
@@ -72,7 +67,7 @@ pub struct LightSettings {
 pub fn editor_body_panel(
     mut egui_context: EguiContexts,
     selected_entity: Res<SelectedEntity>,
-    mut query: Query<(Entity, &mut Name, &mut SimPosition, &mut Velocity, &mut Mass, &mut Diameter, &mut RotationSpeed, &mut BodyRotation, &mut ModelPath, &mut SceneHandle, &mut AniseMetadata), With<Mass>>,
+    mut query: Query<(Entity, &mut Name, &mut SimPosition, &mut Velocity, &mut Mass, &mut BodyShape, &mut RotationSpeed, &mut BodyRotation, &mut ModelPath, &mut SceneHandle, &mut AniseMetadata), With<Mass>>,
     scene_query: Query<Entity, With<SceneEntity>>,
     mut state: ResMut<EditorPanelState>,
     mut commands: Commands,
@@ -112,7 +107,7 @@ fn initialize_state(
     pos: &SimPosition,
     vel: &Velocity,
     mass: &Mass,
-    diameter: &Diameter,
+    diameter: &BodyShape,
     rotation_speed: &RotationSpeed,
     model_path: &ModelPath,
     light: Option<&(Mut<PointLight>, &LightSource, Mut<Visibility>)>,
@@ -126,7 +121,6 @@ fn initialize_state(
         new_position: m_to_km_dvec(pos.0),
         new_velocity: m_to_km_dvec(vel.0),
         new_mass: mass.0,
-        new_diameter: m_to_km(diameter.num),
         new_rotation_speed: rotation_speed.0,
         new_model_path: model_path.cleaned(),
         show_delete_confirm: false,
@@ -151,7 +145,7 @@ fn display_body_panel(
     pos: &mut SimPosition,
     vel: &mut Velocity,
     mass: &mut Mass,
-    diameter: &mut Diameter,
+    diameter: &mut BodyShape,
     rotation_speed: &mut RotationSpeed,
     tilt: &mut BodyRotation,
     model_path: &mut ModelPath,
@@ -205,10 +199,6 @@ fn display_body_properties(ui: &mut egui::Ui, state: &mut EditorPanelState) {
         ui.add(egui::DragValue::new(&mut state.new_mass));
     });
     ui.horizontal(|ui| {
-        ui.label("Diameter (km)");
-        ui.add(egui::DragValue::new(&mut state.new_diameter));
-    });
-    ui.horizontal(|ui| {
         ui.label("Rotation Speed (min/rotation)");
         ui.add(egui::DragValue::new(&mut state.new_rotation_speed));
     });
@@ -220,7 +210,7 @@ fn display_body_properties(ui: &mut egui::Ui, state: &mut EditorPanelState) {
 
 fn ellipsoid(ui: &mut egui::Ui, state: &mut EditorPanelState) {
     ui.vertical(|ui| {
-        ui.heading("Ellipsoid");
+        ui.heading("Shape");
         ui.horizontal(|ui| {
             ui.label("Polar Radius (km)");
             ui.add(egui::DragValue::new(&mut state.ellipsoid.polar_radius_km));
@@ -304,7 +294,7 @@ fn display_bottom_buttons(
     pos: &mut SimPosition,
     vel: &mut Velocity,
     mass: &mut Mass,
-    diameter: &mut Diameter,
+    diameter: &mut BodyShape,
     rotation_speed: &mut RotationSpeed,
     tilt: &mut BodyRotation,
     model_path: &mut ModelPath,
@@ -357,7 +347,7 @@ fn apply_changes(
     pos: &mut SimPosition,
     vel: &mut Velocity,
     mass: &mut Mass,
-    diameter: &mut Diameter,
+    shape: &mut BodyShape,
     rotation_speed: &mut RotationSpeed,
     rotation: &mut BodyRotation,
     model_path: &mut ModelPath,
@@ -376,10 +366,8 @@ fn apply_changes(
     pos.0 = km_to_m_dvec(state.new_position);
     vel.0 = km_to_m_dvec(state.new_velocity);
     mass.0 = state.new_mass;
-    let new_diameter = km_to_m(state.new_diameter);
-    diameter.applied = new_diameter == diameter.num && state.ellipsoid == diameter.ellipsoid;
-    diameter.num = new_diameter;
-    diameter.ellipsoid = state.ellipsoid;
+    shape.applied = state.ellipsoid == shape.ellipsoid;
+    shape.ellipsoid = state.ellipsoid;
     rotation_speed.0 = state.new_rotation_speed;
     rotation.applied = state.rotation_matrix == rotation.matrix;
     rotation.matrix = state.rotation_matrix;
@@ -412,7 +400,7 @@ fn apply_changes(
                         color: light.color,
                         intensity: scale_lumen(light.intensity, scale),
                         range: scale.m_to_unit_32(light.range),
-                        radius: new_diameter / 2.0,
+                        radius: shape.ellipsoid.mean_equatorial_radius_km() as f32,
                         ..default()
                     },
                     visibility: if light.enabled {
@@ -426,7 +414,7 @@ fn apply_changes(
     }
     if model_path.cleaned() != state.new_model_path {
         *model_path = ModelPath::from_cleaned(state.new_model_path.as_str());
-        diameter.path = model_path.0.clone();
+        shape.path = model_path.0.clone();
         let asset_handle: Handle<Scene> = assets.load(model_path.clone().0);
         commands.entity(scene_query.get(scene.1).unwrap()).despawn_recursive();
         scene.0 = asset_handle.clone();

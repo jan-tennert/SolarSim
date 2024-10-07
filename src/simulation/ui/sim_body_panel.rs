@@ -1,39 +1,28 @@
-use std::os::linux::raw::stat;
+use crate::constants::{G, M_TO_AU};
+use crate::simulation::components::apsis::ApsisBody;
+use crate::simulation::components::body::{BodyChildren, BodyParent, BodyShape, Mass, OrbitSettings, RotationSpeed, SimPosition, Velocity};
+use crate::simulation::components::horizons::AniseMetadata;
+use crate::simulation::components::scale::SimulationScale;
+use crate::simulation::components::selection::SelectedEntity;
+use crate::simulation::scenario::setup::ScenarioData;
+use crate::simulation::ui::{SimTime, UiState};
+use crate::simulation::units::text_formatter::{format_length, format_seconds};
 use anise::constants::orientations::J2000;
 use anise::math::cartesian::CartesianState;
 use anise::math::Vector6;
 use anise::prelude::{Epoch, Frame};
 use bevy::color::Srgba;
 use bevy::core::Name;
-use bevy::core_pipeline::Skybox;
 use bevy::ecs::system::SystemParam;
-use bevy::input::ButtonInput;
-use bevy::math::Vec3;
-use bevy::prelude::{Camera, Commands, DespawnRecursiveExt, Entity, GizmoConfigStore, KeyCode, Local, Mut, NextState, Query, Res, ResMut, Transform, Visibility, With, Without};
-use bevy_egui::{egui, EguiContexts};
+use bevy::prelude::{Camera, Commands, DespawnRecursiveExt, Entity, Mut, Query, Res, ResMut, Transform, Without};
 use bevy_egui::egui::{RichText, ScrollArea};
-use crate::constants::{G, M_TO_AU};
-use crate::simulation::components::apsis::ApsisBody;
-use crate::simulation::components::billboard::BillboardSettings;
-use crate::simulation::components::body::{BodyChildren, BodyParent, Diameter, Mass, Moon, OrbitSettings, Planet, RotationSpeed, Scale, SimPosition, Star, Velocity};
-use crate::simulation::components::camera::PanOrbitCamera;
-use crate::simulation::components::orbit_lines::OrbitOffset;
-use crate::simulation::components::scale::SimulationScale;
-use crate::simulation::components::selection::SelectedEntity;
-use crate::simulation::render::skybox::Cubemap;
-use crate::simulation::{SimState, SimStateType};
-use crate::simulation::components::editor::{CreateBodyState, EditorSystems};
-use crate::simulation::components::horizons::AniseMetadata;
-use crate::simulation::scenario::setup::ScenarioData;
-use crate::simulation::ui::metadata::MetadataUiState;
-use crate::simulation::ui::{SimTime, UiState};
-use crate::simulation::units::text_formatter::{format_length, format_seconds};
+use bevy_egui::{egui, EguiContexts};
 
 #[derive(SystemParam)]
 pub struct SimBodyPanelSet<'w, 's> {
     egui_context: EguiContexts<'w, 's>,
     commands: Commands<'w, 's>,
-    query: Query<'w, 's, (&'static Name, Entity, &'static SimPosition, &'static mut Velocity, &'static RotationSpeed, &'static Diameter, &'static mut OrbitSettings, &'static mut Mass, &'static Scale, &'static mut Transform, Option<&'static mut ApsisBody>, Option<&'static BodyChildren>, Option<&'static BodyParent>, &'static AniseMetadata)>,
+    query: Query<'w, 's, (&'static Name, Entity, &'static SimPosition, &'static mut Velocity, &'static RotationSpeed, &'static BodyShape, &'static mut OrbitSettings, &'static mut Mass, &'static mut Transform, Option<&'static mut ApsisBody>, Option<&'static BodyChildren>, Option<&'static BodyParent>, &'static AniseMetadata)>,
     camera: Query<'w, 's, (&'static Camera, &'static Transform), Without<Velocity>>,
     selected_entity: Res<'w, SelectedEntity>,
     ui_state: ResMut<'w, UiState>,
@@ -50,15 +39,15 @@ pub fn sim_body_panel(
     }
     if let Some(entity) = set.selected_entity.entity {
         let mut parent: Option<(&SimPosition, Mut<Velocity>, &Name, Mass, &AniseMetadata)> = None;
-        let mut selected: Option<(&Name, Entity, &SimPosition, Mut<Velocity>, &RotationSpeed, &Diameter, Mut<OrbitSettings>, Mut<Transform>, Mut<Mass>, Option<Mut<ApsisBody>>, &Scale, Option<&BodyChildren>, &AniseMetadata)> = None;
+        let mut selected: Option<(&Name, Entity, &SimPosition, Mut<Velocity>, &RotationSpeed, &BodyShape, Mut<OrbitSettings>, Mut<Transform>, Mut<Mass>, Option<Mut<ApsisBody>>, Option<&BodyChildren>, &AniseMetadata)> = None;
         let mut s_children: Vec<(Entity, Mut<OrbitSettings>)> = vec![];
            let iter = &mut set.query.iter_mut();
-           for (name, b_entity, pos, mut velocity, rotation_speed, diameter, orbit, mass, scale, transform, apsis, children, maybe_parent, meta) in iter {
+           for (name, b_entity, pos, mut velocity, rotation_speed, diameter, orbit, mass, transform, apsis, children, maybe_parent, meta) in iter {
                if children.is_some() && children.unwrap().0.contains(&entity) { //check for the parent of the selected entity
                    parent = Some((pos, velocity, name, mass.clone(), meta));
                } else {
                    if b_entity == entity { //check for the selected entity
-                       selected = Some((name, b_entity, pos, velocity, rotation_speed, diameter, orbit, transform, mass, apsis, scale, children, meta));
+                       selected = Some((name, b_entity, pos, velocity, rotation_speed, diameter, orbit, transform, mass, apsis, children, meta));
                    } else if let Some(parent_id) = maybe_parent { //check for potential children of the entity
                        if parent_id.0 == entity {
                            s_children.push((b_entity, orbit))
@@ -74,7 +63,7 @@ pub fn sim_body_panel(
                let epoch = Epoch::from_unix_milliseconds(set.scenario.starting_time_millis as f64 + set.sim_time.0 as f64);
            }
 
-        if let Some((name, entity, pos, ref mut velocity, rotation_speed, diameter, ref mut orbit, ref mut transform, ref mut mass, apsis, scale, _,_)) = selected {
+        if let Some((name, entity, pos, ref mut velocity, rotation_speed, diameter, ref mut orbit, ref mut transform, ref mut mass, apsis, _,_)) = selected {
             egui::SidePanel::right("body_panel")
                 //      .max_width(250.0)
                 .resizable(true)
@@ -107,28 +96,6 @@ pub fn sim_body_panel(
                                         mass.0 *= 5.0;
                                     }
                                 });
-                            }
-                            if scale.0 != 0.0 {
-                                ui.label(
-                                    RichText::new("Body Scale")
-                                        .size(16.0)
-                                        .underline(),
-                                );
-                                let mut n_scale = transform.scale.x / scale.0;
-                                ui.horizontal(|ui| {
-                                    ui.add(
-                                        egui::Slider::new(&mut n_scale, 0.001..=100.0)
-                                            .clamp_to_range(true)
-                                            .logarithmic(true));
-                                });
-                                transform.scale = Vec3::splat(n_scale * scale.0);
-                                ui.label(
-                                    RichText::new("Equator Diameter")
-                                        .size(16.0)
-                                        .underline(),
-                                );
-                                let scaled_diameter = (diameter.num) * n_scale;
-                                ui.label(format!("{} km", scaled_diameter / 1000.0));
                             }
 
                             // Velocity Orbit Velocity around parent

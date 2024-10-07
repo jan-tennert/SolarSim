@@ -5,18 +5,15 @@ use crate::simulation::scenario::setup::ScenarioData;
 use crate::simulation::ui::editor_body_panel::EditorPanelState;
 use crate::simulation::ui::toast::{error_toast, success_toast, ToastContainer};
 use crate::simulation::{SimState, SimStateType};
-use anise::constants::frames::{IAU_EARTH_FRAME, JUPITER_BARYCENTER_J2000, SSB_J2000};
-use anise::constants::orientations::{IAU_EARTH, J2000};
+use anise::constants::frames::SSB_J2000;
+use anise::constants::orientations::J2000;
 use anise::errors::AlmanacError;
-use anise::math::cartesian::CartesianState;
 use anise::math::Vector3;
-use anise::prelude::{Almanac, Epoch, Frame, SPK};
-use anise::structure::planetocentric::ellipsoid::Ellipsoid;
+use anise::prelude::{Almanac, Epoch, Frame};
 use bevy::app::Plugin;
 use bevy::math::DVec3;
-use bevy::prelude::{in_state, IntoSystemConfigs, Local, OnEnter, Quat, Query, Res, ResMut, Resource, State, Update};
+use bevy::prelude::{in_state, IntoSystemConfigs, Local, Name, Query, Res, ResMut, Resource, Update};
 use bevy_async_task::{AsyncTaskRunner, AsyncTaskStatus};
-use reqwest::get;
 
 pub struct AnisePlugin;
 
@@ -39,7 +36,7 @@ impl Default for AlmanacHolder {
 
 pub fn retrieve_starting_data(
     selected_entity: Res<SelectedEntity>,
-    mut bodies: Query<&mut AniseMetadata>,
+    mut bodies: Query<(&mut AniseMetadata, &Name)>,
     almanac: Res<AlmanacHolder>,
     mut e_state: ResMut<EditorPanelState>,
     scenario: Res<ScenarioData>,
@@ -47,7 +44,7 @@ pub fn retrieve_starting_data(
 ) {
     // Define an Epoch in the dynamical barycentric time scale
     let epoch = Epoch::from_unix_milliseconds(scenario.starting_time_millis as f64);
-    let mut metadata = selected_entity.entity.map(|e| bodies.get_mut(e).ok()).flatten().unwrap();
+    let (mut metadata, name) = selected_entity.entity.map(|e| bodies.get_mut(e).ok()).flatten().unwrap();
     let state = almanac.0
         .translate(
             Frame::new(metadata.ephemeris_id, J2000), // Target
@@ -56,11 +53,11 @@ pub fn retrieve_starting_data(
             None,
         );
     if let Ok(s) = state {
-        toasts.0.add(success_toast(&format!("Retrieved data for {}", metadata.ephemeris_id)));
+        toasts.0.add(success_toast(&format!("Retrieved data for {}", name)));
         e_state.new_velocity = vector3_to_dvec3(s.velocity_km_s);
         e_state.new_position = vector3_to_dvec3(s.radius_km);
     } else {
-        toasts.0.add(error_toast(format!("Error: {:?}", state.unwrap_err()).as_str()));
+        toasts.0.add(error_toast(format!("Couldn't retrieve position and velocity: {:?}", state.unwrap_err()).as_str()));
     }
 
     let fixed_frame = Frame::new(metadata.target_id, metadata.orientation_id);
@@ -69,15 +66,18 @@ pub fn retrieve_starting_data(
     if let Ok(f) = full_frame {
         e_state.ellipsoid = f.shape.unwrap_or(e_state.ellipsoid);
     } else {
-        toasts.0.add(error_toast(format!("Error: {:?}", full_frame.unwrap_err()).as_str()));
+        toasts.0.add(error_toast(format!("Couldn't retrieve shape: {:?}", full_frame.unwrap_err()).as_str()));
     }
 
-    let dcm = almanac.0.rotation_to_parent(fixed_frame, epoch);
-
+    let dcm = almanac.0.rotate(
+        fixed_frame,
+        SSB_J2000,
+        epoch,
+    );
     if let Ok(d) = dcm {
         e_state.rotation_matrix = matrix3_to_mat3(d.rot_mat);
     } else {
-        toasts.0.add(error_toast(format!("Error: {:?}", dcm.unwrap_err()).as_str()));
+        toasts.0.add(error_toast(format!("Couldn't retrieve rotation: {:?}", dcm.unwrap_err()).as_str()));
     }
 }
 
@@ -99,9 +99,14 @@ fn spk_file_loading(
     mut scenario_data: ResMut<ScenarioData>,
     mut loading_state: ResMut<LoadingState>,
     mut task_executor: AsyncTaskRunner<Result<Almanac, AlmanacError>>,
-    mut to_load: Local<Option<Vec<String>>>
+    mut to_load: Local<Option<Vec<String>>>,
+    sim_type: Res<SimStateType>
 ) {
     if loading_state.loaded_spice_files || !loading_state.spawned_bodies {
+        return;
+    }
+    if *sim_type != SimStateType::Editor {
+        loading_state.loaded_spice_files = true;
         return;
     }
     if to_load.is_none() {

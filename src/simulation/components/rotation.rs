@@ -1,20 +1,18 @@
 use std::f32::consts::PI;
 
-use bevy::app::{App, Plugin};
-use bevy::hierarchy::Children;
-use bevy::math::Dir3;
-use bevy::prelude::{in_state, IntoSystemConfigs, Quat, Query, Res, ResMut, Transform, Update, Vec3, With, Without};
-use bevy::scene::SceneInstance;
-use bevy::time::Time;
-
-use crate::simulation::components::body::{BodyRotation, Diameter, RotationSpeed, Star};
 use crate::constants::DAY_IN_SECONDS;
-use crate::simulation::scenario::loading::LoadingState;
+use crate::simulation::components::body::{BodyRotation, BodyShape, RotationSpeed, Star};
 use crate::simulation::components::physics::{Pause, SubSteps};
+use crate::simulation::components::speed::Speed;
+use crate::simulation::scenario::loading::LoadingState;
 use crate::simulation::scenario::setup::setup_scenario;
 use crate::simulation::SimState;
-use crate::simulation::components::speed::Speed;
-use crate::utils::{sim_state_type_editor, sim_state_type_simulation};
+use crate::utils::sim_state_type_simulation;
+use bevy::app::{App, Plugin};
+use bevy::hierarchy::Children;
+use bevy::prelude::{in_state, IntoSystemConfigs, Quat, Query, Res, ResMut, Transform, Update, With, Without};
+use bevy::scene::SceneInstance;
+use bevy::time::Time;
 
 pub struct RotationPlugin;
 
@@ -29,7 +27,7 @@ impl Plugin for RotationPlugin {
 }
 
 pub fn axial_tilt(
-    mut query: Query<(&mut BodyRotation, &Diameter, &Children)>,
+    mut query: Query<(&mut BodyRotation, &BodyShape, &Children)>,
     mut scenes: Query<&mut Transform, (With<SceneInstance>, Without<Star>)>,
     mut loading_state: ResMut<LoadingState>,
 ) {
@@ -43,12 +41,7 @@ pub fn axial_tilt(
         println!("Applying axial tilt to body");
         for child in children.iter() {
             if let Ok(mut transform) = scenes.get_mut(*child) {
-                /*transform.rotate_x(PI / 2.0);
-                let tilted = Quat::from_axis_angle(Vec3::X, tilt.num.to_radians()) * Vec3::Z;
-                transform.rotate_x(tilt.num.to_radians());
-                tilt.axis = Some(tilted);*/
                 transform.rotation = Quat::from_mat3(&rotation.matrix);
-                rotation.axis = transform.translation * Vec3::Z;
                 rotation.applied = true;
                 break;
             }
@@ -57,7 +50,7 @@ pub fn axial_tilt(
 }
 
 fn rotate_bodies(
-    query: Query<(&RotationSpeed, &Diameter, &BodyRotation, &Children)>,
+    query: Query<(&RotationSpeed, &BodyShape, &BodyRotation, &Children)>,
     mut scenes: Query<&mut Transform, With<SceneInstance>>,
     time: Res<Time>,
     speed: Res<Speed>,
@@ -66,7 +59,7 @@ fn rotate_bodies(
 ) {     
     if !pause.0 {
         for (rotation_speed, diameter, tilt, children) in &query {
-            if rotation_speed.0 == 0.0 || diameter.num == 0.0 || !tilt.applied {
+            if rotation_speed.0 == 0.0 || !tilt.applied {
                 continue;
             }
             
@@ -76,8 +69,7 @@ fn rotate_bodies(
             
             for child in children.iter() {
                 if let Ok(mut transform) = scenes.get_mut(*child) {
-                //    transform.rotate_z(2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
-              //      transform.rotate(Quat::from_axis_angle(tilt.axis, 2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier)));
+                   transform.rotation = transform.rotation * Quat::from_rotation_y(2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
                 }
             }
             

@@ -1,24 +1,21 @@
-use std::fs;
-use std::path::Path;
-use anise::almanac::Almanac;
-use anise::prelude::SPK;
-use bevy::app::{App, Plugin, Update};
-use bevy::log::tracing_subscriber::fmt::format;
-use bevy::prelude::{in_state, IntoSystemConfigs, OnEnter, Res, ResMut, Resource};
-use bevy_egui::{egui, EguiContext, EguiContexts};
-use bevy_egui::egui::ComboBox;
-use chrono::{NaiveTime, Timelike};
-use egui_extras::DatePickerButton;
-use crate::simulation::scenario::setup::ScenarioData;
 use crate::simulation::components::anise::{load_spice_files, AlmanacHolder};
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::components::speed::Speed;
-use crate::simulation::SimState;
+use crate::simulation::scenario::setup::ScenarioData;
 use crate::simulation::ui::bottom_bar::get_date_from_seconds;
-use crate::simulation::ui::scenario_selection::{SelectedScenario, SelectionState};
 use crate::simulation::ui::toast::{error_toast, success_toast, ToastContainer};
 use crate::simulation::units::text_formatter::format_seconds;
 use crate::utils::sim_state_type_editor;
+use anise::almanac::Almanac;
+use bevy::app::{App, Plugin, Update};
+use bevy::prelude::{IntoSystemConfigs, ResMut, Resource};
+use bevy_async_task::{AsyncTaskRunner, AsyncTaskStatus};
+use bevy_egui::egui::{Button, ComboBox};
+use bevy_egui::{egui, EguiContexts};
+use chrono::{NaiveTime, Timelike};
+use egui_extras::DatePickerButton;
+use std::fs;
+use std::path::Path;
 
 pub struct MetadataPlugin;
 
@@ -47,7 +44,8 @@ fn metadata_editor(
     mut egui_context: EguiContexts,
     mut speed: ResMut<Speed>,
     mut toasts: ResMut<ToastContainer>,
-    mut almanac_holder: ResMut<AlmanacHolder>
+    mut almanac_holder: ResMut<AlmanacHolder>,
+    mut task_executor: AsyncTaskRunner<Result<(Almanac, String), String>>,
 ) {
     let mut show = state.show;
     let mut selected_spk_file = state.selected_spk_file.clone();
@@ -64,7 +62,7 @@ fn metadata_editor(
             edit_basic_info(ui, &mut scenario_data);
             edit_starting_time(ui, &mut scenario_data);
             edit_simulation_settings(ui, &mut scale, &mut speed);
-            edit_spk_files(ui, &mut scenario_data, &mut selected_spk_file, &mut new_spk_file, &mut toasts, &mut almanac_holder);
+            edit_spk_files(ui, &mut scenario_data, &mut selected_spk_file, &mut new_spk_file, &mut toasts, &mut almanac_holder, &mut task_executor);
         });
 
     state.show = show;
@@ -126,8 +124,26 @@ fn edit_spk_files(
     selected_spice_file: &mut String,
     new_spice_file: &mut String,
     toasts: &mut ToastContainer,
-    almanac_holder: &mut AlmanacHolder
+    almanac_holder: &mut AlmanacHolder,
+    task_executor: &mut AsyncTaskRunner<Result<(Almanac, String), String>>,
 ) {
+    let mut loading = false;
+    match task_executor.poll() {
+        AsyncTaskStatus::Pending => {
+            loading = true;
+        }
+        AsyncTaskStatus::Finished(v) => {
+            if let Ok((almanac, name)) = v {
+                almanac_holder.0 = almanac;
+                scenario_data.spice_files.push(name);
+                *new_spice_file = "".to_string();
+                toasts.0.add(success_toast("SPICE file loaded"));
+            } else if let Err(e) = v {
+                toasts.0.add(error_toast(format!("Couldn't load SPICE file: {}", e).as_str()));
+            }
+        }
+        _ => {}
+    }
     ui.heading("SPICE Files");
     ui.horizontal(|ui| {
         let mut selected = selected_spice_file.clone();
@@ -145,7 +161,7 @@ fn edit_spk_files(
                 scenario_data.spice_files.remove(index);
                 *selected_spice_file = "".to_string();
                 toasts.0.add(success_toast("SPICE file removed"));
-                load_spice_files(scenario_data.spice_files.clone(), almanac_holder, toasts);
+                        load_spice_files(scenario_data.spice_files.clone(), almanac_holder, toasts);
             }
         }
     });
@@ -161,22 +177,22 @@ fn edit_spk_files(
                 },
             }
         }
-        if ui.button("Load SPICE File").clicked() {
-            if let Err(e) = load_scenario_file(scenario_data, selected_spice_file, new_spice_file, toasts, almanac_holder) {
-                toasts.0.add(error_toast(&e));
-            }
+        let loading_button = ui.add_enabled(!loading, Button::new("Load SPICE File"));
+        if loading_button.clicked() {
+            task_executor.start(load_scenario_file(scenario_data.clone(), new_spice_file.clone(), almanac_holder.0.clone()));
+        }
+        if loading {
+            ui.spinner();
         }
     });
 }
 
-fn load_scenario_file(
-    scenario_data: &mut ScenarioData,
-    selected_spk_file: &mut String,
-    new_spk_file: &mut String,
-    toasts: &mut ToastContainer,
-    almanac_holder: &mut AlmanacHolder
-) -> Result<(), String> {
-    let file_name = Path::new(new_spk_file).file_name().and_then(|f| f.to_str()).map(|s| s.to_string()).ok_or("Invalid file name")?;
+async fn load_scenario_file(
+    scenario_data: ScenarioData,
+    new_spk_file: String,
+    almanac: Almanac
+) -> Result<(Almanac, String), String> {
+    let file_name = Path::new(&new_spk_file).file_name().and_then(|f| f.to_str()).map(|s| s.to_string()).ok_or("Invalid file name")?;
     let data_path = format!("data/{}", file_name);
     let exists = fs::exists(new_spk_file.clone()).unwrap_or(false) || fs::exists(data_path.clone()).unwrap_or(false);
     if !exists {
@@ -192,14 +208,9 @@ fn load_scenario_file(
     } else if scenario_data.spice_files.contains(&file_name) {
         return Err("SPICE file already added".to_string());
     }
-    match load_spk(data_path.clone(), &almanac_holder.0) {
+    match load_spk(data_path.clone(), &almanac) {
         Ok(almanac) => {
-            almanac_holder.0 = almanac;
-            scenario_data.spice_files.push(file_name.clone());
-            *selected_spk_file = file_name;
-            *new_spk_file = "".to_string();
-            toasts.0.add(success_toast("SPICE file added and loaded"));
-            Ok(())
+            Ok((almanac, file_name))
         },
         Err(e) => {
             if copied {

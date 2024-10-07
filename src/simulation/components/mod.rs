@@ -1,9 +1,7 @@
-use bevy::app::Plugin;
 use crate::simulation::components::anise::AnisePlugin;
 use crate::simulation::components::apsis::ApsisPlugin;
 use crate::simulation::components::billboard::BodyBillboardPlugin;
 use crate::simulation::components::camera::PanOrbitCameraPlugin;
-use crate::simulation::components::diameter::DiameterPlugin;
 use crate::simulation::components::direction::DirectionPlugin;
 use crate::simulation::components::horizons::HorizonsPlugin;
 use crate::simulation::components::lock_on::LockOnPlugin;
@@ -13,12 +11,14 @@ use crate::simulation::components::reset::ResetPlugin;
 use crate::simulation::components::rotation::RotationPlugin;
 use crate::simulation::components::scale::ScalePlugin;
 use crate::simulation::components::selection::SelectionPlugin;
+use crate::simulation::components::shape::DiameterPlugin;
 use crate::simulation::components::speed::SpeedPlugin;
+use bevy::app::Plugin;
 
 pub mod apsis;
 pub mod billboard;
 pub mod camera;
-pub mod diameter;
+pub mod shape;
 pub mod direction;
 pub mod lock_on;
 pub mod physics;
