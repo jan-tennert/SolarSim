@@ -35,7 +35,6 @@ use crate::simulation::components::body::BodyParent;
 //use crate::fps::Fps;
 use crate::simulation::components::body::{BodyChildren, BodyShape, Mass, Moon, OrbitSettings, Planet, RotationSpeed, SimPosition, Star, Velocity};
 //use crate::fps::Fps;
-use crate::simulation::components::camera::PanOrbitCamera;
 //use crate::fps::Fps;
 use crate::simulation::components::lock_on::LockOn;
 //use crate::fps::Fps;

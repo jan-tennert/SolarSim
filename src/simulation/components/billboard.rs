@@ -1,21 +1,19 @@
+use crate::simulation::components::apsis::ApsisBody;
+use crate::simulation::components::body::{BillboardVisible, BodyParent, BodyShape, Moon, Planet, Star};
+use crate::simulation::components::scale::SimulationScale;
+use crate::simulation::SimState;
 use bevy::app::{App, Plugin};
 use bevy::math::Vec3;
-use bevy::prelude::{in_state, Camera, Children, Entity, Gizmos, GlobalTransform, Has, IntoSystemConfigs, Name, Query, Res, Resource, Transform, Update, Vec2, Visibility, With, Without};
+use bevy::prelude::{in_state, Camera, Children, Entity, Gizmos, GlobalTransform, Has, IntoSystemConfigs, Name, PostUpdate, Query, Res, Resource, Transform, Vec2, Visibility, With, Without};
 use bevy::text::Text;
 use bevy::utils::HashMap;
 use bevy_mod_billboard::text::BillboardTextBounds;
-
-use crate::simulation::components::apsis::ApsisBody;
-use crate::simulation::components::body::{BillboardVisible, BodyParent, BodyShape, Moon, Planet, Star};
-use crate::simulation::components::camera::pan_orbit_camera;
-use crate::simulation::components::scale::SimulationScale;
-use crate::simulation::render::star_billboard::STAR_IMPOSTER_DIVIDER;
-use crate::simulation::SimState;
+use bevy_panorbit_camera::PanOrbitCameraSystemSet;
 
 const STAR_VISIBILITY_THRESHOLD: f32 = 40_000_000.0; //if the camera's radius is less than this, stars' names will be hidden
 const PLANET_VISIBILITY_THRESHOLD: f32 = 1700.0; //if the camera's radius is less than this, planets' names will be hidden
 //const MOON_VISIBILITY_THRESHOLD: f32 = 0.001; //if the camera's radius is less than this, moons' names will be hidden
-const RADIUS_DIVIDER: f32 = 3700.0;
+const RADIUS_DIVIDER: f32 = 3000.0;
 const TRANSLATION_MULTIPLIER: f32 = 2000.0;
 const VISIBILITY_THRESHOLD: f32 = 20.;
 
@@ -26,7 +24,7 @@ impl Plugin for BodyBillboardPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<BillboardSettings>()
-            .add_systems(Update, (auto_scale_billboards.after(pan_orbit_camera)).run_if(in_state(SimState::Loaded)));
+            .add_systems(PostUpdate, (auto_scale_billboards.after(PanOrbitCameraSystemSet)).run_if(in_state(SimState::Loaded)));
     }
 
 }
@@ -71,38 +69,30 @@ fn auto_scale_billboards(
                 predicate = false;
             }
         }
-        let distance_to_cam = c_transform.translation.distance(p_transform.translation) / STAR_IMPOSTER_DIVIDER;
-        let offset = if star {
-            distance_to_cam
-        } else {
-            shape.ellipsoid.mean_equatorial_radius_km() as f32 * 2. * scale.0
-        };
         billboard_visible.0 = !settings.dynamic_hide || predicate;
         billboard(
+            name,
             &mut billboards,
             c_transform,
             p_transform,
-            offset,
             children,
             !settings.dynamic_hide || predicate,
-            &mut gizmos
         )
     }
 }
 
 fn billboard(
+    name: &Name,
     billboards: &mut Query<(&Text, &mut Transform, &mut Visibility), With<BillboardTextBounds>>,
     c_transform: &Transform,
     p_transform: &Transform,
-    offset: f32,
     children: &Children,
     predicate: bool,
-    x: &mut Gizmos
 ) {
     for child in children.iter() {
         if let Ok((_, mut transform, mut visible)) = billboards.get_mut(*child) {
             if predicate {
-                apply_billboard(*c_transform, *p_transform, &mut transform, offset, x);
+                apply_billboard(name, *c_transform, *p_transform, &mut transform);
                 *visible = Visibility::Visible;
             } else {
                 *visible = Visibility::Hidden;
@@ -112,20 +102,18 @@ fn billboard(
 }
 
 fn apply_billboard(
+    name: &Name,
     camera: Transform, //camera transform
     body: Transform, //body transform
     b_transform: &mut Transform, //billboard transform
-    multiplier: f32, //This is the diameter of the body
-    x: &mut Gizmos,
 ) {
     let direction = (body.translation - camera.translation).normalize();
     let cam_up = camera.rotation * Vec3::Y;
     let cam_right = cam_up.cross(direction).normalize();
     let orthogonal = direction.cross(cam_right).normalize();
     let cam_distance = camera.translation.distance(body.translation);
-    b_transform.scale = body.scale.recip() * (cam_distance / RADIUS_DIVIDER);
-    b_transform.translation = orthogonal * multiplier; //just extend the orthogonal vector by a constant
-  //  x.line(body.translation, body.translation+orthogonal * multiplier, Srgba::RED);
+    b_transform.scale = Vec3::splat(cam_distance / RADIUS_DIVIDER);
+    b_transform.translation = orthogonal * 775.; //I don't know why this works, but it does
 }
 
 fn calculate_screen_distance(

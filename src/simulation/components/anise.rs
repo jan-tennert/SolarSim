@@ -68,7 +68,6 @@ pub fn retrieve_starting_data(
     } else {
         toasts.0.add(error_toast(format!("Couldn't retrieve shape: {:?}", full_frame.unwrap_err()).as_str()));
     }
-
     let dcm = almanac.0.rotate(
         fixed_frame,
         SSB_J2000,

@@ -1,6 +1,6 @@
 use crate::simulation::components::anise::retrieve_starting_data;
 use crate::simulation::components::body::{BodyBundle, BodyChildren, BodyParent, SimPosition};
-use crate::simulation::components::rotation::axial_tilt;
+use crate::simulation::components::rotation::initial_rotation;
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::components::shape::apply_real_diameter;
@@ -60,7 +60,7 @@ impl FromWorld for EditorSystems {
 
         systems.0.insert(
             EditorSystemType::UPDATE_TILT.into(),
-            world.register_system(axial_tilt)
+            world.register_system(initial_rotation)
         );
 
         systems.0.insert(

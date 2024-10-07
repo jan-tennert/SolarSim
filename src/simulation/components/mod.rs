@@ -1,7 +1,6 @@
 use crate::simulation::components::anise::AnisePlugin;
 use crate::simulation::components::apsis::ApsisPlugin;
 use crate::simulation::components::billboard::BodyBillboardPlugin;
-use crate::simulation::components::camera::PanOrbitCameraPlugin;
 use crate::simulation::components::direction::DirectionPlugin;
 use crate::simulation::components::horizons::HorizonsPlugin;
 use crate::simulation::components::lock_on::LockOnPlugin;
@@ -41,7 +40,7 @@ impl Plugin for SimComponentPlugin {
         app
             .add_plugins(ApsisPlugin)
             .add_plugins(BodyBillboardPlugin)
-            .add_plugins(PanOrbitCameraPlugin)
+          //  .add_plugins(PanOrbitCameraPlugin)
             .add_plugins(DiameterPlugin)
             .add_plugins(DirectionPlugin)
             .add_plugins(LockOnPlugin)

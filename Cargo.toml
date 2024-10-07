@@ -39,4 +39,5 @@ egui_extras = { version = "0.28.0", features = ["chrono"] }
 reqwest = { version = "0.12.7", features = ["blocking", "json"] }
 anise = "0.4.4"
 bevy_async_task = "0.2.0"
+bevy_panorbit_camera = "0.19.3"
 

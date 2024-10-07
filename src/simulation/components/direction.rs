@@ -1,10 +1,10 @@
 use crate::simulation::components::body::{BodyChildren, BodyShape, Moon, OrbitSettings, Planet, Velocity};
-use crate::simulation::components::camera::pan_orbit_camera;
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::SimState;
 use bevy::color::palettes::css;
 use bevy::prelude::Res;
 use bevy::{app::{App, Plugin}, prelude::{in_state, Entity, Gizmos, IntoSystemConfigs, Query, Transform, Update, With}};
+use bevy_panorbit_camera::PanOrbitCameraSystemSet;
 
 pub struct DirectionPlugin;
 
@@ -12,7 +12,7 @@ impl Plugin for DirectionPlugin {
     
     fn build(&self, app: &mut App) {
         app
-        .add_systems(Update, (display_force_and_velocity.after(pan_orbit_camera)).run_if(in_state(SimState::Loaded)));
+        .add_systems(Update, (display_force_and_velocity.after(PanOrbitCameraSystemSet)).run_if(in_state(SimState::Loaded)));
     }
     
 }

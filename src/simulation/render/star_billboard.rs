@@ -1,12 +1,11 @@
-use bevy::app::{App, Plugin, Update};
-use bevy::math::Vec3;
-use bevy::prelude::{Camera, Children, Component, in_state, IntoSystemConfigs, Parent, Query, Transform, Visibility, With, Without, Entity, Color, Res};
-use bevy::scene::SceneInstance;
 use crate::constants::DEF_M_TO_UNIT;
 use crate::simulation::components::body::Star;
-use crate::simulation::components::camera::pan_orbit_camera;
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::SimState;
+use bevy::app::{App, Plugin, Update};
+use bevy::math::Vec3;
+use bevy::prelude::{in_state, Camera, Children, Component, Entity, IntoSystemConfigs, Parent, Query, Res, Transform, Visibility, With, Without};
+use bevy::scene::SceneInstance;
 
 const STAR_IMPOSTER_THRESHOLD: f32 = 4_000.0;
 pub const STAR_IMPOSTER_DIVIDER: f32 = 10000.0;
@@ -17,7 +16,7 @@ impl Plugin for StarBillboardPlugin {
 
     fn build(&self, app: &mut App) {
         app
-            .add_systems(Update, (change_sun_renderer.after(pan_orbit_camera)).run_if(in_state(SimState::Loaded)));
+            .add_systems(Update, (change_sun_renderer/*.after(pan_orbit_camera)*/).run_if(in_state(SimState::Loaded)));
     }
 
 }

@@ -20,13 +20,13 @@ impl Plugin for RotationPlugin {
 
     fn build(&self, app: &mut App) {
         app
-            .add_systems(Update, (axial_tilt.after(setup_scenario)).run_if(in_state(SimState::Loading)))
+            .add_systems(Update, (initial_rotation.after(setup_scenario)).run_if(in_state(SimState::Loading)))
             .add_systems(Update, (rotate_bodies).run_if(sim_state_type_simulation));
     }
 
 }
 
-pub fn axial_tilt(
+pub fn initial_rotation(
     mut query: Query<(&mut BodyRotation, &BodyShape, &Children)>,
     mut scenes: Query<&mut Transform, (With<SceneInstance>, Without<Star>)>,
     mut loading_state: ResMut<LoadingState>,
@@ -38,7 +38,6 @@ pub fn axial_tilt(
         if rotation.applied || !diameter.applied {
             continue;
         }
-        println!("Applying axial tilt to body");
         for child in children.iter() {
             if let Ok(mut transform) = scenes.get_mut(*child) {
                 transform.rotation = Quat::from_mat3(&rotation.matrix);

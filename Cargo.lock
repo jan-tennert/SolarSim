@@ -13,6 +13,7 @@ dependencies = [
  "bevy_easings",
  "bevy_egui",
  "bevy_mod_billboard",
+ "bevy_panorbit_camera",
  "blocking",
  "chrono",
  "egui-toast",
@@ -1118,6 +1119,15 @@ dependencies = [
  "bevy",
  "bitflags 2.6.0",
  "smallvec",
+]
+
+[[package]]
+name = "bevy_panorbit_camera"
+version = "0.19.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0aec4ab2ef0d8527c3e85db205f6b0eb3c302f81401dfb7131db425f5fd78d2c"
+dependencies = [
+ "bevy",
 ]
 
 [[package]]

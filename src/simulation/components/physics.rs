@@ -3,15 +3,14 @@ use std::time::Instant;
 use bevy::app::{App, Plugin, Update};
 use bevy::diagnostic::{Diagnostic, DiagnosticPath, Diagnostics, RegisterDiagnostic};
 use bevy::math::{DVec3, Vec3};
-use bevy::prelude::{Entity, in_state, IntoSystemConfigs, Mut, Query, Res, ResMut, Resource, Time, Transform, Has, Children, Local};
+use bevy::prelude::{Entity, Has, IntoSystemConfigs, Mut, Query, Res, ResMut, Resource, Time, Transform};
 use bevy::reflect::List;
 
-use crate::simulation::components::body::{Acceleration, Mass, OrbitSettings, SimPosition, Velocity, Star, Planet, BodyChildren};
 use crate::constants::{DEFAULT_SUB_STEPS, G};
+use crate::simulation::components::body::{Acceleration, BodyChildren, Mass, OrbitSettings, Planet, SimPosition, Star, Velocity};
 use crate::simulation::components::orbit_lines::OrbitOffset;
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::components::selection::SelectedEntity;
-use crate::simulation::SimState;
 use crate::simulation::components::speed::Speed;
 use crate::utils::sim_state_type_simulation;
 
@@ -137,9 +136,7 @@ fn change_selection_without_update(
 ) {
     let offset = match selected_entity.entity { //if orbit_offset.enabled is true, we calculate the new position of the selected entity first and then move it to 0,0,0 and add the actual position to all other bodies
         Some(selected) => {
-            if !orbit_offset.enabled {
-                DVec3::ZERO
-            } else if let Ok((_, _, _, _, _, sim_pos, mut transform, _, _, _)) = query.get_mut(selected) {
+            if let Ok((_, _, _, _, _, sim_pos, mut transform, _, _, _)) = query.get_mut(selected) {
                 let raw_translation = scale.m_to_unit_dvec(sim_pos.0);
                 transform.translation = Vec3::ZERO; //the selected entity will always be at 0,0,0
                 -raw_translation 
@@ -153,21 +150,15 @@ fn change_selection_without_update(
         return;
     }
     for (entity, _, _, _, _, sim_pos, mut transform, _, _, _) in query.iter_mut() {
-        if orbit_offset.enabled {
-            if let Some(s_entity) = selected_entity.entity {
-                if s_entity == entity {
-                    continue;
-                }
+        if let Some(s_entity) = selected_entity.entity {
+            if s_entity == entity {
+                continue;
             }
         }
         let pos_without_offset = scale.m_to_unit_dvec(sim_pos.0);
         transform.translation = (pos_without_offset + offset).as_vec3(); //apply offset
     }
-    if orbit_offset.enabled {
-        orbit_offset.value = offset.as_vec3();   
-    } else {
-        orbit_offset.value = Vec3::ZERO
-    }
+    orbit_offset.value = offset.as_vec3();
 }
 
 fn update_velocity_and_positions(
@@ -181,7 +172,7 @@ fn update_velocity_and_positions(
 ) {
     let offset = match selected_entity.entity { //if orbit_offset.enabled is true, we calculate the new position of the selected entity first and then move it to 0,0,0 and add the actual position to all other bodies
         Some(selected) => {
-            if !orbit_offset.enabled || !last_step {
+            if !last_step {
                 DVec3::ZERO
             } else if let Ok((_, mass, mut acc, mut orbit_s, mut vel, mut sim_pos, mut transform, _, _, _)) = query.get_mut(selected) {
                 if last_step {
@@ -200,7 +191,7 @@ fn update_velocity_and_positions(
         None => DVec3::ZERO,
     };
     for (entity, mass, mut acc, mut orbit_s, mut vel, mut sim_pos, mut transform, _, _, _) in query.iter_mut() {
-        if orbit_offset.enabled && last_step {
+        if last_step {
             if let Some(s_entity) = selected_entity.entity {
                 if s_entity == entity {
                     continue;
@@ -218,9 +209,7 @@ fn update_velocity_and_positions(
             transform.translation = (pos_without_offset + offset).as_vec3(); //apply offset
         }
     }
-    if orbit_offset.enabled && last_step {
+    if last_step {
         orbit_offset.value = offset.as_vec3();   
-    } else {
-        orbit_offset.value = Vec3::ZERO
     }
 }

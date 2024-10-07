@@ -1,18 +1,17 @@
-use anise::prelude::Almanac;
-use bevy::prelude::{App, Camera, Commands, DespawnRecursiveExt, Entity, NextState, OnEnter, OnExit, Plugin, Query, Res, ResMut, Vec3, With, Without};
-
-use crate::{constants::{DEFAULT_SUB_STEPS, DEFAULT_TIMESTEP}};
-use crate::simulation::scenario::setup::ScenarioData;
+use crate::constants::DEFAULT_SUB_STEPS;
 use crate::simulation::components::anise::AlmanacHolder;
 use crate::simulation::components::body::Mass;
-use crate::simulation::components::camera::{PanOrbitCamera, DEFAULT_CAM_RADIUS};
 use crate::simulation::components::physics::{Pause, SubSteps};
 use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::components::speed::Speed;
 use crate::simulation::scenario::loading::LoadingState;
-use crate::simulation::SimState;
-use crate::simulation::ui::{SimTime, StepType, UiState};
+use crate::simulation::scenario::setup::ScenarioData;
 use crate::simulation::ui::scenario_selection::SelectedScenario;
+use crate::simulation::ui::{SimTime, StepType, UiState};
+use crate::simulation::SimState;
+use anise::prelude::Almanac;
+use bevy::prelude::{App, Camera, Commands, DespawnRecursiveExt, Entity, NextState, OnEnter, OnExit, Plugin, Query, Res, ResMut, Vec3, With, Without};
+use bevy_panorbit_camera::PanOrbitCamera;
 
 pub struct ResetPlugin;
 
@@ -55,7 +54,6 @@ fn clean_up(
     loading_state.reset();
     let mut cam = camera.single_mut();
     cam.focus = Vec3::ZERO;
-    cam.radius = DEFAULT_CAM_RADIUS;
     ui_state.visible = true;
     ui_state.step_type = StepType::SUBSTEPS;
     ui_state.show_debug = false;

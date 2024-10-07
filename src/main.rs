@@ -1,5 +1,10 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use crate::menu::MenuPlugin;
+use crate::simulation::asset::serialization::SerializationPlugin;
+use crate::simulation::asset::SCENARIO_ASSET_SOURCE;
+use crate::simulation::components::editor::EditorPlugin;
+use crate::simulation::SimulationPlugin;
 use bevy::app::{App, PluginGroup};
 use bevy::asset::io::AssetSourceBuilder;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
@@ -9,14 +14,9 @@ use bevy::render::RenderPlugin;
 use bevy::window::{PresentMode, Window, WindowPlugin};
 use bevy::DefaultPlugins;
 use bevy_egui::EguiPlugin;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_billboard::plugin::BillboardPlugin;
-use crate::menu::MenuPlugin;
+use bevy_panorbit_camera::PanOrbitCameraPlugin;
 use simulation::scenario::setup::SetupPlugin;
-use crate::simulation::asset::SCENARIO_ASSET_SOURCE;
-use crate::simulation::asset::serialization::SerializationPlugin;
-use crate::simulation::components::editor::EditorPlugin;
-use crate::simulation::SimulationPlugin;
 
 mod constants;
 mod menu;
@@ -76,11 +76,12 @@ fn main() {
                 ..default()
             })
         )
-        .add_plugins(WorldInspectorPlugin::default())
+    //    .add_plugins(WorldInspectorPlugin::default())
         .add_plugins(EditorPlugin)
         .add_plugins(SimulationPlugin)
-    //    .add_plugins(EguiPlugin)
+        .add_plugins(EguiPlugin)
         .add_plugins(SerializationPlugin)
+        .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(BillboardPlugin)
         .add_plugins(SetupPlugin)
         .add_plugins(MenuPlugin)

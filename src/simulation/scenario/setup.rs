@@ -1,10 +1,9 @@
 use crate::simulation::asset::serialization::{SerializedBody, SimulationData};
 use crate::simulation::components::apsis::ApsisBody;
 use crate::simulation::components::body::{BodyBundle, BodyChildren, BodyParent, LightSource, Moon, OrbitSettings, Planet, SceneEntity, SceneHandle, Star};
-use crate::simulation::components::camera::PanOrbitCamera;
 use crate::simulation::components::editor::CreateBodyType;
 use crate::simulation::components::scale::SimulationScale;
-use crate::simulation::components::selection::SelectedEntity;
+use crate::simulation::components::selection::{SelectedEntity, SELECTION_MULTIPLIER};
 use crate::simulation::render::skybox::Cubemap;
 use crate::simulation::render::star_billboard::StarBillboard;
 use crate::simulation::scenario::loading::LoadingState;
@@ -21,11 +20,12 @@ use bevy::ecs::system::EntityCommands;
 use bevy::hierarchy::BuildChildren;
 use bevy::math::{DVec3, Vec3};
 use bevy::pbr::{PbrBundle, PointLight, PointLightBundle};
-use bevy::prelude::{default, in_state, Assets, Camera, Camera3dBundle, ChildBuilder, Circle, Color, Commands, Entity, Handle, Hsva, IntoSystemConfigs, Mesh, NextState, PerspectiveProjection, Projection, Res, ResMut, Resource, SceneBundle, SpatialBundle, Srgba, StandardMaterial, Startup, Transform, Update, Visibility};
+use bevy::prelude::{default, in_state, Assets, Camera, Camera3dBundle, ChildBuilder, Circle, Color, Commands, Entity, Handle, Hsva, IntoSystemConfigs, Mesh, NextState, PerspectiveProjection, Projection, Query, Res, ResMut, Resource, SceneBundle, SpatialBundle, Srgba, StandardMaterial, Startup, Transform, Update, Visibility};
 use bevy::render::view::{GpuCulling, NoCpuCulling};
 use bevy::scene::Scene;
 use bevy::text::{JustifyText, TextSection, TextStyle};
-use bevy_mod_billboard::{BillboardLockAxisBundle, BillboardTextBundle};
+use bevy_mod_billboard::BillboardTextBundle;
+use bevy_panorbit_camera::PanOrbitCamera;
 
 pub struct SetupPlugin;
 
@@ -76,6 +76,7 @@ pub fn setup_scenario(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut sim_state: ResMut<NextState<SimState>>,
     scale: Res<SimulationScale>,
+    mut cam: Query<&mut PanOrbitCamera>
 ) {
     if selected_scenario.spawned {
         return;
@@ -189,6 +190,10 @@ pub fn setup_scenario(
     if stars == 0 {
         loading_state.reset();
         sim_state.set(SimState::Loaded);
+    } else {
+        let mut cam = cam.single_mut();
+        let star = data.bodies.first().unwrap();
+        cam.target_radius = scale.m_to_unit_32(star.data.ellipsoid.mean_equatorial_radius_km() as f32 * 2000. * SELECTION_MULTIPLIER);
     }
 }
 
@@ -285,7 +290,7 @@ fn spawn_imposter(
     scale: &SimulationScale
 ) {
     parent.spawn(PbrBundle {
-        mesh: meshes.add(Circle::new(scale.m_to_unit_32(bundle.diameter.ellipsoid.mean_equatorial_radius_km() as f32 * 6.0))),
+        mesh: meshes.add(Circle::new(scale.m_to_unit_32(bundle.diameter.ellipsoid.mean_equatorial_radius_km() as f32 * 6000.))),
         material: materials.add(color),
         visibility: Visibility::Hidden,
         ..default()
@@ -313,23 +318,18 @@ fn spawn_billboard(
     color: Color,
     parent: &mut ChildBuilder
 ) {
-    parent.spawn(BillboardLockAxisBundle {
-        billboard_bundle: BillboardTextBundle {
-            transform: Transform::from_translation(Vec3::new(0., 2000., 0.))
-                .with_scale(Vec3::splat(8.5)),
-            text: bevy::text::Text::from_sections([
-                TextSection {
-                    value: bundle.name.to_string(),
-                    style: TextStyle {
-                        font_size: 60.0,
-                        // font: fira_sans_regular_handle.clone(),
-                        color,
-                        ..default()
-                    }
+    parent.spawn(BillboardTextBundle {
+        text: bevy::text::Text::from_sections([
+            TextSection {
+                value: bundle.name.to_string(),
+                style: TextStyle {
+                    font_size: 60.0,
+                    // font: fira_sans_regular_handle.clone(),
+                    color,
+                    ..default()
                 }
-            ]).with_justify(JustifyText::Center),
-            ..default()
-        },
+            }
+        ]).with_justify(JustifyText::Center),
         ..default()
     })
         .insert(Name::new(format!("{} Text Billboard", bundle.name)));
@@ -353,7 +353,10 @@ pub fn setup_camera(
             },
             ..default()
         },
-        PanOrbitCamera::default(),
+        PanOrbitCamera {
+            zoom_lower_limit: Some(0.02),
+            ..default()
+        },
         Skybox {
             image: skybox_handle.clone(),
             brightness: 1000.0,

@@ -1,18 +1,16 @@
 use std::time::Duration;
 
+use crate::simulation::components::body::Mass;
+use crate::simulation::components::physics::{NBODY_STEPS, NBODY_STEP_TIME, NBODY_TOTAL_TIME};
+use crate::simulation::ui::system_panel::system_panel;
+use crate::simulation::ui::UiState;
+use crate::simulation::SimState;
 use bevy::app::{App, Plugin};
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::{in_state, IntoSystemConfigs, Query, Res, ResMut, Update};
-use bevy::render::diagnostic::RenderDiagnosticsPlugin;
-use bevy_egui::{egui::{self}, EguiContexts};
 use bevy_egui::egui::RichText;
-
-use crate::simulation::components::body::Mass;
-use crate::simulation::components::camera::PanOrbitCamera;
-use crate::simulation::components::physics::{NBODY_STEP_TIME, NBODY_TOTAL_TIME, NBODY_STEPS};
-use crate::simulation::SimState;
-use crate::simulation::ui::system_panel::system_panel;
-use crate::simulation::ui::UiState;
+use bevy_egui::{egui::{self}, EguiContexts};
+use bevy_panorbit_camera::PanOrbitCamera;
 
 pub struct DebugPlugin;
 
@@ -115,7 +113,7 @@ fn debug_window(
             });
             ui.horizontal(|ui| {
                 ui.label(RichText::new("Camera radius: ").strong());                            
-                ui.label(format!("{}", cam.radius));
+                ui.label(format!("{}", cam.radius.unwrap_or(0.)));
             });
             ui.allocate_space(egui::vec2(ui.available_size().x, 0.0));
         });

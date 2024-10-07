@@ -1,14 +1,13 @@
-use bevy::app::{App, Plugin, Update};
-use bevy::prelude::{in_state, Entity, IntoSystemConfigs, Query, Res, ResMut, Resource, Transform, Vec3, With};
-
 use crate::simulation::components::body::{BodyShape, Mass, Star};
-use crate::simulation::components::camera::{pan_orbit_camera, PanOrbitCamera};
 use crate::simulation::components::orbit_lines::OrbitOffset;
 use crate::simulation::components::physics::apply_physics;
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::SimState;
+use bevy::app::{App, Plugin, Update};
+use bevy::prelude::{in_state, Entity, IntoSystemConfigs, Query, Res, ResMut, Resource, Transform, Vec3, With};
+use bevy_panorbit_camera::PanOrbitCamera;
 
-const SELECTION_MULTIPLIER: f32 = 4.0;
+pub const SELECTION_MULTIPLIER: f32 = 2.0;
 
 pub struct SelectionPlugin;
 
@@ -17,7 +16,7 @@ impl Plugin for SelectionPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<SelectedEntity>()
-            .add_systems(Update, (apply_camera_to_selection.after(apply_physics).before(pan_orbit_camera)).run_if(in_state(SimState::Loaded)));
+            .add_systems(Update, (apply_camera_to_selection.after(apply_physics)/*.before(pan_orbit_camera)*/).run_if(in_state(SimState::Loaded)));
     }
 
 }
@@ -52,15 +51,9 @@ pub fn apply_camera_to_selection(
         } else if !selected_entity.changed_focus {
             let (_, _, diameter, _) = bodies.get(entity).unwrap();
             let mut cam = camera.single_mut();            
-            cam.radius = scale.m_to_unit_32(diameter.ellipsoid.mean_equatorial_radius_km() as f32 * 2000. * SELECTION_MULTIPLIER);
-            if orbit_offset.enabled {
-                cam.focus = Vec3::ZERO;        
-            }
+            cam.target_radius = scale.m_to_unit_32(diameter.ellipsoid.mean_equatorial_radius_km() as f32 * 2000. * SELECTION_MULTIPLIER);
+            cam.focus = Vec3::ZERO;
             selected_entity.changed_focus = true;
-        }
-        if !orbit_offset.enabled {
-            let mut cam = camera.single_mut();
-            cam.focus = bodies.get(entity).unwrap().1.translation;         
         }
     } else {
         if let Some((entity, _, _, _)) = bodies.iter().find(|(_, _, _, maybe_star)| {

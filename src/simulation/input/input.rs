@@ -1,10 +1,10 @@
-use crate::simulation::components::camera::PanOrbitCamera;
 use crate::simulation::components::physics::{Pause, SubSteps};
-use crate::simulation::ui::{StepType, UiState};
 use crate::simulation::components::speed::Speed;
+use crate::simulation::ui::{StepType, UiState};
 use bevy::prelude::{ButtonInput, KeyCode, Query, Res, ResMut, Vec3, Window};
 use bevy::window::WindowMode;
 use bevy_egui::{egui, EguiContexts, EguiSettings};
+use bevy_panorbit_camera::PanOrbitCamera;
 
 pub fn key_window(
     mut egui_ctx: EguiContexts,
@@ -65,7 +65,7 @@ pub fn sim_input_system(
     if keys.just_pressed(KeyCode::F10) {
         ui_state.visible = !ui_state.visible
     } else if keys.just_pressed(KeyCode::KeyC) {
-        camera.single_mut().focus = Vec3::ZERO;
+        camera.single_mut().target_focus = Vec3::ZERO;
     } else if keys.just_pressed(KeyCode::Space) {
         pause.0 = !pause.0;
     } else if keys.just_pressed(KeyCode::ArrowLeft) {

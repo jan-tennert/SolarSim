@@ -1,5 +1,4 @@
 use crate::simulation::components::body::{BillboardVisible, BodyChildren, BodyShape, Moon, OrbitSettings, Planet, SimPosition, Star};
-use crate::simulation::components::camera::PanOrbitCamera;
 use crate::simulation::components::physics::{apply_physics, Pause, SubSteps};
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::components::selection::SelectedEntity;
@@ -7,6 +6,7 @@ use crate::simulation::components::speed::Speed;
 use crate::simulation::ui::UiState;
 use crate::simulation::SimState;
 use bevy::{prelude::{in_state, App, Camera, Entity, Gizmos, IntoSystemConfigs, Plugin, PreUpdate, Query, Res, Resource, Transform, Vec3, With, Without}, time::Time};
+use bevy_panorbit_camera::PanOrbitCamera;
 
 pub struct OrbitLinePlugin;
 
@@ -22,8 +22,7 @@ impl Plugin for OrbitLinePlugin {
 pub struct OrbitOffset {
     
     pub value: Vec3,
-    pub enabled: bool,
-    
+
 }
 
 impl Default for OrbitOffset {
@@ -31,7 +30,6 @@ impl Default for OrbitOffset {
     fn default() -> Self {
         OrbitOffset {
             value: Vec3::ZERO,
-            enabled: true,
         }
     }
     
@@ -59,7 +57,7 @@ fn update_lines(
     let cam = camera.single();
     for (entity, mut orbit, pos, _, diameter, billboard_visible) in &mut planet_query {
         if orbit.draw_lines {
-            orbit.hide_lines = (cam.radius < scale.m_to_unit_32(diameter.ellipsoid.mean_equatorial_radius_km() as f32 * 2.) * PLANET_HIDE_MULTIPLIER && entity == selected_entity.entity.unwrap() || !billboard_visible.0) && ui_state.dyn_hide_orbit_lines;
+            //orbit.hide_lines = (cam.radius < scale.m_to_unit_32(diameter.ellipsoid.mean_equatorial_radius_km() as f32 * 2.) * PLANET_HIDE_MULTIPLIER && entity == selected_entity.entity.unwrap() || !billboard_visible.0) && ui_state.dyn_hide_orbit_lines;
             let speed = speed.0 as f32 * (substeps.0 as f32);
             let max_step = (orbit.period as f32 / speed) * MULTIPLIER;
             if orbit.step >= max_step {
@@ -76,7 +74,7 @@ fn update_lines(
             if let Some((_, _, p_pos, _, _, _)) = planet_query.iter().find(|(_, _, _, children, _, _)| {
                 children.0.contains(&entity)
             }) {
-                orbit.hide_lines = (cam.radius < scale.m_to_unit_32(diameter.ellipsoid.mean_equatorial_radius_km() as f32 * 2.)  * HIDE_MULTIPLIER && entity == selected_entity.entity.unwrap() || !billboard_visible.0) && ui_state.dyn_hide_orbit_lines;
+           //     orbit.hide_lines = (cam.radius < scale.m_to_unit_32(diameter.ellipsoid.mean_equatorial_radius_km() as f32 * 2.)  * HIDE_MULTIPLIER && entity == selected_entity.entity.unwrap() || !billboard_visible.0) && ui_state.dyn_hide_orbit_lines;
                 let speed = speed.0 as f32 * (substeps.0 as f32);
                 let max_step = (orbit.period as f32 / speed) * MULTIPLIER;
                 if orbit.step >= max_step {

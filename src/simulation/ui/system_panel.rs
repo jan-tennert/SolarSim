@@ -1,20 +1,20 @@
 use crate::simulation::components::billboard::BillboardSettings;
 use crate::simulation::components::body::{BodyChildren, Moon, Planet, Star};
-use crate::simulation::components::camera::PanOrbitCamera;
 use crate::simulation::components::editor::{CreateBodyState, CreateBodyType, EditorSystemType, EditorSystems};
 use crate::simulation::components::orbit_lines::OrbitOffset;
 use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::render::skybox::Cubemap;
+use crate::simulation::ui::metadata::MetadataUiState;
 use crate::simulation::ui::UiState;
 use crate::simulation::{SimState, SimStateType};
 use bevy::core::Name;
 use bevy::core_pipeline::Skybox;
 use bevy::ecs::system::SystemParam;
 use bevy::input::ButtonInput;
-use bevy::prelude::{AabbGizmoConfigGroup, Camera, Commands, Entity, GizmoConfigStore, KeyCode, NextState, Query, Res, ResMut, Vec3, Visibility, With, Without};
-use bevy_egui::egui::{Align, InnerResponse, Layout, Response, ScrollArea, Ui};
+use bevy::prelude::{AabbGizmoConfigGroup, Camera, Commands, Entity, GizmoConfigStore, KeyCode, NextState, Query, Res, ResMut, Visibility, With, Without};
+use bevy_egui::egui::{Align, Layout, ScrollArea, Ui};
 use bevy_egui::{egui, EguiContexts};
-use crate::simulation::ui::metadata::MetadataUiState;
+use bevy_panorbit_camera::PanOrbitCamera;
 
 #[derive(SystemParam)]
 pub struct SystemPanelSet<'w, 's> {
@@ -177,14 +177,9 @@ pub fn system_panel(
                         }
 
                         ui.checkbox(&mut system_panel_set.config.config_mut::<AabbGizmoConfigGroup>().1.draw_all, "Draw Outlines");
-                        ui.checkbox(&mut system_panel_set.billboard.show, "Show Body Names");
-                        ui.checkbox(&mut system_panel_set.billboard.dynamic_hide, "Dynamically hide Body Names");
+                        ui.checkbox(&mut system_panel_set.billboard.show, "Show body names");
+                        ui.checkbox(&mut system_panel_set.billboard.dynamic_hide, "Dynamically hide body names");
                         if *system_panel_set.sim_state_type == SimStateType::Simulation {
-                            if ui.checkbox(&mut system_panel_set.orbit_offset.enabled, "Offset body to zero").changed() {
-                                if system_panel_set.orbit_offset.enabled {
-                                    pan.focus = Vec3::ZERO;
-                                }
-                            }
                             ui.checkbox(&mut ui_state.dyn_hide_orbit_lines, "Dynamically hide orbit lines");
                         }
                         if ui.button("Open Debug Window").clicked() {
