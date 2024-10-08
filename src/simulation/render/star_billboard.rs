@@ -3,8 +3,10 @@ use crate::simulation::components::body::Star;
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::SimState;
 use bevy::app::{App, Plugin, Update};
+use bevy::asset::Asset;
 use bevy::math::Vec3;
-use bevy::prelude::{in_state, Camera, Children, Component, Entity, IntoSystemConfigs, Parent, Query, Res, Transform, Visibility, With, Without};
+use bevy::prelude::{in_state, AlphaMode, Camera, Children, Component, Entity, Handle, Image, IntoSystemConfigs, LinearRgba, Material, MaterialPlugin, Parent, Query, Res, Transform, TypePath, Visibility, With, Without};
+use bevy::render::render_resource::{AsBindGroup, ShaderRef};
 use bevy::scene::SceneInstance;
 
 const STAR_IMPOSTER_THRESHOLD: f32 = 4_000.0;
@@ -16,9 +18,48 @@ impl Plugin for StarBillboardPlugin {
 
     fn build(&self, app: &mut App) {
         app
+            .add_plugins(MaterialPlugin::<SunImposterMaterial>::default())
             .add_systems(Update, (change_sun_renderer/*.after(pan_orbit_camera)*/).run_if(in_state(SimState::Loaded)));
     }
 
+}
+
+#[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
+pub struct SunImposterMaterial {
+    #[uniform(0)]
+    pub(crate) color: LinearRgba,
+    #[texture(1)]
+    #[sampler(2)]
+    pub(crate) color_texture: Option<Handle<Image>>,
+    #[uniform(3)]
+    pub(crate) glow_intensity: f32,
+    #[uniform(4)]
+    pub(crate) glow_radius: f32,
+    pub(crate) alpha_mode: AlphaMode,
+}
+
+impl SunImposterMaterial {
+
+    pub fn with(color: LinearRgba, radius: f32) -> Self {
+        Self {
+            color,
+            color_texture: None,
+            glow_intensity: 70.0,
+            glow_radius: radius,
+            alpha_mode: AlphaMode::Blend,
+        }
+    }
+
+}
+
+impl Material for SunImposterMaterial {
+    fn fragment_shader() -> ShaderRef {
+        "shaders/star.wgsl".into()
+    }
+
+    fn alpha_mode(&self) -> AlphaMode {
+        self.alpha_mode
+    }
 }
 
 #[derive(Component, Debug)]

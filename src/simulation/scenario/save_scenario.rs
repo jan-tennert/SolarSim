@@ -6,13 +6,12 @@ use crate::simulation::components::speed::Speed;
 use crate::simulation::scenario::setup::ScenarioData;
 use crate::simulation::ui::scenario_selection::SelectedScenario;
 use crate::simulation::ui::toast::{success_toast, ToastContainer};
-use crate::simulation::units::converter::unscale_lumen;
 use anise::structure::planetocentric::ellipsoid::Ellipsoid;
 use bevy::app::Plugin;
 use bevy::core::Name;
 use bevy::ecs::system::SystemParam;
 use bevy::math::DVec3;
-use bevy::prelude::{AssetServer, Assets, Entity, PointLight, Query, Res, ResMut, Visibility};
+use bevy::prelude::{AssetServer, Assets, Entity, Query, Res, ResMut};
 use std::fs;
 
 pub struct SaveScenarioPlugin;
@@ -33,7 +32,7 @@ pub struct SystemPanelSet<'w, 's> {
     bodies_asset: ResMut<'w, Assets<SimulationData>>,
     scenario_data: ResMut<'w, ScenarioData>,
     bodies: Query<'w, 's, (Entity, &'static Mass, &'static SimPosition, &'static Velocity, &'static Name, &'static ModelPath, &'static BodyShape, &'static RotationSpeed, &'static BodyRotation, Option<&'static BodyChildren>, &'static AniseMetadata, &'static BodyRotation, Option<&'static Star>)>,
-    lights: Query<'w, 's, (&'static LightSource, &'static PointLight, &'static Visibility)>,
+    lights: Query<'w, 's, &'static LightSource>,
     toasts: ResMut<'w, ToastContainer>,
     scale: Res<'w, SimulationScale>,
     speed: Res<'w, Speed>
@@ -139,10 +138,11 @@ fn find_light_source(
     system_panel_set: &SystemPanelSet,
     entity: Entity,
 ) -> Option<SerializedLightSource> {
-    system_panel_set.lights.iter().find(|(s, _, _)| s.0 == entity).map(|(_, light, visibility)| SerializedLightSource {
-        intensity: unscale_lumen(light.intensity, &system_panel_set.scale),
-        range: system_panel_set.scale.unit_to_m_32(light.range),
-        color: light.color.to_srgba().to_hex(),
-        enabled: visibility == &Visibility::Visible
+    system_panel_set.lights.iter().find(|(s)| s.parent == entity).map(|(s)| SerializedLightSource {
+        intensity: s.intensity,
+        range: s.range,
+        color: s.color.to_srgba().to_hex(),
+        imposter_color: s.imposter_color.to_srgba().to_hex(),
+        enabled: s.enabled
     })
 }

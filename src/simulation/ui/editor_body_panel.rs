@@ -3,16 +3,15 @@ use crate::simulation::components::editor::{EditorSystemType, EditorSystems};
 use crate::simulation::components::horizons::AniseMetadata;
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::components::selection::SelectedEntity;
-use crate::simulation::render::star_billboard::StarBillboard;
+use crate::simulation::render::star_billboard::{StarBillboard, SunImposterMaterial};
 use crate::simulation::scenario::setup::spawn_scene;
 use crate::simulation::ui::components::vector_field;
 use crate::simulation::ui::toast::{success_toast, ToastContainer};
-use crate::simulation::units::converter::{km_to_m_dvec, m_to_km_dvec, scale_lumen, unscale_lumen};
+use crate::simulation::units::converter::{km_to_m_dvec, m_to_km_dvec, scale_lumen};
 use anise::structure::planetocentric::ellipsoid::Ellipsoid;
 use bevy::asset::{AssetServer, Assets};
 use bevy::core::Name;
 use bevy::math::DVec3;
-use bevy::pbr::StandardMaterial;
 use bevy::prelude::{default, BuildChildren, Color, Commands, DespawnRecursiveExt, Entity, Handle, Mat3, Mut, PointLight, PointLightBundle, Query, Res, ResMut, Resource, Scene, Srgba, Visibility, With};
 use bevy_egui::egui::{Align, Context, Layout, ScrollArea};
 use bevy_egui::{egui, EguiContexts};
@@ -59,6 +58,7 @@ impl Default for EditorPanelState {
 #[derive(Debug, Default, Clone, Copy)]
 pub struct LightSettings {
     pub color: Color,
+    pub imposter_color: Color,
     pub intensity: f32,
     pub range: f32,
     pub enabled: bool,
@@ -73,9 +73,9 @@ pub fn editor_body_panel(
     mut commands: Commands,
     systems: Res<EditorSystems>,
     assets: Res<AssetServer>,
-    mut light_query: Query<(&mut PointLight, &LightSource, &mut Visibility)>,
-    mut billboards: Query<(&StarBillboard, &mut Handle<StandardMaterial>)>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut light_query: Query<(&mut PointLight, &mut LightSource, &mut Visibility)>,
+    mut billboards: Query<(&StarBillboard, &mut Handle<SunImposterMaterial>)>,
+    mut materials: ResMut<Assets<SunImposterMaterial>>,
     mut toast_container: ResMut<ToastContainer>,
     scale: Res<SimulationScale>
 ) {
@@ -85,10 +85,10 @@ pub fn editor_body_panel(
     let mut apply  = false;
     if let Some(s_entity) = selected_entity.entity {
         if let Ok((entity, mut name, mut pos, mut vel, mut mass, mut diameter, mut rotation_speed, mut rotation, mut model_path, mut scene, mut horizons_id)) = query.get_mut(s_entity) {
-            let light = light_query.iter_mut().find(|(_, l, _)| l.0 == entity).map(|(a,b,c)| (a,b,c));
+            let light = light_query.iter_mut().find(|(_, l, _)| l.parent == entity).map(|(a,b,c)| (a,b,c));
             let mut billboard_material = billboards.iter_mut().find(|(b, _)| b.0 == entity).map(|(_, m)| m.clone());
             if state.entity.is_none() || state.entity.unwrap() != s_entity {
-                initialize_state(state.as_mut(), s_entity, &name, &pos, &vel, &mass, &diameter, &rotation_speed,&model_path, light.as_ref(), &scale, &horizons_id, &rotation);
+                initialize_state(state.as_mut(), s_entity, &name, &pos, &vel, &mass, &diameter, &rotation_speed,&model_path, light.as_ref(), &horizons_id, &rotation);
             }
             display_body_panel(egui_context.ctx_mut(), state.as_mut(), &mut name, &mut pos, &mut vel, &mut mass, &mut diameter, &mut rotation_speed, &mut rotation, &mut model_path, &mut scene, &mut horizons_id, &mut commands, &systems, &assets, light, scene_query, billboard_material.as_mut(), &mut materials, &mut apply, &scale);
         }
@@ -110,8 +110,7 @@ fn initialize_state(
     diameter: &BodyShape,
     rotation_speed: &RotationSpeed,
     model_path: &ModelPath,
-    light: Option<&(Mut<PointLight>, &LightSource, Mut<Visibility>)>,
-    scale: &SimulationScale,
+    light: Option<&(Mut<PointLight>, Mut<LightSource>, Mut<Visibility>)>,
     anise_metadata: &Mut<AniseMetadata>,
     rotation: &BodyRotation,
 ) {
@@ -124,11 +123,12 @@ fn initialize_state(
         new_rotation_speed: rotation_speed.0,
         new_model_path: model_path.cleaned(),
         show_delete_confirm: false,
-        new_light_settings: light.map(|(light, _, visible)| LightSettings {
-            color: (*light).color,
-            intensity: unscale_lumen((*light).intensity, scale),
-            enabled: **visible == Visibility::Visible,
-            range: scale.unit_to_m_32(light.range),
+        new_light_settings: light.map(|(_, source, _)| LightSettings {
+            color: source.color,
+            intensity: source.intensity,
+            enabled: source.enabled,
+            range: source.range,
+            imposter_color: source.imposter_color
         }),
         ephemeris_id: anise_metadata.ephemeris_id,
         ellipsoid: diameter.ellipsoid,
@@ -154,10 +154,10 @@ fn display_body_panel(
     commands: &mut Commands,
     systems: &Res<EditorSystems>,
     assets: &Res<AssetServer>,
-    light: Option<(Mut<PointLight>, &LightSource, Mut<Visibility>)>,
+    light: Option<(Mut<PointLight>, Mut<LightSource>, Mut<Visibility>)>,
     scene_query: Query<Entity, With<SceneEntity>>,
-    billboard_material: Option<&mut Handle<StandardMaterial>>,
-    materials: &mut ResMut<Assets<StandardMaterial>>,
+    billboard_material: Option<&mut Handle<SunImposterMaterial>>,
+    materials: &mut ResMut<Assets<SunImposterMaterial>>,
     apply: &mut bool,
     scale: &SimulationScale,
 ) {
@@ -274,6 +274,13 @@ fn display_light_source(ui: &mut egui::Ui, state: &mut EditorPanelState) {
             ui.color_edit_button_rgb(&mut rgb);
             light.color = Srgba::rgb(rgb[0], rgb[1], rgb[2]).into();
         });
+        ui.horizontal(|ui| {
+            ui.label("Imposter Color");
+            let color = light.imposter_color.to_srgba();
+            let mut rgb = [color.red, color.green, color.blue];
+            ui.color_edit_button_rgb(&mut rgb);
+            light.imposter_color = Srgba::rgb(rgb[0], rgb[1], rgb[2]).into();
+        });
         ui.checkbox(&mut light.enabled, "Enabled");
     } else {
         if ui.button("Add Light Source").on_hover_text("Add a light source to the body").clicked() {
@@ -282,6 +289,7 @@ fn display_light_source(ui: &mut egui::Ui, state: &mut EditorPanelState) {
                 intensity: 100.0,
                 range: 100.0,
                 enabled: true,
+                imposter_color: Color::WHITE
             });
         }
     }
@@ -303,10 +311,10 @@ fn display_bottom_buttons(
     commands: &mut Commands,
     systems: &Res<EditorSystems>,
     assets: &Res<AssetServer>,
-    light: Option<(Mut<PointLight>, &LightSource, Mut<Visibility>)>,
+    light: Option<(Mut<PointLight>, Mut<LightSource>, Mut<Visibility>)>,
     scene_query: Query<Entity, With<SceneEntity>>,
-    billboard_material: Option<&mut Handle<StandardMaterial>>,
-    materials: &mut ResMut<Assets<StandardMaterial>>,
+    billboard_material: Option<&mut Handle<SunImposterMaterial>>,
+    materials: &mut ResMut<Assets<SunImposterMaterial>>,
     apply: &mut bool,
     scale: &SimulationScale,
 ) {
@@ -356,10 +364,10 @@ fn apply_changes(
     commands: &mut Commands,
     systems: &Res<EditorSystems>,
     assets: &Res<AssetServer>,
-    light: Option<(Mut<PointLight>, &LightSource, Mut<Visibility>)>,
+    light: Option<(Mut<PointLight>, Mut<LightSource>, Mut<Visibility>)>,
     scene_query: Query<Entity, With<SceneEntity>>,
-    billboard_material: Option<&mut Handle<StandardMaterial>>,
-    materials: &mut ResMut<Assets<StandardMaterial>>,
+    billboard_material: Option<&mut Handle<SunImposterMaterial>>,
+    materials: &mut ResMut<Assets<SunImposterMaterial>>,
     scale: &SimulationScale,
 ) {
     name.set(state.new_name.clone());
@@ -376,17 +384,18 @@ fn apply_changes(
         orientation_id: state.orientation_id,
         target_id: state.target_id,
     };
-    if let Some((mut light, _, mut visible)) = light {
+    if let Some((mut light, mut source, mut visible)) = light {
         light.color = state.new_light_settings.as_ref().unwrap().color;
         if let Some(material) = billboard_material {
-            let color = light.color.to_srgba();
+            let color = state.new_light_settings.unwrap().imposter_color.to_srgba();
             let mut rgb = [color.red, color.green, color.blue];
-            let new_color: Color = Srgba::rgb(rgb[0] * 30.0, rgb[1] * 30.0, rgb[2] * 30.0).into();
+            let new_color: Color = Srgba::rgb(rgb[0] * 20.0, rgb[1] * 20.0, rgb[2] * 20.0).into();
             let mut material = materials.get_mut(material).unwrap();
-            material.base_color = new_color;
+            material.color = new_color.into();
         }
         light.intensity = scale_lumen(state.new_light_settings.as_ref().unwrap().intensity, scale);
         light.range = scale.m_to_unit_32(state.new_light_settings.as_ref().unwrap().range);
+        LightSource::apply(&mut source, state.new_light_settings.as_ref().unwrap());
         *visible = if state.new_light_settings.as_ref().unwrap().enabled {
             Visibility::Visible
         } else {
@@ -394,7 +403,7 @@ fn apply_changes(
         };
     } else if let Some(light) = state.new_light_settings.as_ref() {
         commands.entity(state.entity.unwrap()).with_children(|parent| {
-            parent.spawn(LightSource(state.entity.unwrap()))
+            parent.spawn(LightSource::new_settings(state.entity.unwrap(), light))
                 .insert(PointLightBundle {
                     point_light: PointLight {
                         color: light.color,

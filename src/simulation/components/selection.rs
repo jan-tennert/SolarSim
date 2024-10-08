@@ -1,5 +1,5 @@
 use crate::simulation::components::body::{BodyShape, Mass, Star};
-use crate::simulation::components::orbit_lines::OrbitOffset;
+use crate::simulation::components::motion_line::OrbitOffset;
 use crate::simulation::components::physics::apply_physics;
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::SimState;

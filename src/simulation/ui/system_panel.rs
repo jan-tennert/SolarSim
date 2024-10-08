@@ -1,7 +1,7 @@
 use crate::simulation::components::billboard::BillboardSettings;
 use crate::simulation::components::body::{BodyChildren, Moon, Planet, Star};
 use crate::simulation::components::editor::{CreateBodyState, CreateBodyType, EditorSystemType, EditorSystems};
-use crate::simulation::components::orbit_lines::OrbitOffset;
+use crate::simulation::components::motion_line::OrbitOffset;
 use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::render::skybox::Cubemap;
 use crate::simulation::ui::metadata::MetadataUiState;

@@ -123,6 +123,8 @@ pub struct SerializedLightSource {
     pub intensity: f32,
     pub range: f32,
     pub color: String,
+    #[serde(default = "default_color")]
+    pub imposter_color: String,
     pub enabled: bool
 }
 

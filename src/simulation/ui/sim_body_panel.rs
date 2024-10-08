@@ -158,13 +158,14 @@ pub fn sim_body_panel(
                                     }
 
                                     let mut new_draw_lines = orbit.draw_lines;
-                                    ui.checkbox(&mut new_draw_lines, "Draw Orbit lines");
+                                    ui.checkbox(&mut new_draw_lines, "Draw Motion");
                                     if new_draw_lines != orbit.draw_lines {
                                         orbit.draw_lines = new_draw_lines;
                                         if !new_draw_lines {
                                             orbit.lines.clear();
                                         }
                                     }
+                                    ui.checkbox(&mut false, "Draw Orbit (TODO)");
                                 }
                             }
 
@@ -173,7 +174,7 @@ pub fn sim_body_panel(
                                     orbit.draw_lines
                                 });
                                 let mut draw_children_orbits = old_draw_children_orbits;
-                                ui.checkbox(&mut draw_children_orbits, "Draw Children Orbits");
+                                ui.checkbox(&mut draw_children_orbits, "Draw Children Motion");
                                 if draw_children_orbits != old_draw_children_orbits {
                                     for (_, orbit) in s_children.iter_mut() {
                                         orbit.draw_lines = draw_children_orbits;
@@ -185,7 +186,7 @@ pub fn sim_body_panel(
                             }
 
                             ui.horizontal(|ui| {
-                                ui.label("Orbit Color");
+                                ui.label("Motion Line Color");
                                 let orbit_color = orbit.color.to_srgba();
                                 let mut rgb = [orbit_color.red, orbit_color.green, orbit_color.blue];
                                 ui.color_edit_button_rgb(&mut rgb);
@@ -193,7 +194,7 @@ pub fn sim_body_panel(
                             });
 
                             ui.horizontal(|ui| {
-                                ui.label("Orbit Line Multiplier");
+                                ui.label("Motion Line Multiplier");
                                 ui.add(
                                     egui::Slider::new(&mut orbit.orbit_line_multiplier, 0.1..=100.0)
                                         .clamp_to_range(true)
@@ -206,8 +207,8 @@ pub fn sim_body_panel(
                                     .size(16.0)
                                     .underline(),
                             );
-                            ui.checkbox(&mut orbit.display_force, "Display force arrow");
-                            ui.checkbox(&mut orbit.display_velocity, "Display velocity arrow");
+                            ui.checkbox(&mut orbit.display_force, "Draw force direction");
+                            ui.checkbox(&mut orbit.display_velocity, "Draw velocity direction");
                             ui.label(
                                 RichText::new("Scale")
                                     .size(14.0)

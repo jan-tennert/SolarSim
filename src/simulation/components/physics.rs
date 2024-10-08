@@ -8,7 +8,7 @@ use bevy::reflect::List;
 
 use crate::constants::{DEFAULT_SUB_STEPS, G};
 use crate::simulation::components::body::{Acceleration, BodyChildren, Mass, OrbitSettings, Planet, SimPosition, Star, Velocity};
-use crate::simulation::components::orbit_lines::OrbitOffset;
+use crate::simulation::components::motion_line::OrbitOffset;
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::components::speed::Speed;

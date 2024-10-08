@@ -4,6 +4,7 @@ use crate::simulation::components::rotation::initial_rotation;
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::components::shape::apply_real_diameter;
+use crate::simulation::render::star_billboard::SunImposterMaterial;
 use crate::simulation::scenario::save_scenario::save_scenario;
 use crate::simulation::scenario::setup::apply_body;
 use crate::simulation::SimState;
@@ -12,7 +13,7 @@ use bevy::app::{App, Plugin};
 use bevy::color::palettes::css::WHITE;
 use bevy::ecs::observer::TriggerTargets;
 use bevy::ecs::system::SystemId;
-use bevy::prelude::{AssetServer, Assets, Commands, Entity, FromWorld, IntoSystemConfigs, Local, Mesh, OnEnter, Query, Res, ResMut, Resource, SpatialBundle, StandardMaterial, Transform, Update, Vec3, World};
+use bevy::prelude::{AssetServer, Assets, Commands, Entity, FromWorld, IntoSystemConfigs, Local, Mesh, OnEnter, Query, Res, ResMut, Resource, SpatialBundle, Transform, Update, Vec3, World};
 use std::collections::HashMap;
 
 #[non_exhaustive]
@@ -105,7 +106,7 @@ fn create_empty_body(
     mut parent_query: Query<&mut BodyChildren>,
     mut assets: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut materials: ResMut<Assets<SunImposterMaterial>>,
     mut index: Local<i32>,
     scale: Res<SimulationScale>
 ) {

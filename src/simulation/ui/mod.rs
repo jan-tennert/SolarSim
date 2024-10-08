@@ -38,7 +38,7 @@ use crate::simulation::components::body::{BodyChildren, BodyShape, Mass, Moon, O
 //use crate::fps::Fps;
 use crate::simulation::components::lock_on::LockOn;
 //use crate::fps::Fps;
-use crate::simulation::components::orbit_lines::OrbitOffset;
+use crate::simulation::components::motion_line::OrbitOffset;
 use crate::simulation::components::physics::Pause;
 //use crate::fps::Fps;
 use crate::simulation::components::physics::{apply_physics, SubSteps};

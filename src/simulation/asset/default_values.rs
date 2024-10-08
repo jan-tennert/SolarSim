@@ -1,6 +1,6 @@
+use crate::simulation::asset::serialization::{SerializedFixedBodyFrame, SerializedMat3};
 use anise::structure::planetocentric::ellipsoid::Ellipsoid;
 use bevy::prelude::Mat3;
-use crate::simulation::asset::serialization::{SerializedFixedBodyFrame, SerializedMat3};
 
 pub fn default_id() -> i32 {
     -1
@@ -23,4 +23,8 @@ pub fn default_ellipsoid() -> Ellipsoid {
 
 pub fn default_rot_matrix() -> SerializedMat3 {
     SerializedMat3::from(Mat3::IDENTITY)
+}
+
+pub fn default_color() -> String {
+    "#ffffff".to_string()
 }

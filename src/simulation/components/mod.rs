@@ -4,7 +4,7 @@ use crate::simulation::components::billboard::BodyBillboardPlugin;
 use crate::simulation::components::direction::DirectionPlugin;
 use crate::simulation::components::horizons::HorizonsPlugin;
 use crate::simulation::components::lock_on::LockOnPlugin;
-use crate::simulation::components::orbit_lines::OrbitLinePlugin;
+use crate::simulation::components::motion_line::MotionLinePlugin;
 use crate::simulation::components::physics::PhysicsPlugin;
 use crate::simulation::components::reset::ResetPlugin;
 use crate::simulation::components::rotation::RotationPlugin;
@@ -22,7 +22,7 @@ pub mod direction;
 pub mod lock_on;
 pub mod physics;
 pub mod body;
-pub mod orbit_lines;
+pub mod motion_line;
 pub mod rotation;
 pub mod speed;
 pub mod selection;
@@ -45,7 +45,7 @@ impl Plugin for SimComponentPlugin {
             .add_plugins(DirectionPlugin)
             .add_plugins(LockOnPlugin)
             .add_plugins(ScalePlugin)
-            .add_plugins(OrbitLinePlugin)
+            .add_plugins(MotionLinePlugin)
             .add_plugins(PhysicsPlugin)
             .add_plugins(ResetPlugin)
             .add_plugins(RotationPlugin)

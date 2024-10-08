@@ -8,9 +8,9 @@ use crate::simulation::SimState;
 use bevy::{prelude::{in_state, App, Camera, Entity, Gizmos, IntoSystemConfigs, Plugin, PreUpdate, Query, Res, Resource, Transform, Vec3, With, Without}, time::Time};
 use bevy_panorbit_camera::PanOrbitCamera;
 
-pub struct OrbitLinePlugin;
+pub struct MotionLinePlugin;
 
-impl Plugin for OrbitLinePlugin {
+impl Plugin for MotionLinePlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<OrbitOffset>()

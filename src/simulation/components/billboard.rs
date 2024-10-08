@@ -70,6 +70,11 @@ fn auto_scale_billboards(
             }
         }
         billboard_visible.0 = !settings.dynamic_hide || predicate;
+        let multiplier = if star {
+            1000. //TODO: Fix the star billboard, shader too bright
+        } else {
+            775.
+        };
         billboard(
             name,
             &mut billboards,
@@ -77,6 +82,7 @@ fn auto_scale_billboards(
             p_transform,
             children,
             !settings.dynamic_hide || predicate,
+            multiplier
         )
     }
 }
@@ -88,11 +94,12 @@ fn billboard(
     p_transform: &Transform,
     children: &Children,
     predicate: bool,
+    multiplier: f32,
 ) {
     for child in children.iter() {
         if let Ok((_, mut transform, mut visible)) = billboards.get_mut(*child) {
             if predicate {
-                apply_billboard(name, *c_transform, *p_transform, &mut transform);
+                apply_billboard(*c_transform, *p_transform, &mut transform, multiplier);
                 *visible = Visibility::Visible;
             } else {
                 *visible = Visibility::Hidden;
@@ -102,10 +109,10 @@ fn billboard(
 }
 
 fn apply_billboard(
-    name: &Name,
     camera: Transform, //camera transform
     body: Transform, //body transform
     b_transform: &mut Transform, //billboard transform
+    multiplier: f32,
 ) {
     let direction = (body.translation - camera.translation).normalize();
     let cam_up = camera.rotation * Vec3::Y;
@@ -113,7 +120,7 @@ fn apply_billboard(
     let orthogonal = direction.cross(cam_right).normalize();
     let cam_distance = camera.translation.distance(body.translation);
     b_transform.scale = Vec3::splat(cam_distance / RADIUS_DIVIDER);
-    b_transform.translation = orthogonal * 775.; //I don't know why this works, but it does
+    b_transform.translation = orthogonal * multiplier; //I don't know why this works, but it does
 }
 
 fn calculate_screen_distance(

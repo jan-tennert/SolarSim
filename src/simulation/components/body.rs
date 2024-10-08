@@ -1,5 +1,6 @@
-use crate::simulation::asset::serialization::SerializedBody;
+use crate::simulation::asset::serialization::{SerializedBody, SerializedLightSource};
 use crate::simulation::components::horizons::AniseMetadata;
+use crate::simulation::ui::editor_body_panel::LightSettings;
 use anise::structure::planetocentric::ellipsoid::Ellipsoid;
 use bevy::color::palettes::css;
 use bevy::color::Color;
@@ -104,7 +105,50 @@ pub struct SceneHandle(pub Handle<Scene>, pub Entity);
 pub struct SceneEntity;
 
 #[derive(Component, Reflect, Clone)]
-pub struct LightSource(pub Entity);
+pub struct LightSource {
+
+    pub parent: Entity,
+    pub color: Color,
+    pub imposter_color: Color,
+    pub intensity: f32,
+    pub range: f32,
+    pub enabled: bool,
+
+}
+
+impl LightSource {
+
+    pub fn new(parent: Entity, source: &SerializedLightSource) -> Self {
+        LightSource {
+            parent,
+            color: Srgba::hex(&source.color).unwrap().into(),
+            imposter_color: Srgba::hex(&source.imposter_color).unwrap().into(),
+            intensity: source.intensity,
+            range: source.range,
+            enabled: source.enabled,
+        }
+    }
+
+    pub fn new_settings(parent: Entity, source: &LightSettings) -> Self {
+        LightSource {
+            parent,
+            color: source.color,
+            imposter_color: source.imposter_color,
+            intensity: source.intensity,
+            range: source.range,
+            enabled: source.enabled,
+        }
+    }
+
+    pub fn apply(source: &mut LightSource, settings: &LightSettings) {
+        source.color = settings.color;
+        source.imposter_color = settings.imposter_color;
+        source.intensity = settings.intensity;
+        source.range = settings.range;
+        source.enabled = settings.enabled;
+    }
+
+}
 
 //Types:
 #[derive(Component, Reflect, Clone, Default)]
