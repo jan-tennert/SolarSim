@@ -69,9 +69,9 @@ fn auto_scale_billboards(
                 predicate = false;
             }
         }
-        billboard_visible.0 = !settings.dynamic_hide || predicate;
+        billboard_visible.0 = (!settings.dynamic_hide || predicate) && !star;
         let multiplier = if star {
-            1000. //TODO: Fix the star billboard, shader too bright
+            5000.
         } else {
             775.
         };
@@ -81,7 +81,7 @@ fn auto_scale_billboards(
             c_transform,
             p_transform,
             children,
-            !settings.dynamic_hide || predicate,
+            (!settings.dynamic_hide || predicate) && !star,
             multiplier
         )
     }

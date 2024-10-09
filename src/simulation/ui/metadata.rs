@@ -87,6 +87,9 @@ fn edit_starting_time(ui: &mut egui::Ui, scenario_data: &mut ScenarioData) {
     ui.horizontal(|ui| {
         ui.label("Starting Date");
         ui.add(DatePickerButton::new(&mut new_date));
+        if ui.button("Update bodies (TODO)").on_hover_text("Update bodies to new date").clicked() {
+
+        }
     });
     let mut hour = current_date.time().hour();
     let mut minute = current_date.time().minute();
