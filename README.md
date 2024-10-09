@@ -16,7 +16,9 @@ A complete simulation of our solar system made with [Bevy](https://bevyengine.or
 
 - Speed up the simulation by increasing substeps or timesteps
 
-- Built-in scenario editor to create and save your own scenarios
+- Built-in scenario editor to create and save your own scenarios.
+  - Support for loading ephemeris and rotation data from SPICE files \
+    *Note that the SPICE files themselves are not included in the binary and repository due to their size*
 
 Try it out in the browser: https://jan-tennert.github.io/Simulation/
 
@@ -27,3 +29,5 @@ Download the newest binaries from the [releases](https://github.com/jan-tennert/
 ### Scenarios
 
 You can load, edit and create scenarios within the application. A scenario is a collection of bodies with their initial positions, velocities, rotations and other properties.
+![image](https://github.com/user-attachments/assets/faa0cb63-1bac-4f7d-a341-e363d290ac41)
+
