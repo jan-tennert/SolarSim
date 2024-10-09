@@ -16,12 +16,14 @@ A complete simulation of our solar system made with [Bevy](https://bevyengine.or
 
 - Speed up the simulation by increasing substeps or timesteps
 
+- Built-in scenario editor to create and save your own scenarios
+
 Try it out in the browser: https://jan-tennert.github.io/Simulation/
 
 ### Installation
 
 Download the newest binaries from the [releases](https://github.com/jan-tennert/Simulation) and run `Simulation.exe` to get started!
 
-### Adding new bodies
+### Scenarios
 
-*In-game editor coming soon!*
+You can load, edit and create scenarios within the application. A scenario is a collection of bodies with their initial positions, velocities, rotations and other properties.
