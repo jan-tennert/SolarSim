@@ -24,13 +24,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-unknown-linux-gnu
-          toolchain: 1.73.0
+          toolchain: 1.81.0
           
-      - name: Set up JDK 17
-        uses: actions/setup-java@v2
-        with:
-          java-version: '11'
-          distribution: 'adopt'
+
           
       - name: install dependencies
         run: |
@@ -45,6 +41,7 @@ jobs:
           mkdir linux
           cp target/x86_64-unknown-linux-gnu/release/${{ env.binary }} linux/
           cp -r assets linux/
+          cp -r scenarios linux/
 
       - name: Package as a zip
         working-directory: ./linux
@@ -81,30 +78,18 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-pc-windows-msvc
-          toolchain: 1.73.0
-          
-      - name: Set up JDK 17
-        uses: actions/setup-java@v2
-        with:
-          java-version: '11'
-          distribution: 'adopt'
+          toolchain: 1.81.0
 
       - name: Build
         run: |
           cargo build --release --target x86_64-pc-windows-msvc
-          
-      - name: Build Horizon Ui
-        run: |
-          cd .\horizon-ui
-          ./gradlew obfuscate
-          cd ..
 
       - name: Prepare package
         run: |
           mkdir windows
           cp target/x86_64-pc-windows-msvc/release/${{ env.binary }}.exe windows/
           cp -r assets windows/
-          cp .\horizon-ui\build\compose\jars\horizon-ui-windows-x64-1.0.0.min.jar windows/horizon-ui.jar
+          cp -r scenarios windows/
 
       - name: Package as a zip
         run: |
@@ -138,13 +123,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-apple-darwin
-          toolchain: 1.73.0
-          
-      - name: Set up JDK 17
-        uses: actions/setup-java@v2
-        with:
-          java-version: '11'
-          distribution: 'adopt'
+          toolchain: 1.81.0
+
       - name: Environment Setup
         run: |
           export CFLAGS="-fno-stack-check"
@@ -159,6 +139,7 @@ jobs:
           mkdir -p ${{ env.binary }}.app/Contents/MacOS
           cp target/x86_64-apple-darwin/release/${{ env.binary }} ${{ env.binary }}.app/Contents/MacOS/
           cp -r assets ${{ env.binary }}.app/Contents/MacOS/
+          cp -r scenarios ${{ env.binary }}.app/Contents/MacOS/
           hdiutil create -fs HFS+ -volname "${{ env.binary }}" -srcfolder ${{ env.binary }}.app ${{ env.binary }}-macOS-intel.dmg
 
       - name: Upload binaries to artifacts
@@ -189,13 +170,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-apple-darwin
-          toolchain: 1.73.0
+          toolchain: 1.81.0
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v2
-        with:
-          java-version: '11'
-          distribution: 'adopt'
+
       - name: Environment 
         # macOS 11 was the first version to support ARM
         run: |
@@ -210,6 +187,7 @@ jobs:
           mkdir -p ${{ env.binary }}.app/Contents/MacOS
           cp target/aarch64-apple-darwin/release/${{ env.binary }} ${{ env.binary }}.app/Contents/MacOS/
           cp -r assets ${{ env.binary }}.app/Contents/MacOS/
+          cp -r scenarios ${{ env.binary }}.app/Contents/MacOS/
           hdiutil create -fs HFS+ -volname "${{ env.binary }}-macOS-apple-silicon" -srcfolder ${{ env.binary }}.app ${{ env.binary }}-macOS-apple-silicon.dmg
 
       - name: Upload binaries to artifacts
