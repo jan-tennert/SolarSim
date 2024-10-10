@@ -1,7 +1,7 @@
 use bevy::{app::{App, Plugin}, prelude::{default, in_state, BuildChildren, Children, Color, Commands, Component, DespawnRecursiveExt, Entity, IntoSystemConfigs, Label, NextState, OnEnter, OnExit, Query, Res, ResMut, Resource, TextBundle, Update, Visibility, With}, text::{Text, TextStyle}, ui::{Node, Style, UiRect, Val}};
 
+use crate::simulation::ui::menu::BackgroundImage;
 use crate::simulation::{SimState, SimStateType};
-use crate::menu::BackgroundImage;
 
 pub struct LoadingPlugin;
 

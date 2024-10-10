@@ -9,6 +9,7 @@ pub mod sim_bottom_bar;
 pub mod editor_bottom_bar;
 pub mod toast;
 mod metadata;
+pub mod menu;
 
 use bevy::app::Update;
 use bevy::prelude::{in_state, AabbGizmoConfigGroup, ButtonInput, DefaultGizmoConfigGroup, GizmoConfigStore, Srgba, Window};

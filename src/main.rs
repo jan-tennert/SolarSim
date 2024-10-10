@@ -1,6 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use crate::menu::MenuPlugin;
 use crate::simulation::asset::serialization::SerializationPlugin;
 use crate::simulation::asset::SCENARIO_ASSET_SOURCE;
 use crate::simulation::components::editor::EditorPlugin;
@@ -17,9 +16,9 @@ use bevy_egui::EguiPlugin;
 use bevy_mod_billboard::plugin::BillboardPlugin;
 use bevy_panorbit_camera::PanOrbitCameraPlugin;
 use simulation::scenario::setup::SetupPlugin;
+use simulation::ui::menu::MenuPlugin;
 
 mod constants;
-mod menu;
 mod simulation;
 mod utils;
 
