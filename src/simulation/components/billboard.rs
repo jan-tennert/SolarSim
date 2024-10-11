@@ -1,10 +1,9 @@
 use crate::simulation::components::apsis::ApsisBody;
 use crate::simulation::components::body::{BillboardVisible, BodyParent, BodyShape, Moon, Planet, Star};
-use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::SimState;
 use bevy::app::{App, Plugin};
 use bevy::math::Vec3;
-use bevy::prelude::{in_state, Camera, Children, Entity, Gizmos, GlobalTransform, Has, IntoSystemConfigs, Name, PostUpdate, Query, Res, Resource, Transform, Vec2, Visibility, With, Without};
+use bevy::prelude::{in_state, Camera, Children, Entity, GlobalTransform, Has, IntoSystemConfigs, PostUpdate, Query, Res, Resource, Transform, Vec2, Visibility, With, Without};
 use bevy::text::Text;
 use bevy::utils::HashMap;
 use bevy_mod_billboard::text::BillboardTextBounds;
@@ -42,12 +41,10 @@ impl Default for BillboardSettings {
 }
 
 fn auto_scale_billboards(
-    mut bodies: Query<(Entity, &Name, &Children, &Transform, &BodyShape, &mut BillboardVisible, Option<&ApsisBody>, Has<Planet>, Has<Star>, Option<&BodyParent>), Without<Text>>,
+    mut bodies: Query<(Entity, &Children, &Transform, &BodyShape, &mut BillboardVisible, Option<&ApsisBody>, Has<Planet>, Has<Star>, Option<&BodyParent>), Without<Text>>,
     mut billboards: Query<(&Text, &mut Transform, &mut Visibility), With<BillboardTextBounds>>,
     camera: Query<(&Transform, &GlobalTransform, &Camera), (Without<BillboardTextBounds>, Without<Planet>, Without<Moon>, Without<Star>)>,
     settings: Res<BillboardSettings>,
-    scale: Res<SimulationScale>,
-    mut gizmos: Gizmos,
 ) {
     if !settings.show {
         for (_, _, mut visible) in billboards.iter_mut() {
@@ -57,10 +54,10 @@ fn auto_scale_billboards(
     }
     let (c_transform, global_trans, cam) = camera.single();
     let mut parent_pos = HashMap::default();
-    for (entity, n, _, transform, _, _, _, _, _, p) in &mut bodies {
+    for (entity, _, transform, _, _, _, _, _, p) in &mut bodies {
         parent_pos.insert(entity, transform.translation.clone());
     }
-    for (_, name, children, p_transform, shape, mut billboard_visible, apsis, planet, star, p) in bodies.iter_mut() {
+    for (_, children, p_transform, shape, mut billboard_visible, apsis, planet, star, p) in bodies.iter_mut() {
         let mut predicate = true;
         if p.is_some() {
             let parent_transform = parent_pos.get(&p.unwrap().0).unwrap_or(&Vec3::ZERO);
@@ -76,7 +73,6 @@ fn auto_scale_billboards(
             775.
         };
         billboard(
-            name,
             &mut billboards,
             c_transform,
             p_transform,
@@ -88,7 +84,6 @@ fn auto_scale_billboards(
 }
 
 fn billboard(
-    name: &Name,
     billboards: &mut Query<(&Text, &mut Transform, &mut Visibility), With<BillboardTextBounds>>,
     c_transform: &Transform,
     p_transform: &Transform,

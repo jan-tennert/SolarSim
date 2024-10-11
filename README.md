@@ -14,7 +14,7 @@ A complete simulation of our solar system made with [Bevy](https://bevyengine.or
 
 - High quality 3D models of all planets and moons from NASA
 
-- Speed up the simulation by increasing substeps or timesteps
+- Speed up the simulation by increasing substeps (higher accuracy, slower) or timesteps (decreases accuracy, no difference in speed)
 
 - Built-in scenario editor to create and save your own scenarios.
   - Support for loading ephemeris and rotation data from SPICE files \

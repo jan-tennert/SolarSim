@@ -1,9 +1,7 @@
 use crate::simulation::components::body::{BillboardVisible, BodyChildren, BodyShape, Moon, OrbitSettings, Planet, SimPosition, Star};
 use crate::simulation::components::physics::{apply_physics, Pause, SubSteps};
 use crate::simulation::components::scale::SimulationScale;
-use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::components::speed::Speed;
-use crate::simulation::ui::UiState;
 use crate::simulation::SimState;
 use bevy::{prelude::{in_state, App, Camera, Entity, Gizmos, IntoSystemConfigs, Plugin, PreUpdate, Query, Res, Resource, Transform, Vec3, With, Without}, time::Time};
 use bevy_panorbit_camera::PanOrbitCamera;
@@ -47,8 +45,6 @@ fn update_lines(
     speed: Res<Speed>,
     substeps: Res<SubSteps>,
     pause: Res<Pause>,
-    selected_entity: Res<SelectedEntity>,
-    ui_state: Res<UiState>,
     scale: Res<SimulationScale>
 ) {
     if pause.0 {
