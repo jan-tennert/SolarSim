@@ -1,12 +1,13 @@
-use std::collections::HashMap;
-use bevy::{math::DVec3, prelude::{in_state, App, Component, Entity, IntoSystemConfigs, Plugin, Query, Reflect, Res, Update, With, Without}};
-use bevy::prelude::{Transform, Vec3};
-use crate::simulation::SimState;
 use crate::simulation::components::body::{BodyChildren, BodyParent, Moon, Planet, SimPosition, Star, Velocity};
 use crate::simulation::components::horizons::AniseMetadata;
 use crate::simulation::components::physics::apply_physics;
 use crate::simulation::scenario::setup::ScenarioData;
 use crate::simulation::ui::SimTime;
+use crate::simulation::SimState;
+use crate::utils::sim_state_type_simulation;
+use bevy::prelude::{Transform, Vec3};
+use bevy::{math::DVec3, prelude::{in_state, App, Component, Entity, IntoSystemConfigs, Plugin, Query, Reflect, Res, Update, With, Without}};
+use std::collections::HashMap;
 
 pub struct ApsisPlugin;
 
@@ -15,7 +16,7 @@ impl Plugin for ApsisPlugin {
     fn build(&self, app: &mut App) {
         app
             .register_type::<Apsis>()
-            .add_systems(Update, (update_apsis.after(apply_physics)).run_if(in_state(SimState::Loaded)));
+            .add_systems(Update, (update_apsis.after(apply_physics)).run_if(sim_state_type_simulation));
     }
 
 }

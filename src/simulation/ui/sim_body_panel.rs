@@ -209,15 +209,18 @@ pub fn sim_body_panel(
                             );
                             ui.checkbox(&mut orbit.display_force, "Draw force direction");
                             ui.checkbox(&mut orbit.display_velocity, "Draw velocity direction");
-                            ui.label(
-                                RichText::new("Scale")
-                                    .size(14.0)
-                            );
-                            ui.add(
-                                egui::Slider::new(&mut orbit.arrow_scale, 1..=100000000)
-                                    .clamp_to_range(true)
-                                    .logarithmic(true)
-                            );
+                            ui.checkbox(&mut orbit.auto_scale_arrows, "Auto Scale Arrows");
+                            if !orbit.auto_scale_arrows {
+                                ui.label(
+                                    RichText::new("Scale")
+                                        .size(14.0)
+                                );
+                                ui.add(
+                                    egui::Slider::new(&mut orbit.arrow_scale, 1..=100000000)
+                                        .clamp_to_range(true)
+                                        .logarithmic(true)
+                                );
+                            }
 
                             //     ui.label("Max Orbit Points");
                             //      let mut old_length = orbit.lines.capacity();

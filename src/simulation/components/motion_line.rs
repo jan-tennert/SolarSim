@@ -2,8 +2,8 @@ use crate::simulation::components::body::{BillboardVisible, BodyChildren, BodySh
 use crate::simulation::components::physics::{apply_physics, Pause, SubSteps};
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::components::speed::Speed;
-use crate::simulation::SimState;
-use bevy::{prelude::{in_state, App, Camera, Entity, Gizmos, IntoSystemConfigs, Plugin, PreUpdate, Query, Res, Resource, Transform, Vec3, With, Without}, time::Time};
+use crate::utils::sim_state_type_simulation;
+use bevy::{prelude::{App, Camera, Entity, Gizmos, IntoSystemConfigs, Plugin, PreUpdate, Query, Res, Resource, Transform, Vec3, With, Without}, time::Time};
 use bevy_panorbit_camera::PanOrbitCamera;
 
 pub struct MotionLinePlugin;
@@ -12,7 +12,7 @@ impl Plugin for MotionLinePlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<OrbitOffset>()
-            .add_systems(PreUpdate, (update_lines.after(apply_physics), (draw_orbit_line).after(update_lines)).run_if(in_state(SimState::Loaded)));
+            .add_systems(PreUpdate, (update_lines.after(apply_physics), (draw_orbit_line).after(update_lines)).run_if(sim_state_type_simulation));
     }
 }
 

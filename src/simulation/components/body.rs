@@ -63,6 +63,7 @@ pub struct OrbitSettings {
     pub display_force: bool,
     pub display_velocity: bool,
     pub arrow_scale: u64,
+    pub auto_scale_arrows: bool,
     pub period: f64,
                          
 }
@@ -73,7 +74,20 @@ pub struct BillboardVisible(pub bool);
 impl Default for OrbitSettings {
     
     fn default() -> Self {
-        OrbitSettings { color: css::GREEN.into(), lines: VecDeque::with_capacity(3000), force_direction: DVec3::ZERO, draw_lines: false, step: 0.0, period: 0.0, display_force: false, display_velocity: false, arrow_scale: 1, hide_lines: false, orbit_line_multiplier: 1.0 }
+        OrbitSettings {
+            color: css::GREEN.into(),
+            lines: VecDeque::with_capacity(3000),
+            force_direction: DVec3::ZERO,
+            draw_lines: false,
+            step: 0.0,
+            period: 0.0,
+            display_force: false,
+            display_velocity: false,
+            arrow_scale: 1,
+            hide_lines: false,
+            orbit_line_multiplier: 1.0 ,
+            auto_scale_arrows: true,
+        }
     }
     
 }
