@@ -1,9 +1,9 @@
 use crate::constants::DEFAULT_SUB_STEPS;
 use crate::simulation::components::anise::AlmanacHolder;
 use crate::simulation::components::body::Mass;
-use crate::simulation::components::physics::{Pause, SubSteps};
 use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::components::speed::Speed;
+use crate::simulation::integration::{Pause, SubSteps};
 use crate::simulation::scenario::loading::LoadingState;
 use crate::simulation::scenario::setup::ScenarioData;
 use crate::simulation::ui::scenario_selection::SelectedScenario;

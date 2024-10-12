@@ -117,7 +117,7 @@ fn initialize_state(
     *state = EditorPanelState {
         entity: Some(s_entity),
         new_name: name.to_string(),
-        new_position: m_to_km_dvec(pos.0),
+        new_position: m_to_km_dvec(pos.current),
         new_velocity: m_to_km_dvec(vel.0),
         new_mass: mass.0,
         new_rotation_speed: rotation_speed.0,
@@ -371,7 +371,7 @@ fn apply_changes(
     scale: &SimulationScale,
 ) {
     name.set(state.new_name.clone());
-    pos.0 = km_to_m_dvec(state.new_position);
+    pos.current = km_to_m_dvec(state.new_position);
     vel.0 = km_to_m_dvec(state.new_velocity);
     mass.0 = state.new_mass;
     shape.applied = state.ellipsoid == shape.ellipsoid;

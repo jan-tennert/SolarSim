@@ -1,17 +1,15 @@
+use crate::simulation::components::lock_on::LockOn;
+use crate::simulation::components::speed::Speed;
+use crate::simulation::integration::{Pause, SubSteps};
+use crate::simulation::scenario::setup::ScenarioData;
+use crate::simulation::ui::bottom_bar::get_date_from_seconds;
+use crate::simulation::ui::{SimTime, StepType, UiState};
+use crate::simulation::{SimState, SimStateType};
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::{NextState, Query, Res, ResMut, Time, Window};
 use bevy::window::PresentMode;
-use bevy_egui::{egui, EguiContexts};
 use bevy_egui::egui::TextEdit;
-use chrono::NaiveDateTime;
-use crate::constants::DAY_IN_SECONDS;
-use crate::simulation::scenario::setup::ScenarioData;
-use crate::simulation::components::lock_on::LockOn;
-use crate::simulation::components::physics::{Pause, SubSteps};
-use crate::simulation::components::speed::Speed;
-use crate::simulation::{SimState, SimStateType};
-use crate::simulation::ui::{SimTime, StepType, UiState};
-use crate::simulation::ui::bottom_bar::{get_date_from_seconds};
+use bevy_egui::{egui, EguiContexts};
 
 pub fn simulation_bottom_bar(
     time: Res<Time>,

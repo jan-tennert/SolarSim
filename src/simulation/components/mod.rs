@@ -5,13 +5,13 @@ use crate::simulation::components::direction::DirectionPlugin;
 use crate::simulation::components::horizons::HorizonsPlugin;
 use crate::simulation::components::lock_on::LockOnPlugin;
 use crate::simulation::components::motion_line::MotionLinePlugin;
-use crate::simulation::components::physics::PhysicsPlugin;
 use crate::simulation::components::reset::ResetPlugin;
 use crate::simulation::components::rotation::RotationPlugin;
 use crate::simulation::components::scale::ScalePlugin;
 use crate::simulation::components::selection::SelectionPlugin;
 use crate::simulation::components::shape::DiameterPlugin;
 use crate::simulation::components::speed::SpeedPlugin;
+use crate::simulation::integration::IntegrationPlugin;
 use bevy::app::Plugin;
 
 pub mod apsis;
@@ -20,7 +20,6 @@ pub mod camera;
 pub mod shape;
 pub mod direction;
 pub mod lock_on;
-pub mod physics;
 pub mod body;
 pub mod motion_line;
 pub mod rotation;
@@ -43,10 +42,10 @@ impl Plugin for SimComponentPlugin {
           //  .add_plugins(PanOrbitCameraPlugin)
             .add_plugins(DiameterPlugin)
             .add_plugins(DirectionPlugin)
+            .add_plugins(IntegrationPlugin)
             .add_plugins(LockOnPlugin)
             .add_plugins(ScalePlugin)
             .add_plugins(MotionLinePlugin)
-            .add_plugins(PhysicsPlugin)
             .add_plugins(ResetPlugin)
             .add_plugins(RotationPlugin)
             .add_plugins(SelectionPlugin)

@@ -139,7 +139,7 @@ pub fn sim_body_panel(
                             // Distance to parent
                             if let Some((parent_pos, _, p_name, _, _)) = parent {
                                 ui.label(RichText::new(format!("Distance to {} (Center)", p_name)).size(16.0).underline());
-                                let distance_in_m = parent_pos.0.distance(pos.0);
+                                let distance_in_m = parent_pos.current.distance(pos.current);
                                 ui.label(format!("{}", format_length(distance_in_m as f32)));
                                 ui.label(format!("{:.3} au", distance_in_m * (M_TO_AU as f64)));
 
@@ -251,9 +251,9 @@ fn cart_state_from(
     frame: Frame
 ) -> CartesianState {
     let vec6 = Vector6::new(
-        pos.0.x,
-        pos.0.y,
-        pos.0.z,
+        pos.current.x,
+        pos.current.y,
+        pos.current.z,
         velocity.0.x,
         velocity.0.y,
         velocity.0.z

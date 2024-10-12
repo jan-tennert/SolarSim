@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use crate::simulation::components::body::Mass;
-use crate::simulation::components::physics::{NBODY_STEPS, NBODY_STEP_TIME, NBODY_TOTAL_TIME};
+use crate::simulation::integration::{NBODY_STEPS, NBODY_STEP_TIME, NBODY_TOTAL_TIME};
 use crate::simulation::ui::system_panel::system_panel;
 use crate::simulation::ui::UiState;
 use crate::simulation::SimState;

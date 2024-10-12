@@ -99,7 +99,7 @@ fn collect_moons(system_panel_set: &SystemPanelSet, children: BodyChildren) -> V
 fn find_body_data(system_panel_set: &SystemPanelSet, entity: Entity) -> Option<(SerializedBodyData, Option<BodyChildren>)> {
     system_panel_set.bodies.iter().find(|(e, _, _, _, _, _, _, _, _, _, _, _, _)| *e == entity)
         .map(|(_, m, p, v, n, mp, d, rs, at, child, naif, rotation, _)| (
-            create_serialized_body_data(m.0, p.0 / 1000.0, v.0 / 1000.0, n.to_string(), mp.cleaned(), rs.0, None, naif.clone(), d.ellipsoid, *rotation),
+            create_serialized_body_data(m.0, p.current / 1000.0, v.0 / 1000.0, n.to_string(), mp.cleaned(), rs.0, None, naif.clone(), d.ellipsoid, *rotation),
             child.map(|c| c.clone())
         ))
 }

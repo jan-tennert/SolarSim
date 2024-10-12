@@ -1,21 +1,17 @@
-use std::fs;
-use std::path::Path;
-use bevy::app::{App, Plugin, Update};
-use bevy::asset::io::AssetSourceId;
-use bevy::asset::{AssetPath, LoadedFolder};
-use bevy::prelude::{in_state, AssetServer, Assets, Commands, Handle, Image, IntoSystemConfigs, Local, NextState, OnEnter, OnExit, Res, ResMut, Resource};
-use bevy::utils::HashMap;
-use bevy_egui::egui::{Align, CentralPanel, Layout, SidePanel, TextureId};
-use bevy_egui::{egui, EguiContexts};
-use image::load;
-use crate::simulation::scenario::setup::ScenarioData;
-use crate::simulation::{SimState, SimStateType};
-use crate::simulation::asset::{from_scenario_source, SCENARIO_ASSET_SOURCE};
 use crate::simulation::asset::serialization::SimulationData;
-use crate::simulation::components::anise::{load_spice_files, AlmanacHolder};
+use crate::simulation::asset::from_scenario_source;
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::components::speed::Speed;
+use crate::simulation::integration::IntegrationType;
 use crate::simulation::ui::toast::{error_toast, ToastContainer};
+use crate::simulation::{SimState, SimStateType};
+use bevy::app::{App, Plugin, Update};
+use bevy::asset::LoadedFolder;
+use bevy::prelude::{in_state, AssetServer, Assets, Commands, Handle, Image, IntoSystemConfigs, Local, NextState, OnEnter, Res, ResMut, Resource, State};
+use bevy::utils::HashMap;
+use bevy_egui::egui::{Align, CentralPanel, ComboBox, Layout, SidePanel, TextureId};
+use bevy_egui::{egui, EguiContexts};
+use std::fs;
 
 pub struct ScenarioSelectionPlugin;
 
@@ -163,6 +159,8 @@ fn show_menu(
     mut selection_state: ResMut<SelectionState>,
     mut scale: ResMut<SimulationScale>,
     mut speed: ResMut<Speed>,
+    mut next_integrator: ResMut<NextState<IntegrationType>>,
+    integrator: Res<State<IntegrationType>>
 ) {
     CentralPanel::default()
         .show(&egui_context.ctx_mut().clone(), |ui| {
@@ -174,7 +172,17 @@ fn show_menu(
                 }
             });
             ui.separator();
-            ui.label("Select a scenario to load:");
+            ui.horizontal(|ui| {
+                let mut new_integrator = integrator.clone();
+                ComboBox::from_label("Integrator").selected_text(integrator.as_str()).show_ui(ui, |ui| {
+                    for integrator_type in IntegrationType::all() {
+                        ui.selectable_value(&mut new_integrator, integrator_type.clone(), integrator_type.as_str());
+                    }
+                });
+                if new_integrator != **integrator {
+                    next_integrator.set(new_integrator);
+                }
+            });
             ui.separator();
             if let Some(loaded_folder) = folders.get(&scenario_folder.0) {
                 for handle in loaded_folder.handles.clone() {

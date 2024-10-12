@@ -40,12 +40,11 @@ use crate::simulation::components::body::{BodyChildren, BodyShape, Mass, Moon, O
 use crate::simulation::components::lock_on::LockOn;
 //use crate::fps::Fps;
 use crate::simulation::components::motion_line::OrbitOffset;
-use crate::simulation::components::physics::Pause;
 //use crate::fps::Fps;
-use crate::simulation::components::physics::{apply_physics, SubSteps};
 //use crate::fps::Fps;
 use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::components::speed::Speed;
+use crate::simulation::integration::SimulationStep;
 //use crate::fps::Fps;
 use crate::simulation::render::skybox::Cubemap;
 use crate::simulation::ui::debug_window::DebugPlugin;
@@ -109,8 +108,8 @@ impl Plugin for InterfacePlugin {
                 Update,
                 (
                     system_panel.run_if(in_state(SimState::Loaded)),
-                     (editor_body_panel.run_if(sim_state_type_editor), sim_body_panel.run_if(sim_state_type_simulation).after(apply_physics)),
-                     (simulation_bottom_bar.run_if(sim_state_type_simulation), editor_bottom_bar.run_if(sim_state_type_editor))
+                    (editor_body_panel.run_if(sim_state_type_editor), sim_body_panel.run_if(sim_state_type_simulation).after(SimulationStep)),
+                    (simulation_bottom_bar.run_if(sim_state_type_simulation), editor_bottom_bar.run_if(sim_state_type_editor))
                 ).chain()
             );
     }

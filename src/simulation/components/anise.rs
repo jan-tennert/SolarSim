@@ -7,13 +7,23 @@ use crate::simulation::ui::toast::{error_toast, success_toast, ToastContainer};
 use crate::simulation::{SimState, SimStateType};
 use anise::constants::frames::SSB_J2000;
 use anise::constants::orientations::J2000;
-use anise::errors::AlmanacError;
 use anise::math::Vector3;
-use anise::prelude::{Almanac, Epoch, Frame};
+use anise::naif::daf::DAF;
+use anise::naif::spk::summary::SPKSummaryRecord;
+use anise::prelude::{Almanac, Epoch, Frame, SPK};
+use anise::structure::PlanetaryDataSet;
 use bevy::app::Plugin;
 use bevy::math::DVec3;
-use bevy::prelude::{in_state, IntoSystemConfigs, Local, Name, Query, Res, ResMut, Resource, Update};
-use bevy_async_task::{AsyncTaskRunner, AsyncTaskStatus};
+use bevy::prelude::{in_state, IntoSystemConfigs, Name, Query, Res, ResMut, Resource, Update};
+use bevy_async_task::{AsyncTaskPool, AsyncTaskStatus};
+use std::fs;
+
+enum AlmanacType {
+    SPK(DAF<SPKSummaryRecord>),
+    PCA(PlanetaryDataSet)
+}
+
+struct Error(String);
 
 pub struct AnisePlugin;
 
@@ -97,52 +107,68 @@ fn spk_file_loading(
     mut toasts: ResMut<ToastContainer>,
     mut scenario_data: ResMut<ScenarioData>,
     mut loading_state: ResMut<LoadingState>,
-    mut task_executor: AsyncTaskRunner<Result<Almanac, AlmanacError>>,
-    mut to_load: Local<Option<Vec<String>>>,
+    mut task_pool: AsyncTaskPool<Result<AlmanacType, Error>>,
     sim_type: Res<SimStateType>
 ) {
     if loading_state.loaded_spice_files || !loading_state.spawned_bodies {
         return;
     }
-    if *sim_type != SimStateType::Editor {
+    if *sim_type != SimStateType::Editor || scenario_data.spice_files.is_empty() || (loading_state.spice_loaded > 0 && loading_state.spice_loaded == loading_state.spice_total) {
         loading_state.loaded_spice_files = true;
         return;
     }
-    if to_load.is_none() {
-        *to_load = Some(scenario_data.spice_files.clone());
-        loading_state.spice_total = to_load.as_ref().unwrap().len() as i32;
-    }
-    let to_load_v = to_load.as_mut().unwrap();
-    match task_executor.poll() {
-        AsyncTaskStatus::Idle => {
-            if !to_load_v.is_empty() {
-                println!("Loading SPICE file: {}", to_load_v.last().unwrap());
-                let path = to_load_v.pop().unwrap();
-                task_executor.start(load_spice_file(path, almanac.0.clone()));
+    if task_pool.is_idle() && loading_state.spice_total == 0 {
+        loading_state.spice_total = scenario_data.spice_files.iter().count() as i32;
+        for path in &scenario_data.spice_files {
+            if path.ends_with(".bsp") {
+                task_pool.spawn(load_spk(path.clone()));
+            } else if path.ends_with(".pca") {
+                task_pool.spawn(load_pca(path.clone()));
             } else {
-                loading_state.loaded_spice_files = true;
-                *to_load = None;
+                toasts.0.add(error_toast(format!("Unsupported SPICE file type: {}", path).as_str()));
             }
         }
-        AsyncTaskStatus::Pending => {
-            // <Insert loading screen>
-        }
-        AsyncTaskStatus::Finished(r) => {
-            if let Ok(v) = r {
-                almanac.0 = v;
-            } else if let Err(e) = r {
-                toasts.0.add(error_toast(format!("Couldn't load SPICE file: {}", e).as_str()));
+    }
+    for status in task_pool.iter_poll() {
+        if let AsyncTaskStatus::Finished(t) = status {
+            match t {
+                Ok(AlmanacType::SPK(daf)) => {
+                    let spk = almanac.0.with_spk(daf);
+                    if let Ok(s) = spk {
+                        almanac.0 = s;
+                        loading_state.spice_loaded += 1;
+                    } else if let Err(e) = spk {
+                        toasts.0.add(error_toast(format!("Couldn't load SPICE file: {:?}", e).as_str()));
+                    }
+                }
+                Ok(AlmanacType::PCA(set)) => {
+                    almanac.0 = almanac.0.with_planetary_data(set);
+                    loading_state.spice_loaded += 1;
+                }
+                Err(e) => {
+                    toasts.0.add(error_toast(format!("Couldn't load SPICE file: {:?}", e.0).as_str()));
+                }
             }
             loading_state.spice_loaded += 1;
         }
     }
 }
 
-async fn load_spice_file(
+async fn load_spk(
     path: String,
-    almanac: Almanac
-) -> Result<Almanac, AlmanacError> {
-    almanac.load(format!("data/{}", path).as_str())
+) -> Result<AlmanacType, Error> {
+    let spk = SPK::load(format!("data/{}", path).as_str()).map_err(|e| Error(format!("{:?}", e)))?;
+    Ok(AlmanacType::SPK(spk))
+}
+
+async fn load_pca(
+    path: String
+) -> Result<AlmanacType, Error> {
+    let path = format!("data/{}", path);
+    let data = fs::read(path).map_err(|e| Error(format!("{:?}", e)))?;
+    let bytes: &[u8] = data.as_slice();
+    let set = PlanetaryDataSet::from_bytes(bytes);
+    Ok(AlmanacType::PCA(set))
 }
 
 pub fn load_spice_files(
@@ -162,14 +188,3 @@ pub fn load_spice_files(
         toasts.0.add(error_toast(format!("Couldn't load the following SPICE files: {}", missing_paths.join(", ")).as_str()));
     }
 }
-
-/*fn get_target_frames(
-    almanac: &Almanac
-) -> Vec<Frame> {
-    let mut frames = almanac.spk_data.iter().filter(|s| s.is_some()).map(|s| s.as_ref().unwrap()).map(|s| {
-        s.data_summaries().unwrap().iter().map(|d| d.target_frame())
-    }).flatten().collect::<Vec<Frame>>();
-    frames.dedup_by_key(|f| f.ephemeris_id);
-    println!("{:?}", frames);
-    Vec::new()
-}*/

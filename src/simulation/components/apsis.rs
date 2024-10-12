@@ -1,11 +1,11 @@
 use crate::simulation::components::body::{BodyChildren, BodyParent, Moon, Planet, SimPosition, Star, Velocity};
 use crate::simulation::components::horizons::AniseMetadata;
-use crate::simulation::components::physics::apply_physics;
+use crate::simulation::integration::{paused, SimulationStep};
 use crate::simulation::scenario::setup::ScenarioData;
 use crate::simulation::ui::SimTime;
 use crate::simulation::SimState;
 use crate::utils::sim_state_type_simulation;
-use bevy::prelude::{Transform, Vec3};
+use bevy::prelude::{not, Transform, Vec3};
 use bevy::{math::DVec3, prelude::{in_state, App, Component, Entity, IntoSystemConfigs, Plugin, Query, Reflect, Res, Update, With, Without}};
 use std::collections::HashMap;
 
@@ -16,7 +16,7 @@ impl Plugin for ApsisPlugin {
     fn build(&self, app: &mut App) {
         app
             .register_type::<Apsis>()
-            .add_systems(Update, (update_apsis.after(apply_physics)).run_if(sim_state_type_simulation));
+            .add_systems(Update, (update_apsis.after(SimulationStep)).run_if(sim_state_type_simulation).run_if(not(paused)));
     }
 
 }
@@ -57,15 +57,15 @@ fn update_apsis(
             }
         }
         if let Some(p_pos) = parent {
-            let new_distance = p_pos.0.distance(position.0) as f32;
+            let new_distance = p_pos.current.distance(position.current) as f32;
             //perihelion
             if apsis.perihelion.distance > new_distance || apsis.perihelion.distance == 0.0 {
                 apsis.perihelion.distance = new_distance;
-                apsis.perihelion.position = position.0;
+                apsis.perihelion.position = position.current;
             }
             if apsis.aphelion.distance < new_distance || apsis.perihelion.distance == 0.0 {
                 apsis.aphelion.distance = new_distance;
-                apsis.aphelion.position = position.0;
+                apsis.aphelion.position = position.current;
             }
         }
     }
@@ -78,15 +78,15 @@ fn update_apsis(
             }
         }
         if let Some(p_pos) = parent {
-            let new_distance = p_pos.0.distance(position.0) as f32;
+            let new_distance = p_pos.current.distance(position.current) as f32;
             //perihelion
             if apsis.perihelion.distance > new_distance || apsis.perihelion.distance == 0.0 {
                 apsis.perihelion.distance = new_distance;
-                apsis.perihelion.position = position.0;
+                apsis.perihelion.position = position.current;
             }
             if apsis.aphelion.distance < new_distance || apsis.perihelion.distance == 0.0 {
                 apsis.aphelion.distance = new_distance;
-                apsis.aphelion.position = position.0;
+                apsis.aphelion.position = position.current;
             }
         }
     }

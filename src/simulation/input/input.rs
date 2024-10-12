@@ -1,5 +1,5 @@
-use crate::simulation::components::physics::{Pause, SubSteps};
 use crate::simulation::components::speed::Speed;
+use crate::simulation::integration::{Pause, SubSteps};
 use crate::simulation::ui::{StepType, UiState};
 use bevy::prelude::{ButtonInput, KeyCode, Query, Res, ResMut, Vec3, Window};
 use bevy::window::WindowMode;

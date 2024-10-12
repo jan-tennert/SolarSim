@@ -165,12 +165,12 @@ pub fn update_body_positions(
         } else {
             let (_, position, mut transform) = bodies.get_mut(entity).unwrap();
             transform.translation = Vec3::ZERO;
-            scale.m_to_unit_dvec(position.0).as_vec3()
+            scale.m_to_unit_dvec(position.current).as_vec3()
         }
     } else {
         Vec3::ZERO
     };
     for (_, position, mut transform) in bodies.iter_mut() {
-        transform.translation = scale.m_to_unit_dvec(position.0).as_vec3() - offset;
+        transform.translation = scale.m_to_unit_dvec(position.current).as_vec3() - offset;
     }
 }

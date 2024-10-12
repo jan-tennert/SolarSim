@@ -93,7 +93,20 @@ impl Default for OrbitSettings {
 }
 
 #[derive(Component, Clone, Default)]
-pub struct SimPosition(pub DVec3);
+pub struct SimPosition {
+
+    pub current: DVec3,
+    pub previous: Option<DVec3>,
+
+}
+
+impl SimPosition {
+
+    pub fn new(value: DVec3) -> Self {
+        SimPosition { current: value, previous: None }
+    }
+
+}
 
 #[derive(Component, Clone)]
 pub struct BodyShape {
@@ -202,7 +215,7 @@ impl From<SerializedBody> for BodyBundle {
     fn from(value: SerializedBody) -> Self {
         BodyBundle {
             mass: Mass(value.data.mass),
-            sim_position: SimPosition(DVec3::from(value.data.starting_position) * 1000.0),
+            sim_position: SimPosition::new(DVec3::from(value.data.starting_position) * 1000.0),
             vel: Velocity(DVec3::from(value.data.starting_velocity) * 1000.0),
             name: Name::new(value.data.name),
             model_path: ModelPath(format!("models/{}#Scene0", value.data.model_path)),
@@ -232,7 +245,7 @@ impl BodyBundle {
     pub fn empty(index: i32) -> Self {
         BodyBundle {
             mass: Mass(0.0),
-            sim_position: SimPosition(DVec3::ZERO),
+            sim_position: SimPosition::new(DVec3::ZERO),
             vel: Velocity(DVec3::ZERO),
             name: Name::new(format!("New body {}", index)),
             model_path: ModelPath("models/earth.glb#Scene0".to_string()),

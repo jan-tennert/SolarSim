@@ -2,15 +2,15 @@ use std::f32::consts::PI;
 
 use crate::constants::DAY_IN_SECONDS;
 use crate::simulation::components::body::{BodyRotation, BodyShape, RotationSpeed, Star};
-use crate::simulation::components::physics::{Pause, SubSteps};
 use crate::simulation::components::speed::Speed;
+use crate::simulation::integration::{paused, SubSteps};
 use crate::simulation::scenario::loading::LoadingState;
 use crate::simulation::scenario::setup::setup_scenario;
 use crate::simulation::SimState;
 use crate::utils::sim_state_type_simulation;
 use bevy::app::{App, Plugin};
 use bevy::hierarchy::Children;
-use bevy::prelude::{in_state, IntoSystemConfigs, Quat, Query, Res, ResMut, Transform, Update, With, Without};
+use bevy::prelude::{in_state, not, IntoSystemConfigs, Quat, Query, Res, ResMut, Transform, Update, With, Without};
 use bevy::scene::SceneInstance;
 use bevy::time::Time;
 
@@ -21,7 +21,7 @@ impl Plugin for RotationPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(Update, (initial_rotation.after(setup_scenario)).run_if(in_state(SimState::Loading)))
-            .add_systems(Update, (rotate_bodies).run_if(sim_state_type_simulation));
+            .add_systems(Update, (rotate_bodies).run_if(sim_state_type_simulation).run_if(not(paused)));
     }
 
 }
@@ -54,9 +54,7 @@ fn rotate_bodies(
     time: Res<Time>,
     speed: Res<Speed>,
     sub_steps: Res<SubSteps>,
-    pause: Res<Pause>,
-) {     
-    if !pause.0 {
+) {
         for (rotation_speed, diameter, tilt, children) in &query {
             if rotation_speed.0 == 0.0 || !tilt.applied {
                 continue;
@@ -73,5 +71,5 @@ fn rotate_bodies(
             }
             
         }
-    }
+
 }

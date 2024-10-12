@@ -1,7 +1,7 @@
 use crate::simulation::components::body::{BodyShape, Mass, Star};
 use crate::simulation::components::motion_line::OrbitOffset;
-use crate::simulation::components::physics::apply_physics;
 use crate::simulation::components::scale::SimulationScale;
+use crate::simulation::integration::SimulationStep;
 use crate::simulation::SimState;
 use bevy::app::{App, Plugin, Update};
 use bevy::prelude::{in_state, Entity, IntoSystemConfigs, Query, Res, ResMut, Resource, Transform, Vec3, With};
@@ -16,7 +16,7 @@ impl Plugin for SelectionPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<SelectedEntity>()
-            .add_systems(Update, (apply_camera_to_selection.after(apply_physics)/*.before(pan_orbit_camera)*/).run_if(in_state(SimState::Loaded)));
+            .add_systems(Update, (apply_camera_to_selection.after(SimulationStep)/*.before(pan_orbit_camera)*/).run_if(in_state(SimState::Loaded)));
     }
 
 }

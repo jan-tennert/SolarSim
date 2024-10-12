@@ -1,8 +1,9 @@
 use crate::simulation::components::body::{BillboardVisible, BodyChildren, BodyShape, Moon, OrbitSettings, Planet, SimPosition, Star};
-use crate::simulation::components::physics::{apply_physics, Pause, SubSteps};
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::components::speed::Speed;
+use crate::simulation::integration::{paused, Pause, SimulationStep, SubSteps};
 use crate::utils::sim_state_type_simulation;
+use bevy::prelude::not;
 use bevy::{prelude::{App, Camera, Entity, Gizmos, IntoSystemConfigs, Plugin, PreUpdate, Query, Res, Resource, Transform, Vec3, With, Without}, time::Time};
 use bevy_panorbit_camera::PanOrbitCamera;
 
@@ -12,7 +13,7 @@ impl Plugin for MotionLinePlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<OrbitOffset>()
-            .add_systems(PreUpdate, (update_lines.after(apply_physics), (draw_orbit_line).after(update_lines)).run_if(sim_state_type_simulation));
+            .add_systems(PreUpdate, (update_lines.after(SimulationStep), (draw_orbit_line).after(update_lines)).run_if(sim_state_type_simulation).run_if(not(paused)));
     }
 }
 
@@ -57,8 +58,8 @@ fn update_lines(
             let speed = speed.0 as f32 * (substeps.0 as f32);
             let max_step = (orbit.period as f32 / speed) * MULTIPLIER;
             if orbit.step >= max_step {
-                orbit.lines.push_back(scale.m_to_unit_dvec(pos.0).as_vec3());
-              //  insert_at_nearest_distance(&mut orbit.lines, (pos.0 * M_TO_UNIT).as_vec3());
+                orbit.lines.push_back(scale.m_to_unit_dvec(pos.current).as_vec3());
+              //  insert_at_nearest_distance(&mut orbit.lines, (pos.current * M_TO_UNIT).as_vec3());
                 orbit.step = 0.0;
             } else {
                 orbit.step += time.delta_seconds() * orbit.orbit_line_multiplier;
@@ -74,8 +75,8 @@ fn update_lines(
                 let speed = speed.0 as f32 * (substeps.0 as f32);
                 let max_step = (orbit.period as f32 / speed) * MULTIPLIER;
                 if orbit.step >= max_step {
-                    let raw_p_pos = scale.m_to_unit_dvec(p_pos.0).as_vec3();
-                    let raw_pos = scale.m_to_unit_dvec(pos.0).as_vec3();
+                    let raw_p_pos = scale.m_to_unit_dvec(p_pos.current).as_vec3();
+                    let raw_pos = scale.m_to_unit_dvec(pos.current).as_vec3();
                     orbit.lines.push_back(raw_pos - raw_p_pos);   
                     //insert_at_nearest_distance(&mut orbit.lines, raw_pos - raw_p_pos);
                     orbit.step = 0.0;
@@ -104,7 +105,7 @@ fn draw_orbit_line(
             if let Some((_, p_pos, _, _)) = planet_query.iter().find(|(_, _, children, _)| {
                 children.0.contains(&entity)
             }) {
-                let raw_p_pos = scale.m_to_unit_dvec(p_pos.0).as_vec3();
+                let raw_p_pos = scale.m_to_unit_dvec(p_pos.current).as_vec3();
                 draw_lines(orbit, offset.value + raw_p_pos, &mut gizmos, transform.translation)
             }
         }
