@@ -9,7 +9,7 @@ use crate::utils::sim_state_type_simulation;
 use bevy::app::App;
 use bevy::diagnostic::{Diagnostic, DiagnosticPath, RegisterDiagnostic};
 use bevy::math::{DVec3, Vec3};
-use bevy::prelude::{AppExtStates, Entity, IntoSystemConfigs, Plugin, Query, Res, ResMut, Resource, States, SystemSet, Transform, Update};
+use bevy::prelude::{not, AppExtStates, Entity, IntoSystemConfigs, Plugin, Query, Res, ResMut, Resource, States, SystemSet, Transform, Update};
 
 mod euler;
 mod verlet;
@@ -92,7 +92,8 @@ impl Plugin for IntegrationPlugin {
             .register_diagnostic(Diagnostic::new(NBODY_STEP_TIME).with_max_history_length(50))
             .register_diagnostic(Diagnostic::new(NBODY_TOTAL_TIME).with_max_history_length(50))
             .register_diagnostic(Diagnostic::new(NBODY_STEPS).with_max_history_length(50))
-            .add_systems(Update, (change_selection_without_update).in_set(SimulationStep).run_if(sim_state_type_simulation).run_if(paused));
+            .add_systems(Update, (change_selection_without_update).in_set(SimulationStep).run_if(sim_state_type_simulation).run_if(paused))
+            .add_systems(Update, (update_positions_after_pos_update).in_set(SimulationStep).run_if(sim_state_type_simulation).run_if(not(paused)));
     }
 }
 
@@ -125,6 +126,42 @@ fn change_selection_without_update(
         }
         let pos_without_offset = scale.m_to_unit_dvec(sim_pos.current);
         transform.translation = (pos_without_offset + offset).as_vec3();
+    }
+    orbit_offset.value = offset.as_vec3();
+}
+
+fn update_positions_after_pos_update(
+    mut query: Query<(Entity, &Mass, &mut Acceleration, &mut OrbitSettings, &mut Velocity, &mut SimPosition, &mut Transform)>,
+    mut orbit_offset: ResMut<OrbitOffset>,
+    selected_entity: Res<SelectedEntity>,
+    scale: Res<SimulationScale>
+) {
+    let offset = match selected_entity.entity { //if orbit_offset.enabled is true, we calculate the new position of the selected entity first and then move it to 0,0,0 and add the actual position to all other bodies
+        Some(selected) => {
+            if let Ok((_, mass, mut acc, mut orbit_s, mut vel, mut sim_pos, mut transform)) = query.get_mut(selected) {
+                if orbit_s.display_force {
+                    orbit_s.force_direction = acc.0.normalize();
+                }
+                let raw_translation = scale.m_to_unit_dvec(sim_pos.current);
+                transform.translation = Vec3::ZERO; //the selected entity will always be at 0,0,0
+                -raw_translation
+            } else {
+                DVec3::ZERO
+            }
+        }
+        None => DVec3::ZERO
+    };
+    for (entity, _, mut acc, mut orbit_s, mut vel, mut sim_pos, mut transform) in query.iter_mut() {
+        if let Some(s_entity) = selected_entity.entity {
+            if s_entity == entity {
+                continue;
+            }
+        }
+        if orbit_s.display_force {
+            orbit_s.force_direction = acc.0.normalize();
+        }
+        let pos_without_offset = scale.m_to_unit_dvec(sim_pos.current);
+        transform.translation = (pos_without_offset + offset).as_vec3(); //apply offset
     }
     orbit_offset.value = offset.as_vec3();
 }
