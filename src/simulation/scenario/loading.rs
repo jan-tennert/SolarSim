@@ -44,7 +44,13 @@ impl LoadingState {
         self.loaded_spice_files = false;
         self.total_bodies = 0;
     }
-    
+
+    pub fn reload_spice_files(&mut self) {
+        self.spice_loaded = 0;
+        self.spice_total = 0;
+        self.loaded_spice_files = false;
+    }
+
     pub fn is_done(&self) -> bool {
         self.scaled_bodies && self.tilted_bodies && self.loaded_spice_files && self.spawned_bodies
     }

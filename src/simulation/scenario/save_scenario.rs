@@ -52,7 +52,7 @@ pub fn save_scenario(
         description: scenario_data.description.clone(),
         scale: system_panel_set.scale.0,
         timestep: system_panel_set.speed.0 as i32,
-        data_sets: scenario_data.spice_files.clone(),
+        data_sets: scenario_data.spice_files.keys().cloned().collect(),
     };
     let serialized_data = serde_json::to_string(&simulation_data).unwrap();
     fs::write(format!("scenarios/{}", file_path), serialized_data).unwrap();

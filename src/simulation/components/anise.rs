@@ -14,13 +14,13 @@ use anise::prelude::{Almanac, Epoch, Frame, SPK};
 use anise::structure::PlanetaryDataSet;
 use bevy::app::Plugin;
 use bevy::math::DVec3;
-use bevy::prelude::{in_state, IntoSystemConfigs, Name, Query, Res, ResMut, Resource, Update};
+use bevy::prelude::{IntoSystemConfigs, Name, Query, Res, ResMut, Resource, State, Update};
 use bevy_async_task::{AsyncTaskPool, AsyncTaskStatus};
 use std::fs;
 
 enum AlmanacType {
-    SPK(DAF<SPKSummaryRecord>),
-    PCA(PlanetaryDataSet)
+    SPK(DAF<SPKSummaryRecord>, String),
+    PCA(PlanetaryDataSet, String)
 }
 
 struct Error(String);
@@ -31,7 +31,7 @@ impl Plugin for AnisePlugin{
     fn build(&self, app: &mut bevy::prelude::App) {
         app
             .init_resource::<AlmanacHolder>()
-            .add_systems(Update, spk_file_loading.run_if(in_state(SimState::Loading)));
+            .add_systems(Update, spk_file_loading.run_if(loading_or_editor));
     }
 }
 
@@ -42,6 +42,10 @@ impl Default for AlmanacHolder {
     fn default() -> Self {
         Self(Almanac::default())
     }
+}
+
+fn loading_or_editor(state: Res<State<SimState>>, s_type: Res<SimStateType>) -> bool {
+    *state == SimState::Loading || (*state == SimState::Loaded && *s_type == SimStateType::Editor)
 }
 
 pub fn retrieve_starting_data(
@@ -119,7 +123,9 @@ fn spk_file_loading(
     }
     if task_pool.is_idle() && loading_state.spice_total == 0 {
         loading_state.spice_total = scenario_data.spice_files.iter().count() as i32;
-        for path in &scenario_data.spice_files {
+        almanac.0 = Almanac::default();
+        for (path, mut loaded) in &mut scenario_data.spice_files {
+            *loaded = false;
             if path.ends_with(".bsp") {
                 task_pool.spawn(load_spk(path.clone()));
             } else if path.ends_with(".pca") {
@@ -132,18 +138,18 @@ fn spk_file_loading(
     for status in task_pool.iter_poll() {
         if let AsyncTaskStatus::Finished(t) = status {
             match t {
-                Ok(AlmanacType::SPK(daf)) => {
+                Ok(AlmanacType::SPK(daf, path)) => {
                     let spk = almanac.0.with_spk(daf);
                     if let Ok(s) = spk {
+                        scenario_data.spice_files.insert(path, true);
                         almanac.0 = s;
-                        loading_state.spice_loaded += 1;
                     } else if let Err(e) = spk {
                         toasts.0.add(error_toast(format!("Couldn't load SPICE file: {:?}", e).as_str()));
                     }
                 }
-                Ok(AlmanacType::PCA(set)) => {
+                Ok(AlmanacType::PCA(set, path)) => {
                     almanac.0 = almanac.0.with_planetary_data(set);
-                    loading_state.spice_loaded += 1;
+                    scenario_data.spice_files.insert(path, true);
                 }
                 Err(e) => {
                     toasts.0.add(error_toast(format!("Couldn't load SPICE file: {:?}", e.0).as_str()));
@@ -157,34 +163,17 @@ fn spk_file_loading(
 async fn load_spk(
     path: String,
 ) -> Result<AlmanacType, Error> {
-    let spk = SPK::load(format!("data/{}", path).as_str()).map_err(|e| Error(format!("{:?}", e)))?;
-    Ok(AlmanacType::SPK(spk))
+    let real_path = format!("data/{}", path);
+    let spk = SPK::load(real_path.as_str()).map_err(|e| Error(format!("{:?}", e)))?;
+    Ok(AlmanacType::SPK(spk, path))
 }
 
 async fn load_pca(
     path: String
 ) -> Result<AlmanacType, Error> {
-    let path = format!("data/{}", path);
-    let data = fs::read(path).map_err(|e| Error(format!("{:?}", e)))?;
+    let real_path = format!("data/{}", path);
+    let data = fs::read(real_path.clone()).map_err(|e| Error(format!("{:?}", e)))?;
     let bytes: &[u8] = data.as_slice();
     let set = PlanetaryDataSet::from_bytes(bytes);
-    Ok(AlmanacType::PCA(set))
-}
-
-pub fn load_spice_files(
-    paths: Vec<String>,
-    almanac: &mut AlmanacHolder,
-    toasts: &mut ToastContainer
-) {
-    let mut missing_paths = Vec::new();
-    for path in paths {
-        if let Ok(a) = almanac.0.load(format!("data/{}", path).as_str()) {
-            almanac.0 = a;
-        } else {
-            missing_paths.push(path);
-        }
-    }
-    if !missing_paths.is_empty() {
-        toasts.0.add(error_toast(format!("Couldn't load the following SPICE files: {}", missing_paths.join(", ")).as_str()));
-    }
+    Ok(AlmanacType::PCA(set, path))
 }

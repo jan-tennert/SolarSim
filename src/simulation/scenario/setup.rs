@@ -26,6 +26,7 @@ use bevy::scene::Scene;
 use bevy::text::{JustifyText, TextSection, TextStyle};
 use bevy_mod_billboard::BillboardTextBundle;
 use bevy_panorbit_camera::PanOrbitCamera;
+use std::collections::HashMap;
 
 pub struct SetupPlugin;
 
@@ -46,7 +47,7 @@ pub struct ScenarioData {
     pub description: String,
     pub timestep: i32,
     pub scale: f32,
-    pub spice_files: Vec<String>
+    pub spice_files: HashMap<String, bool>
 
 }
 
@@ -59,7 +60,7 @@ impl From<SimulationData> for ScenarioData {
             description: value.description,
             timestep: value.timestep,
             scale: value.scale,
-            spice_files: value.data_sets
+            spice_files: value.data_sets.iter().map(|d| (d.clone(), false)).collect()
         }
     }
 }
