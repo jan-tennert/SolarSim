@@ -33,3 +33,7 @@ SPICE files can be obtained from [NASA](https://naif.jpl.nasa.gov/naif/) and som
 They should be stored in the `data` folder. If loading for the first time, SolarSim copies the SPICE files to the `data` folder.
 - If you load in a SPK file like `de400s.bsp`, you can load in starting positions and velocities by putting in the `Ephemeris ID` in the body panel and clicking `Load starting data`.
 - If you load in a PCA file like `pck11.pca`, you can load in rotation data and shape data by putting in the fixed frame ids (target id/observer id) in the body panel and clicking `Load starting data`.
+
+### Sponsoring
+
+If you like the project and want to support it, consider sponsoring me on [Ko-fi](https://ko-fi.com/jantennert) or directly on [PayPal](https://www.paypal.com/donate/?hosted_button_id=SR3YJS5CZFS9L).
