@@ -185,12 +185,12 @@ fn edit_spk_files(
         if loading_button.clicked() {
             task_executor.start(load_scenario_file(scenario_data.clone(), new_spice_file.clone(), almanac_holder.0.clone()));
         }
-        if loading || !loading_state.loaded_spice_files {
-            ui.spinner();
-        }
         let reload_button = ui.add_enabled(!loading && loading_state.loaded_spice_files, Button::new("Reload SPICE Files"));
         if reload_button.clicked() {
             loading_state.reload_spice_files();
+        }
+        if loading || !loading_state.loaded_spice_files {
+            ui.spinner();
         }
     });
 }

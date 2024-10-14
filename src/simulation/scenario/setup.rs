@@ -188,7 +188,6 @@ pub fn setup_scenario(
     loading_state.spawned_bodies = true;
     loading_state.total_bodies = total_count as i32;
     if stars == 0 {
-        loading_state.reset();
         sim_state.set(SimState::Loaded);
     } else {
         let mut cam = cam.single_mut();
