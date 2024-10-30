@@ -13,7 +13,7 @@ impl Plugin for MotionLinePlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<OrbitOffset>()
-            .add_systems(PreUpdate, (update_lines.after(SimulationStep), (draw_orbit_line).after(update_lines)).run_if(sim_state_type_simulation).run_if(not(paused)));
+            .add_systems(PreUpdate, (update_lines.after(SimulationStep).run_if(not(paused)), (draw_orbit_line).after(update_lines)).run_if(sim_state_type_simulation));
     }
 }
 
