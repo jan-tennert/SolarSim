@@ -1,3 +1,5 @@
+use bevy::core_pipeline::Skybox;
+use bevy::prelude::Plugin;
 use bevy::{
     asset::LoadState,
     prelude::*,
@@ -6,8 +8,6 @@ use bevy::{
         TextureViewDescriptor, TextureViewDimension,
     },
 };
-use bevy::core_pipeline::Skybox;
-use bevy::prelude::Plugin;
 
 pub struct SkyboxPlugin;
 
@@ -34,7 +34,7 @@ fn asset_loaded(
     mut skyboxes: Query<&mut Skybox>,
 ) {
     if cubemap.activated && !cubemap.is_loaded
-        && asset_server.get_load_state(&cubemap.image_handle.clone_weak()) == Some(LoadState::Loaded)
+        && asset_server.get_load_state(&cubemap.image_handle.clone_weak()).unwrap_or(LoadState::NotLoaded).is_loaded()
     {
         let image = images.get_mut(&cubemap.image_handle).unwrap();
         // NOTE: PNGs do not have any metadata that could indicate they contain a cubemap texture,

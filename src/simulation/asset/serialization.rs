@@ -136,18 +136,16 @@ impl AssetLoader for BodyAssetLoader {
     type Settings = ();
     type Error = serde_json::Error;
 
-    fn load<'a>(
-        &'a self,
-        reader: &'a mut Reader,
-        _settings: &'a Self::Settings,
-        _load_context: &'a mut LoadContext,
-    ) -> BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
-        Box::pin(async move {
-            let mut bytes = Vec::new();
-            reader.read_to_end(&mut bytes).await.unwrap();
-            let custom_asset = serde_json::from_str::<SimulationData>(std::str::from_utf8(&*bytes).unwrap())?;
-            Ok((custom_asset))
-        })
+    async fn load(
+        &self,
+        reader: &mut dyn Reader,
+        _settings: &Self::Settings,
+        _load_context: &mut LoadContext<'_>,
+    ) -> Result<Self::Asset, Self::Error> {
+        let mut bytes = Vec::new();
+        reader.read_to_end(&mut bytes).await.unwrap();
+        let custom_asset = serde_json::from_str::<SimulationData>(std::str::from_utf8(&*bytes).unwrap())?;
+        Ok(custom_asset)
     }
 
     fn extensions(&self) -> &[&str] {

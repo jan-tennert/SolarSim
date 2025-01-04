@@ -15,8 +15,8 @@ impl Plugin for MenuPlugin {
     }
 }
 
-const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
-const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
+const NORMAL_BUTTON: Color = Color::srgb(0.15, 0.15, 0.15);
+const HOVERED_BUTTON: Color = Color::srgb(0.25, 0.25, 0.25);
 
 #[derive(Component)]
 pub struct BackgroundImage;
@@ -47,19 +47,16 @@ fn setup_background(
     mut egui_context: EguiContexts
 ) {
     commands
-        .spawn(NodeBundle {
-            style: Style {
+        .spawn(Node {
                 width: Val::Percent(100.0),
                 height: Val::Percent(100.0),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
                 flex_direction: FlexDirection::Column,
                 ..default()
-            },
-            background_color: Color::WHITE.into(),
-            ..default()
         })
-        .insert(UiImage::new(asset_server.load("images/background.png")))
+        .insert(BackgroundColor(Color::WHITE.into()))
+        .insert(ImageNode::new(asset_server.load("images/background.png")))
         .insert(BackgroundImage);
     state.set(SimState::Menu);
 }
@@ -73,35 +70,23 @@ fn spawn_menu(
 
     parent.with_children(|parent| {
             parent.spawn((
-                TextBundle::from_section(
-                    "Solar System Simulation",
-                    TextStyle {
-                        //font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                        font_size: 70.0,
-                        color: Color::WHITE,
-                        ..default()
-                    },
-                )
-                .with_style(Style {
-                    margin: UiRect::bottom(Val::Px(20.)),
+                Text::from("Solar System Simulation"),
+                TextFont::from_font_size(70.0),
+                TextColor(Color::WHITE),
+                Node {
+                    margin: UiRect::all(Val::Px(20.)),
                     ..default()
-                }),
+                },
                 Label
             ));
             parent.spawn((
-                TextBundle::from_section(
-                    "by Jan Tennert",
-                    TextStyle {
-                        //font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                        font_size: 20.0,
-                        color: Color::WHITE,
-                        ..default()
-                    },
-                )
-                .with_style(Style {
+                Text::from("by Jan Tennert"),
+                TextFont::from_font_size(20.0),
+                TextColor(Color::WHITE),
+                Node {
                     margin: UiRect::bottom(Val::Px(40.)),
                     ..default()
-                }),
+                },
                 Label
             ));
             button("Start", MenuButtonType::START, parent);
@@ -112,30 +97,24 @@ fn spawn_menu(
 
 fn button(text: &str, button_type: MenuButtonType, builder: &mut ChildBuilder) {
     builder
-        .spawn(ButtonBundle {
-            style: Style {
-                width: Val::Px(150.0),
-                height: Val::Px(65.0),
-                border: UiRect::all(Val::Px(5.0)),
-                // horizontally center child text
-                justify_content: JustifyContent::Center,
-                // vertically center child text
-                align_items: AlignItems::Center,
-                ..default()
-            },
-            //     border_color: BorderColor(Color::BLACK),
-            background_color: NORMAL_BUTTON.into(),
+        .spawn(Node {
+            width: Val::Px(150.0),
+            height: Val::Px(65.0),
+            border: UiRect::all(Val::Px(5.0)),
+            // horizontally center child text
+            justify_content: JustifyContent::Center,
+            // vertically center child text
+            align_items: AlignItems::Center,
             ..default()
         })
+        .insert(BackgroundColor(NORMAL_BUTTON.into()))
         .insert(MenuButton(button_type))
+        .insert(Button)
         .with_children(|parent| {
-            parent.spawn(TextBundle::from_section(
-                text,
-                TextStyle {
-                    font_size: 40.0,
-                    color: Srgba::rgb(0.9, 0.9, 0.9).into(),
-                    ..default()
-                },
+            parent.spawn((
+                Text::from(text),
+                TextColor(Color::srgb(0.9, 0.9, 0.9).into()),
+                TextFont::from_font_size(40.0),
             ));
         });
 }

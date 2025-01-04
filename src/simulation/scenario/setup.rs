@@ -14,17 +14,17 @@ use bevy::app::{App, Plugin};
 use bevy::asset::AssetServer;
 use bevy::color::palettes::css::WHITE;
 use bevy::core::Name;
-use bevy::core_pipeline::bloom::BloomSettings;
+use bevy::core_pipeline::bloom::Bloom;
 use bevy::core_pipeline::Skybox;
 use bevy::ecs::system::EntityCommands;
 use bevy::hierarchy::BuildChildren;
 use bevy::math::{DVec3, Vec3};
-use bevy::pbr::{PointLight, PointLightBundle};
-use bevy::prelude::{default, in_state, Assets, Camera, Camera3dBundle, ChildBuilder, Circle, Color, Commands, Entity, Handle, Hsva, IntoSystemConfigs, MaterialMeshBundle, Mesh, NextState, PerspectiveProjection, Projection, Query, Res, ResMut, Resource, SceneBundle, SpatialBundle, Srgba, StandardMaterial, Startup, Transform, Update, Visibility};
+use bevy::pbr::{MeshMaterial3d, PointLight};
+use bevy::prelude::{default, in_state, Assets, Camera, Camera3d, ChildBuild, ChildBuilder, Circle, Color, Commands, Entity, Handle, Hsva, IntoSystemConfigs, JustifyText, Mesh, Mesh3d, NextState, PerspectiveProjection, Projection, Query, Res, ResMut, Resource, Srgba, StandardMaterial, Startup, TextFont, Transform, Update, Visibility};
 use bevy::render::view::{GpuCulling, NoCpuCulling};
-use bevy::scene::Scene;
-use bevy::text::{JustifyText, TextSection, TextStyle};
-use bevy_mod_billboard::BillboardTextBundle;
+use bevy::scene::{Scene, SceneRoot};
+use bevy::text::TextLayout;
+use bevy_mod_billboard::BillboardText;
 use bevy_panorbit_camera::PanOrbitCamera;
 use std::collections::HashMap;
 
@@ -98,7 +98,7 @@ pub fn setup_scenario(
         if !entry.data.simulate {
             continue;
         }
-        let mut star = commands.spawn(SpatialBundle::default());
+        let mut star = commands.spawn((Visibility::default(), Transform::default()));
         let star_id = star.id();
         if selected_entity.entity.is_none() {
             selected_entity.change_entity(star_id, false);
@@ -110,18 +110,16 @@ pub fn setup_scenario(
         if let Some(source) = &entry.data.light_source {
             star.with_children(|parent| {
                 star_color = Srgba::hex(&source.color).unwrap().into();
-                parent.spawn(PointLightBundle {
-                    point_light: PointLight {
-                        color: star_color,
-                        intensity: scale_lumen(source.intensity, &scale),
-                        shadows_enabled: true,
-                        range: scale.m_to_unit_32(source.range),
-                        radius: scale.m_to_unit_32(entry.data.ellipsoid.mean_equatorial_radius_km() as f32),
-                        ..default()
-                    },
-                    visibility: if source.enabled { Visibility::Visible } else { Visibility::Hidden },
+                parent.spawn(PointLight {
+                    color: star_color,
+                    intensity: scale_lumen(source.intensity, &scale),
+                    shadows_enabled: true,
+                    range: scale.m_to_unit_32(source.range),
+                    radius: scale.m_to_unit_32(entry.data.ellipsoid.mean_equatorial_radius_km() as f32),
                     ..default()
-                }).insert(LightSource::new(star_id, source));
+                })
+                    .insert(if source.enabled { Visibility::Visible } else { Visibility::Hidden })
+                    .insert(LightSource::new(star_id, source));
             });
         }
         star_color = entry.clone().data.light_source.map(|source| Srgba::hex(&source.imposter_color).unwrap().into()).unwrap_or(star_color);
@@ -142,7 +140,7 @@ pub fn setup_scenario(
                 continue;
             }
             let mut star_commands = star.commands();
-            let mut planet = star_commands.spawn(SpatialBundle::default());
+            let mut planet = star_commands.spawn((Visibility::default(), Transform::default()));
             let planet_id = planet.id();
             
             //moon vector for adding BodyChildren later
@@ -170,7 +168,7 @@ pub fn setup_scenario(
                     continue;
                 }
                 let mut planet_commands = planet.commands();
-                let mut moon = planet_commands.spawn(SpatialBundle::default());
+                let mut moon = planet_commands.spawn((Visibility::default(), Transform::default()));
 
                 //for the tree-based ui later                
                 moons.push(moon.id());
@@ -292,12 +290,9 @@ fn spawn_imposter(
 ) {
     let srgba = Srgba::from(color);
     let color: Color = Srgba::rgb(srgba.red * 20., srgba.green * 20., srgba.blue * 20.).into();
-    parent.spawn(MaterialMeshBundle {
-        mesh: meshes.add(Circle::new(scale.m_to_unit_32(bundle.diameter.ellipsoid.mean_equatorial_radius_km() as f32 * 6000.))),
-        material: shader_material.add(SunImposterMaterial::with(color.into(), scale.m_to_unit_32(bundle.diameter.ellipsoid.mean_equatorial_radius_km() as f32))),
-        visibility: Visibility::Hidden,
-        ..default()
-    })
+    parent.spawn(Mesh3d(meshes.add(Circle::new(scale.m_to_unit_32(bundle.diameter.ellipsoid.mean_equatorial_radius_km() as f32 * 6000.)))))
+        .insert(MeshMaterial3d(shader_material.add(SunImposterMaterial::with(color.into(), scale.m_to_unit_32(bundle.diameter.ellipsoid.mean_equatorial_radius_km() as f32)))))
+        .insert(Visibility::Hidden)
         .insert(StarBillboard(parent_id))
         .insert(Name::new(format!("{} Imposter Billboard", bundle.name)));
 }
@@ -307,11 +302,7 @@ pub fn spawn_scene(
     name: &str,
     parent: &mut ChildBuilder,
 ) -> Entity {
-    parent.spawn(SceneBundle {
-        scene: asset_handle,
-        transform: Transform::default(),
-        ..Default::default()
-    })
+    parent.spawn(SceneRoot::from(asset_handle))
         .insert(SceneEntity)
         .insert(Name::new(format!("{} Scene", name))).id()
 }
@@ -321,20 +312,16 @@ fn spawn_billboard(
     color: Color,
     parent: &mut ChildBuilder
 ) {
-    parent.spawn(BillboardTextBundle {
-        text: bevy::text::Text::from_sections([
-            TextSection {
-                value: bundle.name.to_string(),
-                style: TextStyle {
-                    font_size: 60.0,
-                    // font: fira_sans_regular_handle.clone(),
-                    color,
-                    ..default()
-                }
-            }
-        ]).with_justify(JustifyText::Center),
-        ..default()
-    })
+    parent.spawn(
+        (
+            BillboardText::from(bundle.name.as_str()),
+            Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)),
+            Visibility::Visible,
+            TextLayout::new_with_justify(JustifyText::Center),
+            TextFont::from_font_size(60.0),
+        )
+
+    )
         .insert(Name::new(format!("{} Text Billboard", bundle.name)));
 }
 
@@ -344,27 +331,25 @@ pub fn setup_camera(
 ) {
     let skybox_handle = asset_server.load("textures/skybox.png");
     commands.spawn((
-        Camera3dBundle {
-            transform: Transform::from_translation(Vec3::new(0.0, 1.5, 5.0)),
-            projection: Projection::Perspective(PerspectiveProjection {
-                near: 0.00000001,
-                ..default()
-            }),
-            camera: Camera {
-                hdr: true,
-                ..default()
-            },
+        Camera3d::default(),
+        Camera {
+            hdr: true,
             ..default()
         },
+        Projection::Perspective(PerspectiveProjection {
+            near: 0.00000001,
+            ..default()
+        }),
         PanOrbitCamera {
-            zoom_lower_limit: Some(0.02),
+            zoom_lower_limit: 0.02,
             ..default()
         },
         Skybox {
             image: skybox_handle.clone(),
             brightness: 1000.0,
+            ..default()
         },
-        BloomSettings {
+        Bloom {
             intensity: 0.3, // the default is 0.3,
             ..default()
         },

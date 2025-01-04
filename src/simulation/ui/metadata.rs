@@ -10,13 +10,14 @@ use crate::utils::sim_state_type_editor;
 use anise::almanac::Almanac;
 use bevy::app::{App, Plugin, Update};
 use bevy::prelude::{IntoSystemConfigs, ResMut, Resource};
-use bevy_async_task::{AsyncTaskRunner, AsyncTaskStatus};
+use bevy_async_task::AsyncTaskRunner;
 use bevy_egui::egui::{Button, ComboBox};
 use bevy_egui::{egui, EguiContexts};
 use chrono::{NaiveTime, Timelike};
 use egui_extras::DatePickerButton;
 use std::fs;
 use std::path::Path;
+use std::task::Poll;
 
 pub struct MetadataPlugin;
 
@@ -135,17 +136,23 @@ fn edit_spk_files(
 ) {
     let mut loading = false;
     match task_executor.poll() {
-        AsyncTaskStatus::Pending => {
+        Poll::Pending => {
             loading = true;
         }
-        AsyncTaskStatus::Finished(v) => {
-            if let Ok((almanac, name)) = v {
-                almanac_holder.0 = almanac;
-                scenario_data.spice_files.insert(name.clone(), true);
-                *new_spice_file = "".to_string();
-                toasts.0.add(success_toast("SPICE file loaded"));
-            } else if let Err(e) = v {
-                toasts.0.add(error_toast(format!("Couldn't load SPICE file: {}", e).as_str()));
+        Poll::Ready(v) => {
+            match v {
+                Ok(e) => {
+                    if let Ok((almanac, name)) = e {
+                        scenario_data.spice_files.insert(name, true);
+                        almanac_holder.0 = almanac;
+                        toasts.0.add(success_toast("SPICE file loaded"));
+                    } else {
+                        toasts.0.add(error_toast("Failed to load SPICE file"));
+                    }
+                }
+                Err(e) => {
+                    toasts.0.add(error_toast(format!("Couldn't load SPICE file: {}", e).as_str()));
+                }
             }
         }
         _ => {}

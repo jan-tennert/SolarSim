@@ -1,14 +1,14 @@
-use crate::simulation::components::body::SceneHandle;
 use crate::simulation::components::body::BodyShape;
+use crate::simulation::components::body::SceneHandle;
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::scenario::loading::LoadingState;
 use crate::simulation::ui::toast::{important_error_toast, ToastContainer};
 use crate::simulation::SimState;
 use bevy::asset::LoadState;
 use bevy::ecs::query::QueryManyIter;
-use bevy::prelude::{AssetServer, Entity, Name, Resource};
+use bevy::prelude::{AssetServer, Entity, Mesh3d, Name, Resource};
 use bevy::utils::HashMap;
-use bevy::{app::{App, Plugin}, math::Vec3A, prelude::{in_state, Children, GlobalTransform, Handle, IntoSystemConfigs, Mesh, Query, Res, ResMut, Transform, Update, Vec3, With}, render::primitives::{Aabb, Sphere}, scene::{SceneInstance, SceneSpawner}};
+use bevy::{app::{App, Plugin}, math::Vec3A, prelude::{in_state, Children, GlobalTransform, IntoSystemConfigs, Query, Res, ResMut, Transform, Update, Vec3, With}, render::primitives::{Aabb, Sphere}, scene::{SceneInstance, SceneSpawner}};
 
 pub struct DiameterPlugin;
 
@@ -28,7 +28,7 @@ pub struct SavedAabbs(HashMap<String, Aabb>);
 pub fn apply_real_diameter(
     mut bodies: Query<(&Children, &Name, &SceneHandle, &mut BodyShape, &mut Transform)>,
     scenes: Query<&SceneInstance>,
-    meshes: Query<(&GlobalTransform, Option<&Aabb>), With<Handle<Mesh>>>,
+    meshes: Query<(&GlobalTransform, Option<&Aabb>), With<Mesh3d>>,
     spawner: Res<SceneSpawner>,
     mut loading_state: ResMut<LoadingState>,
     asset_server: Res<AssetServer>,
@@ -42,7 +42,8 @@ pub fn apply_real_diameter(
         loading_state.scaled_bodies = true;
     }
     for (children, name, handle, mut shape, mut transform) in &mut bodies {
-        if shape.applied || asset_server.get_load_state(&handle.0) != Some(LoadState::Loaded) {
+        let load_state = asset_server.get_load_state(&handle.0).unwrap_or(LoadState::NotLoaded);
+        if shape.applied || load_state.is_loaded() {
             if !shape.applied {
                 match asset_server.get_load_state(&handle.0) {
                     None => {}
@@ -89,7 +90,7 @@ pub fn apply_real_diameter(
     }
 }
 
-fn calculate_aabb(meshes: QueryManyIter<(&GlobalTransform, Option<&Aabb>), With<Handle<Mesh>>, impl Iterator<Item=Entity> + Sized>) -> Aabb {
+fn calculate_aabb(meshes: QueryManyIter<(&GlobalTransform, Option<&Aabb>), With<Mesh3d>, impl Iterator<Item=Entity> + Sized>) -> Aabb {
     let mut min = Vec3A::splat(f32::MAX);
     let mut max = Vec3A::splat(f32::MIN);
     for (g_transform, maybe_abb) in meshes {

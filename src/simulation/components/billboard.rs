@@ -4,9 +4,9 @@ use crate::simulation::SimState;
 use bevy::app::{App, Plugin};
 use bevy::math::Vec3;
 use bevy::prelude::{in_state, Camera, Children, Entity, GlobalTransform, Has, IntoSystemConfigs, PostUpdate, Query, Res, Resource, Transform, Vec2, Visibility, With, Without};
-use bevy::text::Text;
 use bevy::utils::HashMap;
 use bevy_mod_billboard::text::BillboardTextBounds;
+use bevy_mod_billboard::BillboardText;
 use bevy_panorbit_camera::PanOrbitCameraSystemSet;
 
 const STAR_VISIBILITY_THRESHOLD: f32 = 40_000_000.0; //if the camera's radius is less than this, stars' names will be hidden
@@ -41,8 +41,8 @@ impl Default for BillboardSettings {
 }
 
 fn auto_scale_billboards(
-    mut bodies: Query<(Entity, &Children, &Transform, &BodyShape, &mut BillboardVisible, Option<&ApsisBody>, Has<Planet>, Has<Star>, Option<&BodyParent>), Without<Text>>,
-    mut billboards: Query<(&Text, &mut Transform, &mut Visibility), With<BillboardTextBounds>>,
+    mut bodies: Query<(Entity, &Children, &Transform, &BodyShape, &mut BillboardVisible, Option<&ApsisBody>, Has<Planet>, Has<Star>, Option<&BodyParent>), Without<BillboardText>>,
+    mut billboards: Query<(&BillboardText, &mut Transform, &mut Visibility), With<BillboardTextBounds>>,
     camera: Query<(&Transform, &GlobalTransform, &Camera), (Without<BillboardTextBounds>, Without<Planet>, Without<Moon>, Without<Star>)>,
     settings: Res<BillboardSettings>,
 ) {
@@ -84,7 +84,7 @@ fn auto_scale_billboards(
 }
 
 fn billboard(
-    billboards: &mut Query<(&Text, &mut Transform, &mut Visibility), With<BillboardTextBounds>>,
+    billboards: &mut Query<(&BillboardText, &mut Transform, &mut Visibility), With<BillboardTextBounds>>,
     c_transform: &Transform,
     p_transform: &Transform,
     children: &Children,

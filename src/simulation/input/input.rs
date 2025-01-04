@@ -1,7 +1,7 @@
 use crate::simulation::components::speed::Speed;
 use crate::simulation::integration::{Pause, SubSteps};
 use crate::simulation::ui::{StepType, UiState};
-use bevy::prelude::{ButtonInput, KeyCode, Query, Res, ResMut, Vec3, Window};
+use bevy::prelude::{ButtonInput, KeyCode, MonitorSelection, Query, Res, ResMut, Vec3, Window};
 use bevy::window::WindowMode;
 use bevy_egui::{egui, EguiContexts, EguiSettings};
 use bevy_panorbit_camera::PanOrbitCamera;
@@ -42,7 +42,7 @@ pub fn global_input_system(
         let mut window = windows.single_mut();
         let current = window.mode;
         if current == WindowMode::Windowed {
-            window.mode = WindowMode::BorderlessFullscreen;
+            window.mode = WindowMode::BorderlessFullscreen(MonitorSelection::Current);
         } else {
             window.mode = WindowMode::Windowed;
         }
@@ -56,12 +56,13 @@ pub fn sim_input_system(
     mut pause: ResMut<Pause>,
     mut speed: ResMut<Speed>,
     mut sub_steps: ResMut<SubSteps>,
-    mut egui_settings: ResMut<EguiSettings>,
+    mut egui_settings: Query<&mut EguiSettings>,
 ) {
     let timestep_selected = match ui_state.step_type {
         StepType::SUBSTEPS => false,
         StepType::TIMESTEPS => true
     };
+    let mut egui_settings = egui_settings.single_mut();
     if keys.just_pressed(KeyCode::F10) {
         ui_state.visible = !ui_state.visible
     } else if keys.just_pressed(KeyCode::KeyC) {

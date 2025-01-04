@@ -37,7 +37,7 @@ fn apply_physics(
     scale: Res<SimulationScale>,
 ) {
     let count = query.iter().count();
-    let delta = time.delta_seconds() as f64;
+    let delta = time.delta_secs_f64();
     #[cfg(not(target_arch = "wasm32"))]
     let start = Instant::now();
     for _ in 0..sub_steps.0 - 1 {

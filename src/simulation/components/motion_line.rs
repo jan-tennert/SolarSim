@@ -62,7 +62,7 @@ fn update_lines(
               //  insert_at_nearest_distance(&mut orbit.lines, (pos.current * M_TO_UNIT).as_vec3());
                 orbit.step = 0.0;
             } else {
-                orbit.step += time.delta_seconds() * orbit.orbit_line_multiplier;
+                orbit.step += time.delta_secs() * orbit.orbit_line_multiplier;
             }
         }
     }
@@ -81,7 +81,7 @@ fn update_lines(
                     //insert_at_nearest_distance(&mut orbit.lines, raw_pos - raw_p_pos);
                     orbit.step = 0.0;
                 } else {
-                    orbit.step += time.delta_seconds() * orbit.orbit_line_multiplier;
+                    orbit.step += time.delta_secs() * orbit.orbit_line_multiplier;
                 }
             }
         }

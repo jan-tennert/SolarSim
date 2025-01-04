@@ -12,7 +12,8 @@ use anise::structure::planetocentric::ellipsoid::Ellipsoid;
 use bevy::asset::{AssetServer, Assets};
 use bevy::core::Name;
 use bevy::math::DVec3;
-use bevy::prelude::{default, BuildChildren, Color, Commands, DespawnRecursiveExt, Entity, Handle, Mat3, Mut, PointLight, PointLightBundle, Query, Res, ResMut, Resource, Scene, Srgba, Visibility, With};
+use bevy::pbr::MeshMaterial3d;
+use bevy::prelude::{default, BuildChildren, ChildBuild, Color, Commands, DespawnRecursiveExt, Entity, Handle, Mat3, Mut, PointLight, Query, Res, ResMut, Resource, Scene, Srgba, Visibility, With};
 use bevy_egui::egui::{Align, Context, Layout, ScrollArea};
 use bevy_egui::{egui, EguiContexts};
 
@@ -74,7 +75,7 @@ pub fn editor_body_panel(
     systems: Res<EditorSystems>,
     assets: Res<AssetServer>,
     mut light_query: Query<(&mut PointLight, &mut LightSource, &mut Visibility)>,
-    mut billboards: Query<(&StarBillboard, &mut Handle<SunImposterMaterial>)>,
+    mut billboards: Query<(&StarBillboard, &mut MeshMaterial3d<SunImposterMaterial>)>,
     mut materials: ResMut<Assets<SunImposterMaterial>>,
     mut toast_container: ResMut<ToastContainer>,
     scale: Res<SimulationScale>
@@ -156,7 +157,7 @@ fn display_body_panel(
     assets: &Res<AssetServer>,
     light: Option<(Mut<PointLight>, Mut<LightSource>, Mut<Visibility>)>,
     scene_query: Query<Entity, With<SceneEntity>>,
-    billboard_material: Option<&mut Handle<SunImposterMaterial>>,
+    billboard_material: Option<&mut MeshMaterial3d<SunImposterMaterial>>,
     materials: &mut ResMut<Assets<SunImposterMaterial>>,
     apply: &mut bool,
     scale: &SimulationScale,
@@ -313,7 +314,7 @@ fn display_bottom_buttons(
     assets: &Res<AssetServer>,
     light: Option<(Mut<PointLight>, Mut<LightSource>, Mut<Visibility>)>,
     scene_query: Query<Entity, With<SceneEntity>>,
-    billboard_material: Option<&mut Handle<SunImposterMaterial>>,
+    billboard_material: Option<&mut MeshMaterial3d<SunImposterMaterial>>,
     materials: &mut ResMut<Assets<SunImposterMaterial>>,
     apply: &mut bool,
     scale: &SimulationScale,
@@ -366,7 +367,7 @@ fn apply_changes(
     assets: &Res<AssetServer>,
     light: Option<(Mut<PointLight>, Mut<LightSource>, Mut<Visibility>)>,
     scene_query: Query<Entity, With<SceneEntity>>,
-    billboard_material: Option<&mut Handle<SunImposterMaterial>>,
+    billboard_material: Option<&mut MeshMaterial3d<SunImposterMaterial>>,
     materials: &mut ResMut<Assets<SunImposterMaterial>>,
     scale: &SimulationScale,
 ) {
@@ -390,7 +391,7 @@ fn apply_changes(
             let color = state.new_light_settings.unwrap().imposter_color.to_srgba();
             let mut rgb = [color.red, color.green, color.blue];
             let new_color: Color = Srgba::rgb(rgb[0] * 20.0, rgb[1] * 20.0, rgb[2] * 20.0).into();
-            let mut material = materials.get_mut(material).unwrap();
+            let mut material = materials.get_mut(material.clone()).unwrap();
             material.color = new_color.into();
         }
         light.intensity = scale_lumen(state.new_light_settings.as_ref().unwrap().intensity, scale);
@@ -404,20 +405,17 @@ fn apply_changes(
     } else if let Some(light) = state.new_light_settings.as_ref() {
         commands.entity(state.entity.unwrap()).with_children(|parent| {
             parent.spawn(LightSource::new_settings(state.entity.unwrap(), light))
-                .insert(PointLightBundle {
-                    point_light: PointLight {
-                        color: light.color,
-                        intensity: scale_lumen(light.intensity, scale),
-                        range: scale.m_to_unit_32(light.range),
-                        radius: shape.ellipsoid.mean_equatorial_radius_km() as f32,
-                        ..default()
-                    },
-                    visibility: if light.enabled {
-                        Visibility::Visible
-                    } else {
-                        Visibility::Hidden
-                    },
-                    ..Default::default()
+                .insert(PointLight {
+                    color: light.color,
+                    intensity: scale_lumen(light.intensity, scale),
+                    range: scale.m_to_unit_32(light.range),
+                    radius: shape.ellipsoid.mean_equatorial_radius_km() as f32,
+                    ..default()
+                })
+                .insert(if light.enabled {
+                    Visibility::Visible
+                } else {
+                    Visibility::Hidden
                 });
         });
     }

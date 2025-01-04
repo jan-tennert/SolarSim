@@ -30,7 +30,7 @@ fn apply_physics(
 ) {
     let start = Instant::now();
     let count = query.iter().count();
-    let delta = time.delta_seconds() as f64;
+    let delta = time.delta_secs_f64();
     let timestep = delta * speed.0;
     for _ in 0..sub_steps.0-1 {
         step(&mut query, count, timestep);

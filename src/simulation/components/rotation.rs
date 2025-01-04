@@ -66,7 +66,7 @@ fn rotate_bodies(
             
             for child in children.iter() {
                 if let Ok(mut transform) = scenes.get_mut(*child) {
-                   transform.rotation = transform.rotation * Quat::from_rotation_y(2.0 * PI * (rotations_per_day * time.delta_seconds() * speed_modifier));
+                   transform.rotation = transform.rotation * Quat::from_rotation_y(2.0 * PI * (rotations_per_day * time.delta_secs() * speed_modifier));
                 }
             }
             

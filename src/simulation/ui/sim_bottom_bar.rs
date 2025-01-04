@@ -30,7 +30,7 @@ pub fn simulation_bottom_bar(
         return;
     }
     if !pause.0 && *sim_type == SimStateType::Simulation {
-        sim_time.0 += time.delta_seconds() * (speed.0 * sub_steps.0 as f64) as f32;
+        sim_time.0 += time.delta_secs() * (speed.0 * sub_steps.0 as f64) as f32;
     }
     let date = get_date_from_seconds(scenario_data.starting_time_millis, sim_time.0);
     let mut window = windows.single_mut();

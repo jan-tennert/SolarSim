@@ -12,6 +12,7 @@ use bevy::core_pipeline::Skybox;
 use bevy::ecs::system::SystemParam;
 use bevy::input::ButtonInput;
 use bevy::prelude::{AabbGizmoConfigGroup, Camera, Commands, Entity, GizmoConfigStore, KeyCode, NextState, Query, Res, ResMut, Visibility, With, Without};
+use bevy::utils::default;
 use bevy_egui::egui::{Align, Layout, ScrollArea, Ui};
 use bevy_egui::{egui, EguiContexts};
 use bevy_panorbit_camera::PanOrbitCamera;
@@ -172,7 +173,7 @@ pub fn system_panel(
                             system_panel_set.commands.entity(entity).remove::<Skybox>();
                             system_panel_set.cubemap.activated = false;
                         } else if !skybox_enabled && skybox_setting {
-                            system_panel_set.commands.entity(entity).insert(Skybox { image: system_panel_set.cubemap.image_handle.clone(), brightness: 1000.0 });
+                            system_panel_set.commands.entity(entity).insert(Skybox { image: system_panel_set.cubemap.image_handle.clone(), brightness: 1000.0, ..default() });
                             system_panel_set.cubemap.activated = true;
                         }
 

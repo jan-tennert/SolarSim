@@ -15,7 +15,7 @@ use anise::structure::PlanetaryDataSet;
 use bevy::app::Plugin;
 use bevy::math::DVec3;
 use bevy::prelude::{IntoSystemConfigs, Name, Query, Res, ResMut, Resource, State, Update};
-use bevy_async_task::{AsyncTaskPool, AsyncTaskStatus};
+use bevy_async_task::AsyncTaskPool;
 use std::fs;
 
 enum AlmanacType {
@@ -136,9 +136,9 @@ fn spk_file_loading(
         }
     }
     for status in task_pool.iter_poll() {
-        if let AsyncTaskStatus::Finished(t) = status {
+        if let std::task::Poll::Ready(t) = status {
             match t {
-                Ok(AlmanacType::SPK(daf, path)) => {
+                Ok(Ok(AlmanacType::SPK(daf, path))) => {
                     let spk = almanac.0.with_spk(daf);
                     if let Ok(s) = spk {
                         scenario_data.spice_files.insert(path, true);
@@ -147,13 +147,14 @@ fn spk_file_loading(
                         toasts.0.add(error_toast(format!("Couldn't load SPICE file: {:?}", e).as_str()));
                     }
                 }
-                Ok(AlmanacType::PCA(set, path)) => {
+                Ok(Ok(AlmanacType::PCA(set, path))) => {
                     almanac.0 = almanac.0.with_planetary_data(set);
                     scenario_data.spice_files.insert(path, true);
                 }
                 Err(e) => {
-                    toasts.0.add(error_toast(format!("Couldn't load SPICE file: {:?}", e.0).as_str()));
+                    toasts.0.add(error_toast(format!("Couldn't load SPICE file: {:?}", e.to_string()).as_str()));
                 }
+                _ => {}
             }
             loading_state.spice_loaded += 1;
         }
