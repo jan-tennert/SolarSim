@@ -165,6 +165,8 @@ fn show_menu(
 ) {
     CentralPanel::default()
         .show(&egui_context.ctx_mut().clone(), |ui| {
+            egui::ScrollArea::vertical().show(ui, |ui| {
+
             ui.horizontal(|ui| {
                 ui.heading("Scenario Selection");
                 ui.separator();
@@ -214,6 +216,7 @@ fn show_menu(
                                 ui.with_layout(Layout::left_to_right(Align::BOTTOM), |ui| {
                                     let loading_button = ui.button("Load").on_hover_text("Load scenario");
                                     let edit_button = ui.button("Edit").on_hover_text("Edit scenario in editor");
+                                    let duplicate_button = ui.button("Duplicate").on_hover_text("Duplicate scenario");
                                     if let Some(delete_confirm) = &selection_state.delete_confirm {
                                         if delete_confirm == file_name.clone() {
                                             ui.label("Are you sure you want to delete this scenario?");
@@ -233,7 +236,10 @@ fn show_menu(
                                             selection_state.delete_confirm = Some(file_name.to_string());
                                         }
                                     }
-                                    if loading_button.clicked() {
+                                    if duplicate_button.clicked() {
+                                        duplicate_scenario(scenario.clone(), file_name.to_string());
+                                    }
+                                    else if loading_button.clicked() {
                                         select_scenario(&mut selected_scenario, &mut sim_state, &mut sim_state_type, &mut scale, &mut speed, scenario, typed_handle, SimStateType::Simulation);
                                     } else if edit_button.clicked() {
                                         select_scenario(&mut selected_scenario, &mut sim_state, &mut sim_state_type, &mut scale, &mut speed, scenario, typed_handle, SimStateType::Editor);
@@ -245,6 +251,7 @@ fn show_menu(
                     }
                 }
             }
+            });
         });
 }
 
@@ -277,4 +284,15 @@ fn create_scenario(
 ) {
     fs::write(format!("scenarios/{}.sim", file_name), serde_json::to_string(&initial_data).unwrap()).unwrap();
     fs::copy(&image_path, format!("scenarios/{}.png", file_name)).unwrap();
+}
+
+fn duplicate_scenario(
+    simulation_data: SimulationData,
+    file_name: String
+) {
+    let mut new_scenario = simulation_data.clone();
+    new_scenario.title = format!("Copy of {}", new_scenario.title);
+    fs::write(format!("scenarios/copy_{}", file_name), serde_json::to_string(&new_scenario).unwrap()).unwrap();
+    let actual_image_path = file_name.replace("sim", "png");
+    fs::copy(format!("scenarios/{}", actual_image_path), format!("scenarios/copy_{}", actual_image_path)).unwrap();
 }
