@@ -1,5 +1,5 @@
-use crate::simulation::asset::serialization::SimulationData;
 use crate::simulation::asset::from_scenario_source;
+use crate::simulation::asset::serialization::SimulationData;
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::components::speed::Speed;
 use crate::simulation::integration::IntegrationType;
@@ -20,7 +20,7 @@ impl Plugin for ScenarioSelectionPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<SelectedScenario>()
-            .init_resource::<SelectionState>()
+            .insert_resource(SelectionState { auto_load_spk: true, ..Default::default() })
             .add_systems(OnEnter(SimState::ScenarioSelection), load_scenarios)
             .add_systems(Update, (creation_sidebar, show_menu).chain().run_if(in_state(SimState::ScenarioSelection)));
     }
@@ -41,6 +41,7 @@ pub struct SelectedScenario {
 pub struct SelectionState {
 
     pub show_creation: bool,
+    pub auto_load_spk: bool,
     pub title: String,
     pub description: String,
     pub file_name: String,
@@ -182,6 +183,8 @@ fn show_menu(
                 if new_integrator != **integrator {
                     next_integrator.set(new_integrator);
                 }
+                ui.separator();
+                ui.checkbox(&mut selection_state.auto_load_spk, "Auto load SPK files");
             });
             ui.separator();
             if let Some(loaded_folder) = folders.get(&scenario_folder.0) {

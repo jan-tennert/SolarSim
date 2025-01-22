@@ -4,7 +4,7 @@ use crate::simulation::components::body::{BodyChildren, BodyParent, BodyShape, M
 use crate::simulation::components::horizons::AniseMetadata;
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::components::selection::SelectedEntity;
-use crate::simulation::scenario::setup::ScenarioData;
+use crate::simulation::scenario::setup::scenario::ScenarioData;
 use crate::simulation::ui::{SimTime, UiState};
 use crate::simulation::units::text_formatter::{format_length, format_seconds};
 use anise::constants::orientations::J2000;

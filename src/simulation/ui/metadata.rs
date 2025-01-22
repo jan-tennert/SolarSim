@@ -9,7 +9,7 @@ use crate::simulation::units::text_formatter::format_seconds;
 use crate::utils::sim_state_type_editor;
 use anise::almanac::Almanac;
 use bevy::app::{App, Plugin, Update};
-use bevy::prelude::{IntoSystemConfigs, ResMut, Resource};
+use bevy::prelude::{IntoSystemConfigs, Local, ResMut, Resource};
 use bevy_async_task::AsyncTaskRunner;
 use bevy_egui::egui::{Button, ComboBox};
 use bevy_egui::{egui, EguiContexts};
@@ -48,7 +48,8 @@ fn metadata_editor(
     mut toasts: ResMut<ToastContainer>,
     mut almanac_holder: ResMut<AlmanacHolder>,
     mut task_executor: AsyncTaskRunner<Result<(Almanac, String), String>>,
-    mut loading_state: ResMut<LoadingState>
+    mut loading_state: ResMut<LoadingState>,
+    mut loading: Local<bool>
 ) {
     let mut show = state.show;
     let mut selected_spk_file = state.selected_spk_file.clone();
@@ -65,7 +66,7 @@ fn metadata_editor(
             edit_basic_info(ui, &mut scenario_data);
             edit_starting_time(ui, &mut scenario_data);
             edit_simulation_settings(ui, &mut scale, &mut speed);
-            edit_spk_files(ui, &mut scenario_data, &mut selected_spk_file, &mut new_spk_file, &mut toasts, &mut almanac_holder, &mut task_executor, &mut loading_state);
+            edit_spk_files(ui, &mut scenario_data, &mut selected_spk_file, &mut new_spk_file, &mut toasts, &mut almanac_holder, &mut task_executor, &mut loading_state, &mut loading);
         });
 
     state.show = show;
@@ -132,27 +133,31 @@ fn edit_spk_files(
     toasts: &mut ToastContainer,
     almanac_holder: &mut AlmanacHolder,
     task_executor: &mut AsyncTaskRunner<Result<(Almanac, String), String>>,
-    loading_state: &mut ResMut<LoadingState>
+    loading_state: &mut ResMut<LoadingState>,
+    loading: &mut bool
 ) {
-    let mut loading = false;
-    match task_executor.poll() {
-        Poll::Pending => {
-            loading = true;
-        }
-        Poll::Ready(v) => {
-            match v {
-                Ok(Ok((almanac, name))) => {
-                    scenario_data.spice_files.insert(name, true);
-                    almanac_holder.0 = almanac;
-                    toasts.0.add(success_toast("SPICE file loaded"));
+    if !task_executor.is_idle() {
+        match task_executor.poll() {
+            Poll::Pending => {
+                *loading = true;
+            }
+            Poll::Ready(v) => {
+                *loading = false;
+                match v {
+                    Ok(Ok((almanac, name))) => {
+                        scenario_data.spice_files.insert(name, true);
+                        almanac_holder.0 = almanac;
+                        toasts.0.add(success_toast("SPICE file loaded"));
+                    }
+                    Err(e) => {
+                        toasts.0.add(error_toast(format!("Couldn't load SPICE file: {}", e).as_str()));
+                    }
+                    Ok(Err(e)) => {
+                        toasts.0.add(error_toast(format!("Couldn't load SPICE file: {}", e).as_str()));
+                    }
                 }
-                Err(e) => {
-                    toasts.0.add(error_toast(format!("Couldn't load SPICE file: {}", e).as_str()));
-                }
-                _ => {}
             }
         }
-        _ => {}
     }
     ui.heading("SPICE Files");
     ui.horizontal(|ui| {
@@ -160,10 +165,12 @@ fn edit_spk_files(
         if selected.is_empty() {
             selected = "None".to_string();
         }
-        ui.label("Loaded SPICE Files:");
+        ui.label("Added SPICE Files:");
         ComboBox::from_label("").selected_text(selected).show_ui(ui, |ui| {
             for (path, loaded) in scenario_data.spice_files.clone() {
-                ui.selectable_value(selected_spice_file, path.clone(), format!("{} ({})", path, if loaded { "Loaded" } else { "Not Loaded" }));
+                if ui.selectable_value(selected_spice_file, path.clone(), format!("{} ({})", path, if loaded { "Loaded" } else { "Not Loaded" })).clicked() {
+                    *new_spice_file = selected_spice_file.clone();
+                }
             }
         });
         if ui.button("Remove").on_hover_text("Remove selected SPICE file").clicked() {
@@ -185,15 +192,16 @@ fn edit_spk_files(
                 },
             }
         }
-        let loading_button = ui.add_enabled(!loading && loading_state.loaded_spice_files, Button::new("Load SPICE File"));
+        let loading_button = ui.add_enabled(!*loading && loading_state.loaded_spice_files, Button::new("Load SPICE File"));
         if loading_button.clicked() {
             task_executor.start(load_scenario_file(scenario_data.clone(), new_spice_file.clone(), almanac_holder.0.clone()));
+            *loading = true;
         }
-        let reload_button = ui.add_enabled(!loading && loading_state.loaded_spice_files, Button::new("Reload SPICE Files"));
+        let reload_button = ui.add_enabled(!*loading && loading_state.loaded_spice_files, Button::new("Reload SPICE Files"));
         if reload_button.clicked() {
             loading_state.reload_spice_files();
         }
-        if loading || !loading_state.loaded_spice_files {
+        if *loading || !loading_state.loaded_spice_files {
             ui.spinner();
         }
     });
@@ -220,8 +228,6 @@ async fn load_scenario_file(
     if !fs::exists(&data_path).unwrap_or(false) {
         copied = true;
         fs::copy(new_spk_file.clone(), &data_path).map_err(|_| "Failed to copy file".to_string())?;
-    } else if scenario_data.spice_files.contains_key(&file_name) {
-        return Err("SPICE file already added".to_string());
     }
     match load_spk(data_path.clone(), &almanac) {
         Ok(almanac) => {

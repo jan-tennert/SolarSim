@@ -29,7 +29,8 @@ pub struct LoadingState {
     pub spice_loaded: i32,
     pub spice_total: i32,
     pub loaded_spice_files: bool,
-    pub spawned_bodies: bool
+    pub spawned_bodies: bool,
+    pub force_reload: bool
 
 }
 
@@ -49,6 +50,7 @@ impl LoadingState {
     pub fn reload_spice_files(&mut self) {
         self.spice_loaded = 0;
         self.spice_total = 0;
+        self.force_reload = true;
         self.loaded_spice_files = false;
     }
 

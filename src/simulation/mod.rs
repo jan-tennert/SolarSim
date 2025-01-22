@@ -12,7 +12,7 @@ pub mod ui;
 pub mod components;
 pub mod asset;
 pub mod units;
-pub(crate) mod scenario;
+pub mod scenario;
 pub mod integration;
 
 #[derive(Clone, Eq, PartialEq, Debug, Default, Hash, Resource)]

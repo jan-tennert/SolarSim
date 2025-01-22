@@ -210,17 +210,17 @@ pub struct BodyBundle {
 
 }
 
-impl From<SerializedBody> for BodyBundle {
+impl BodyBundle {
     
-    fn from(value: SerializedBody) -> Self {
+    pub fn from_serialized(value: &SerializedBody) -> Self {
         BodyBundle {
             mass: Mass(value.data.mass),
             sim_position: SimPosition::new(DVec3::from(value.data.starting_position) * 1000.0),
             vel: Velocity(DVec3::from(value.data.starting_velocity) * 1000.0),
-            name: Name::new(value.data.name),
+            name: Name::new(value.data.name.clone()),
             model_path: ModelPath(format!("models/{}#Scene0", value.data.model_path)),
             diameter: BodyShape {
-                path: value.data.model_path,
+                path: value.data.model_path.clone(),
                 ellipsoid: value.data.ellipsoid,
                 ..default()
             },

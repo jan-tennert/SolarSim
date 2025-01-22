@@ -1,7 +1,7 @@
 use crate::simulation::components::lock_on::LockOn;
 use crate::simulation::components::speed::Speed;
 use crate::simulation::integration::{Pause, SubSteps};
-use crate::simulation::scenario::setup::ScenarioData;
+use crate::simulation::scenario::setup::scenario::ScenarioData;
 use crate::simulation::ui::bottom_bar::get_date_from_seconds;
 use crate::simulation::ui::{SimTime, StepType, UiState};
 use crate::simulation::{SimState, SimStateType};

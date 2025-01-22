@@ -6,14 +6,14 @@ use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::components::shape::apply_real_diameter;
 use crate::simulation::render::star_billboard::SunImposterMaterial;
 use crate::simulation::scenario::save_scenario::save_scenario;
-use crate::simulation::scenario::setup::apply_body;
+use crate::simulation::scenario::setup::scenario::apply_body;
 use crate::simulation::SimState;
 use crate::utils::sim_state_type_editor;
 use bevy::app::{App, Plugin};
 use bevy::color::palettes::css::WHITE;
 use bevy::ecs::observer::TriggerTargets;
 use bevy::ecs::system::SystemId;
-use bevy::prelude::{AssetServer, Assets, Commands, Entity, FromWorld, IntoSystemConfigs, Local, Mesh, OnEnter, Query, Res, ResMut, Resource, SpatialBundle, Transform, Update, Vec3, World};
+use bevy::prelude::{AssetServer, Assets, Commands, Entity, FromWorld, IntoSystemConfigs, Local, Mesh, OnEnter, Query, Res, ResMut, Resource, Transform, Update, Vec3, Visibility, World};
 use std::collections::HashMap;
 
 #[non_exhaustive]
@@ -43,6 +43,18 @@ pub enum CreateBodyType {
     Moon,
     Planet,
     Star
+}
+
+impl CreateBodyType {
+
+    pub fn from_depth(depth: usize) -> Self {
+        match depth {
+            0 => CreateBodyType::Star,
+            1 => CreateBodyType::Planet,
+            _ => CreateBodyType::Moon
+        }
+    }
+
 }
 
 impl FromWorld for EditorSystems {
@@ -110,7 +122,7 @@ fn create_empty_body(
     mut index: Local<i32>,
     scale: Res<SimulationScale>
 ) {
-    let mut entity_commands = commands.spawn(SpatialBundle::default());
+    let mut entity_commands = commands.spawn((Transform::default(), Visibility::default()));
     apply_body(
         BodyBundle::empty(*index),
         create_body_state.body_type.clone(),

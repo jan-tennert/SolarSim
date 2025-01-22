@@ -4,7 +4,7 @@ use crate::simulation::components::horizons::AniseMetadata;
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::render::star_billboard::{StarBillboard, SunImposterMaterial};
-use crate::simulation::scenario::setup::spawn_scene;
+use crate::simulation::scenario::setup::scenario::spawn_scene;
 use crate::simulation::ui::components::vector_field;
 use crate::simulation::ui::toast::{success_toast, ToastContainer};
 use crate::simulation::units::converter::{km_to_m_dvec, m_to_km_dvec, scale_lumen};

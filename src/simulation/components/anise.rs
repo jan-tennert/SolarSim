@@ -3,6 +3,7 @@ use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::scenario::loading::LoadingState;
 use crate::simulation::scenario::setup::ScenarioData;
 use crate::simulation::ui::editor_body_panel::EditorPanelState;
+use crate::simulation::ui::scenario_selection::SelectionState;
 use crate::simulation::ui::toast::{error_toast, success_toast, ToastContainer};
 use crate::simulation::{SimState, SimStateType};
 use anise::constants::frames::SSB_J2000;
@@ -112,13 +113,15 @@ fn spk_file_loading(
     mut scenario_data: ResMut<ScenarioData>,
     mut loading_state: ResMut<LoadingState>,
     mut task_pool: AsyncTaskPool<Result<AlmanacType, Error>>,
-    sim_type: Res<SimStateType>
+    sim_type: Res<SimStateType>,
+    selection_state: Res<SelectionState>,
 ) {
     if loading_state.loaded_spice_files || !loading_state.spawned_bodies {
         return;
     }
-    if *sim_type != SimStateType::Editor || scenario_data.spice_files.is_empty() || (loading_state.spice_loaded > 0 && loading_state.spice_loaded == loading_state.spice_total) {
+    if *sim_type != SimStateType::Editor || scenario_data.spice_files.is_empty() || (loading_state.spice_loaded > 0 && loading_state.spice_loaded == loading_state.spice_total) || (!selection_state.auto_load_spk && !loading_state.force_reload) {
         loading_state.loaded_spice_files = true;
+        loading_state.force_reload = false;
         return;
     }
     if task_pool.is_idle() && loading_state.spice_total == 0 {
