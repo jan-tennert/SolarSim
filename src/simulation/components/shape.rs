@@ -43,7 +43,7 @@ pub fn apply_real_diameter(
     }
     for (children, name, handle, mut shape, mut transform) in &mut bodies {
         let load_state = asset_server.get_load_state(&handle.0).unwrap_or(LoadState::NotLoaded);
-        if shape.applied || load_state.is_loaded() {
+        if shape.applied || !load_state.is_loaded() {
             if !shape.applied {
                 match asset_server.get_load_state(&handle.0) {
                     None => {}

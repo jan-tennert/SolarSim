@@ -141,18 +141,15 @@ fn edit_spk_files(
         }
         Poll::Ready(v) => {
             match v {
-                Ok(e) => {
-                    if let Ok((almanac, name)) = e {
-                        scenario_data.spice_files.insert(name, true);
-                        almanac_holder.0 = almanac;
-                        toasts.0.add(success_toast("SPICE file loaded"));
-                    } else {
-                        toasts.0.add(error_toast("Failed to load SPICE file"));
-                    }
+                Ok(Ok((almanac, name))) => {
+                    scenario_data.spice_files.insert(name, true);
+                    almanac_holder.0 = almanac;
+                    toasts.0.add(success_toast("SPICE file loaded"));
                 }
                 Err(e) => {
                     toasts.0.add(error_toast(format!("Couldn't load SPICE file: {}", e).as_str()));
                 }
+                _ => {}
             }
         }
         _ => {}

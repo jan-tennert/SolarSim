@@ -75,7 +75,7 @@ fn main() {
                 ..default()
             })
         )
-    //    .add_plugins(WorldInspectorPlugin::default())
+      //  .add_plugins(WorldInspectorPlugin::default())
         .add_plugins(EditorPlugin)
         .add_plugins(SimulationPlugin)
         .add_plugins(EguiPlugin)

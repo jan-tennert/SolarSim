@@ -23,7 +23,7 @@ use bevy::pbr::{MeshMaterial3d, PointLight};
 use bevy::prelude::{default, in_state, Assets, Camera, Camera3d, ChildBuild, ChildBuilder, Circle, Color, Commands, Entity, Handle, Hsva, IntoSystemConfigs, JustifyText, Mesh, Mesh3d, NextState, PerspectiveProjection, Projection, Query, Res, ResMut, Resource, Srgba, StandardMaterial, Startup, TextFont, Transform, Update, Visibility};
 use bevy::render::view::{GpuCulling, NoCpuCulling};
 use bevy::scene::{Scene, SceneRoot};
-use bevy::text::TextLayout;
+use bevy::text::{TextColor, TextLayout};
 use bevy_mod_billboard::BillboardText;
 use bevy_panorbit_camera::PanOrbitCamera;
 use std::collections::HashMap;
@@ -319,6 +319,7 @@ fn spawn_billboard(
             Visibility::Visible,
             TextLayout::new_with_justify(JustifyText::Center),
             TextFont::from_font_size(60.0),
+            TextColor(color)
         )
 
     )
