@@ -1,6 +1,6 @@
-use std::path::Path;
-use bevy::asset::AssetPath;
 use bevy::asset::io::AssetSourceId;
+use bevy::asset::AssetPath;
+use std::path::Path;
 
 pub mod serialization;
 mod default_values;

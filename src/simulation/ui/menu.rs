@@ -44,7 +44,7 @@ fn setup_background(
     mut commands: Commands, 
     asset_server: Res<AssetServer>,
     mut state: ResMut<NextState<SimState>>,
-    mut egui_context: EguiContexts
+    egui_context: EguiContexts
 ) {
     commands
         .spawn(Node {
@@ -130,10 +130,10 @@ fn button_system(
         (Changed<Interaction>, With<Button>),
     >,
     mut state: ResMut<NextState<SimState>>,
-    mut sim_type: ResMut<SimStateType>,
+    sim_type: ResMut<SimStateType>,
     mut exit: EventWriter<AppExit>
 ) {
-    for (interaction, mut color, mut border_color, button) in &mut interaction_query {
+    for (interaction, mut color, border_color, button) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
                 match button.0 {

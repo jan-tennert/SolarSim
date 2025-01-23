@@ -1,7 +1,7 @@
-use bevy::{input::InputSystem, prelude::{KeyCode, MouseButton, Plugin, Res, ResMut, Resource}};
 use bevy::app::{PostUpdate, PreUpdate};
 use bevy::prelude::{ButtonInput, IntoSystemConfigs};
-use bevy_egui::{EguiContexts, EguiSet};
+use bevy::{input::InputSystem, prelude::{KeyCode, MouseButton, Plugin, Res, ResMut, Resource}};
+use bevy_egui::{EguiContexts, EguiPostUpdateSet};
 
 //Block input when hovering over egui interfaces
 
@@ -21,7 +21,7 @@ impl Plugin for BlockInputPlugin {
         .add_systems(PreUpdate, egui_block_input.after(InputSystem))
         .add_systems(
             PostUpdate,
-            egui_wants_input.after(EguiSet::ProcessOutput),
+            egui_wants_input.after(EguiPostUpdateSet::ProcessOutput),
         );
     }
     

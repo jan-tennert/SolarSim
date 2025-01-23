@@ -59,7 +59,7 @@ pub fn retrieve_starting_data(
 ) {
     // Define an Epoch in the dynamical barycentric time scale
     let epoch = Epoch::from_unix_milliseconds(scenario.starting_time_millis as f64);
-    let (mut metadata, name) = selected_entity.entity.map(|e| bodies.get_mut(e).ok()).flatten().unwrap();
+    let (metadata, name) = selected_entity.entity.map(|e| bodies.get_mut(e).ok()).flatten().unwrap();
     let state = almanac.0
         .translate(
             Frame::new(metadata.ephemeris_id, J2000), // Target
@@ -127,7 +127,7 @@ fn spk_file_loading(
     if task_pool.is_idle() && loading_state.spice_total == 0 {
         loading_state.spice_total = scenario_data.spice_files.iter().count() as i32;
         almanac.0 = Almanac::default();
-        for (path, mut loaded) in &mut scenario_data.spice_files {
+        for (path, loaded) in &mut scenario_data.spice_files {
             *loaded = false;
             if path.ends_with(".bsp") {
                 task_pool.spawn(load_spk(path.clone()));

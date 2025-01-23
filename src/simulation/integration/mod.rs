@@ -138,7 +138,7 @@ fn update_positions_after_pos_update(
 ) {
     let offset = match selected_entity.entity { //if orbit_offset.enabled is true, we calculate the new position of the selected entity first and then move it to 0,0,0 and add the actual position to all other bodies
         Some(selected) => {
-            if let Ok((_, mass, mut acc, mut orbit_s, mut vel, mut sim_pos, mut transform)) = query.get_mut(selected) {
+            if let Ok((_, mass, acc, mut orbit_s, vel, sim_pos, mut transform)) = query.get_mut(selected) {
                 if orbit_s.display_force {
                     orbit_s.force_direction = acc.0.normalize();
                 }
@@ -151,7 +151,7 @@ fn update_positions_after_pos_update(
         }
         None => DVec3::ZERO
     };
-    for (entity, _, mut acc, mut orbit_s, mut vel, mut sim_pos, mut transform) in query.iter_mut() {
+    for (entity, _, acc, mut orbit_s, vel, sim_pos, mut transform) in query.iter_mut() {
         if let Some(s_entity) = selected_entity.entity {
             if s_entity == entity {
                 continue;

@@ -3,7 +3,7 @@ use crate::simulation::input::SimInputPlugin;
 use crate::simulation::render::SimRenderPlugin;
 use crate::simulation::ui::InterfacePlugin;
 use bevy::app::{App, Plugin};
-use bevy::prelude::{AppExtStates, States, SubStates, *};
+use bevy::prelude::{AppExtStates, States, *};
 use scenario::loading::LoadingPlugin;
 
 pub mod input;

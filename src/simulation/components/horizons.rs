@@ -1,16 +1,15 @@
-use std::error::Error;
 use crate::simulation::asset::serialization::SerializedVec;
-use bevy::utils::HashMap;
-use reqwest::blocking::Client;
-use std::str::FromStr;
-use anise::structure::planetocentric::ellipsoid::Ellipsoid;
-use bevy::math::DVec3;
-use bevy::prelude::{Component, Plugin, Query, Res, ResMut, Resource};
-use chrono::NaiveDateTime;
-use crate::simulation::scenario::setup::ScenarioData;
 use crate::simulation::components::selection::SelectedEntity;
+use crate::simulation::scenario::setup::ScenarioData;
 use crate::simulation::ui::editor_body_panel::EditorPanelState;
 use crate::simulation::ui::toast::{error_toast, success_toast, ToastContainer};
+use bevy::math::DVec3;
+use bevy::prelude::{Component, Plugin, Query, Res, ResMut, Resource};
+use bevy::utils::HashMap;
+use chrono::DateTime;
+use reqwest::blocking::Client;
+use std::error::Error;
+use std::str::FromStr;
 
 pub struct HorizonsPlugin;
 
@@ -153,7 +152,7 @@ pub fn retrieve_starting_data_horizons(
     mut toasts: ResMut<ToastContainer>
 ) {
     if let Some(entity) = selected_entity.entity {
-        let starting_date = NaiveDateTime::from_timestamp_millis(scenario.starting_time_millis).unwrap().date();
+        let starting_date = DateTime::from_timestamp_millis(scenario.starting_time_millis).unwrap().date_naive();
         let start_date = starting_date.format("%Y-%m-%d").to_string();
         let stop_date = (starting_date + chrono::Duration::days(1)).format("%Y-%m-%d").to_string();
         let id = bodies.get(entity).unwrap();

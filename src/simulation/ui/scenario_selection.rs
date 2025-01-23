@@ -192,7 +192,7 @@ fn show_menu(
             if let Some(loaded_folder) = folders.get(&scenario_folder.0) {
                 for handle in loaded_folder.handles.clone() {
                     let path = handle.path().unwrap().path();
-                    let file_name = path.file_name().unwrap().to_str().unwrap().clone();
+                    let file_name = path.file_name().unwrap().to_str().unwrap();
                     if !file_name.ends_with(".sim") {
                         continue;
                     }

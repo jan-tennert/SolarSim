@@ -3,7 +3,7 @@ use crate::simulation::integration::{Pause, SubSteps};
 use crate::simulation::ui::{StepType, UiState};
 use bevy::prelude::{ButtonInput, KeyCode, MonitorSelection, Query, Res, ResMut, Vec3, Window};
 use bevy::window::WindowMode;
-use bevy_egui::{egui, EguiContexts, EguiSettings};
+use bevy_egui::{egui, EguiContextSettings, EguiContexts};
 use bevy_panorbit_camera::PanOrbitCamera;
 
 pub fn key_window(
@@ -17,7 +17,7 @@ pub fn key_window(
         .open(&mut ui_state.show_keys)
         .collapsible(true)
         .constrain(true)
-        .scroll2([true, true])
+        .scroll([true, true])
         .default_width(250.0)
         .show(egui_ctx.ctx_mut(), |ui| {
             ui.label("F11 - Toggle Fullscreen");
@@ -56,7 +56,7 @@ pub fn sim_input_system(
     mut pause: ResMut<Pause>,
     mut speed: ResMut<Speed>,
     mut sub_steps: ResMut<SubSteps>,
-    mut egui_settings: Query<&mut EguiSettings>,
+    mut egui_settings: Query<&mut EguiContextSettings>,
 ) {
     let timestep_selected = match ui_state.step_type {
         StepType::SUBSTEPS => false,

@@ -7,7 +7,6 @@ use bevy::color::Color;
 use bevy::core::Name;
 use bevy::math::{DVec3, Mat3, Vec3};
 use bevy::prelude::{default, Bundle, Component, Entity, Handle, Reflect, Scene, Srgba, Transform};
-use bevy::render::primitives::Aabb;
 use std::collections::VecDeque;
 
 #[derive(Component, Clone, Default, Reflect, Copy)]

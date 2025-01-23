@@ -38,7 +38,7 @@ fn debug_window(
         .open(&mut ui_state.show_debug)
         .collapsible(true)
         .constrain(true)
-        .scroll2([true, true])
+        .scroll([true, true])
         .default_width(250.0)
         .show(egui_ctx.ctx_mut(), |ui| {
             if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {

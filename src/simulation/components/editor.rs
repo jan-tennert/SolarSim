@@ -11,7 +11,6 @@ use crate::simulation::SimState;
 use crate::utils::sim_state_type_editor;
 use bevy::app::{App, Plugin};
 use bevy::color::palettes::css::WHITE;
-use bevy::ecs::observer::TriggerTargets;
 use bevy::ecs::system::SystemId;
 use bevy::prelude::{AssetServer, Assets, Commands, Entity, FromWorld, IntoSystemConfigs, Local, Mesh, OnEnter, Query, Res, ResMut, Resource, Transform, Update, Vec3, Visibility, World};
 use std::collections::HashMap;

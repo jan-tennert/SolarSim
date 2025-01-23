@@ -1,5 +1,5 @@
-use bevy::math::DVec3;
 use crate::simulation::components::scale::SimulationScale;
+use bevy::math::DVec3;
 
 pub fn scale_lumen(lumen: f32, scale: &SimulationScale) -> f32 {
     scale.squared().0 * lumen

@@ -1,6 +1,6 @@
-use bevy::app::{Plugin, Update};
 use crate::simulation::render::skybox::SkyboxPlugin;
 use crate::simulation::render::star_billboard::StarBillboardPlugin;
+use bevy::app::Plugin;
 
 pub mod star_billboard;
 pub mod skybox;

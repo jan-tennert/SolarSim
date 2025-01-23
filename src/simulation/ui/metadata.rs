@@ -59,7 +59,7 @@ fn metadata_editor(
         .open(&mut show)
         .collapsible(true)
         .constrain(true)
-        .scroll2([true, true])
+        .scroll([true, true])
         .auto_sized()
         .show(egui_context.ctx_mut(), |ui| {
             ui.heading("Basic Information");
@@ -87,7 +87,7 @@ fn edit_basic_info(ui: &mut egui::Ui, scenario_data: &mut ScenarioData) {
 
 fn edit_starting_time(ui: &mut egui::Ui, scenario_data: &mut ScenarioData) {
     let current_date = get_date_from_seconds(scenario_data.starting_time_millis, 0.0);
-    let mut new_date = current_date.clone().date();
+    let mut new_date = current_date.clone().date_naive();
     ui.horizontal(|ui| {
         ui.label("Starting Date");
         ui.add(DatePickerButton::new(&mut new_date));
@@ -107,8 +107,8 @@ fn edit_starting_time(ui: &mut egui::Ui, scenario_data: &mut ScenarioData) {
         ui.add(egui::DragValue::new(&mut second).range(0..=59));
     });
     let changed_date = new_date.and_time(NaiveTime::from_hms_opt(hour, minute, second).unwrap());
-    if changed_date != current_date {
-        scenario_data.starting_time_millis = changed_date.timestamp_millis();
+    if changed_date != current_date.naive_utc() {
+        scenario_data.starting_time_millis = changed_date.and_utc().timestamp_millis();
     }
 }
 
@@ -194,7 +194,7 @@ fn edit_spk_files(
         }
         let loading_button = ui.add_enabled(!*loading && loading_state.loaded_spice_files, Button::new("Load SPICE File"));
         if loading_button.clicked() {
-            task_executor.start(load_scenario_file(scenario_data.clone(), new_spice_file.clone(), almanac_holder.0.clone()));
+            task_executor.start(load_scenario_file(new_spice_file.clone(), almanac_holder.0.clone()));
             *loading = true;
         }
         let reload_button = ui.add_enabled(!*loading && loading_state.loaded_spice_files, Button::new("Reload SPICE Files"));
@@ -208,7 +208,6 @@ fn edit_spk_files(
 }
 
 async fn load_scenario_file(
-    scenario_data: ScenarioData,
     new_spk_file: String,
     almanac: Almanac
 ) -> Result<(Almanac, String), String> {
@@ -233,7 +232,7 @@ async fn load_scenario_file(
         Ok(almanac) => {
             Ok((almanac, file_name))
         },
-        Err(e) => {
+        Err(_) => {
             if copied {
                 fs::remove_file(data_path).map_err(|_| "Failed to remove file".to_string())?;
             }

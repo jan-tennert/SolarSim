@@ -31,7 +31,7 @@ fn apply_physics(
     time: Res<Time>,
     speed: Res<Speed>,
     selected_entity: Res<SelectedEntity>,
-    mut orbit_offset: ResMut<OrbitOffset>,
+    orbit_offset: ResMut<OrbitOffset>,
     sub_steps: Res<SubSteps>,
     mut diagnostics: Diagnostics,
     scale: Res<SimulationScale>,
@@ -77,7 +77,7 @@ fn update_velocity_and_positions(
     delta_time: f64,
     speed: &Res<Speed>,
 ) {
-    for (entity, mass, mut acc, mut orbit_s, mut vel, mut sim_pos, mut transform) in query.iter_mut() {
+    for (entity, mass, mut acc, mut orbit_s, mut vel, mut sim_pos, transform) in query.iter_mut() {
         orbit_s.force_direction = acc.0.normalize();
         acc.0 /= mass.0; //actually apply the force to the body
         vel.0 += acc.0 * delta_time * speed.0;

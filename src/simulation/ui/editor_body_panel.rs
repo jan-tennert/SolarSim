@@ -259,7 +259,7 @@ fn rotation_matrix(ui: &mut egui::Ui, state: &mut EditorPanelState) {
 
 fn display_light_source(ui: &mut egui::Ui, state: &mut EditorPanelState) {
     ui.heading("Light Source");
-    if let Some(mut light) = state.new_light_settings.as_mut() {
+    if let Some(light) = state.new_light_settings.as_mut() {
         ui.horizontal(|ui| {
             ui.label("Intensity (Lm)");
             ui.add(egui::DragValue::new(&mut light.intensity));
@@ -389,9 +389,9 @@ fn apply_changes(
         light.color = state.new_light_settings.as_ref().unwrap().color;
         if let Some(material) = billboard_material {
             let color = state.new_light_settings.unwrap().imposter_color.to_srgba();
-            let mut rgb = [color.red, color.green, color.blue];
+            let rgb = [color.red, color.green, color.blue];
             let new_color: Color = Srgba::rgb(rgb[0] * 20.0, rgb[1] * 20.0, rgb[2] * 20.0).into();
-            let mut material = materials.get_mut(material.clone()).unwrap();
+            let material = materials.get_mut(material.clone()).unwrap();
             material.color = new_color.into();
         }
         light.intensity = scale_lumen(state.new_light_settings.as_ref().unwrap().intensity, scale);

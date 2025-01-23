@@ -1,13 +1,8 @@
-use crate::simulation::components::body::{BodyChildren, BodyParent, Moon, Planet, SimPosition, Star, Velocity};
-use crate::simulation::components::horizons::AniseMetadata;
+use crate::simulation::components::body::{BodyChildren, Moon, Planet, SimPosition, Star};
 use crate::simulation::integration::{paused, SimulationStep};
-use crate::simulation::scenario::setup::ScenarioData;
-use crate::simulation::ui::SimTime;
-use crate::simulation::SimState;
 use crate::utils::sim_state_type_simulation;
-use bevy::prelude::{not, Transform, Vec3};
-use bevy::{math::DVec3, prelude::{in_state, App, Component, Entity, IntoSystemConfigs, Plugin, Query, Reflect, Res, Update, With, Without}};
-use std::collections::HashMap;
+use bevy::prelude::{not, Transform};
+use bevy::{math::DVec3, prelude::{App, Component, Entity, IntoSystemConfigs, Plugin, Query, Reflect, Update, With, Without}};
 
 pub struct ApsisPlugin;
 

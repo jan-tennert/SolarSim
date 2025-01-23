@@ -1,10 +1,10 @@
 mod input;
 mod egui_input_block;
 
-use bevy::prelude::{in_state, App, IntoSystemConfigs, Plugin, Update};
-use crate::simulation::SimState;
 use crate::simulation::input::egui_input_block::BlockInputPlugin;
 use crate::simulation::input::input::{global_input_system, key_window, sim_input_system};
+use crate::simulation::SimState;
+use bevy::prelude::{in_state, App, IntoSystemConfigs, Plugin, Update};
 
 pub struct SimInputPlugin;
 

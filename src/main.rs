@@ -7,7 +7,7 @@ use crate::simulation::SimulationPlugin;
 use bevy::app::{App, PluginGroup};
 use bevy::asset::io::AssetSourceBuilder;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
-use bevy::prelude::{default, AppExtStates, AssetApp, States, SubStates};
+use bevy::prelude::{default, AssetApp};
 use bevy::render::settings::{RenderCreation, WgpuSettings};
 use bevy::render::RenderPlugin;
 use bevy::window::{PresentMode, Window, WindowPlugin};

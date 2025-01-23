@@ -1,6 +1,6 @@
 use bevy::app::{App, Plugin, Update};
 use bevy::prelude::{default, ResMut, Resource};
-use bevy_egui::{EguiContext, EguiContexts};
+use bevy_egui::EguiContexts;
 use egui_toast::{Toast, ToastKind, ToastOptions, Toasts};
 
 pub struct ToastPlugin;

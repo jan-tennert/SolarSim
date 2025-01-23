@@ -1,6 +1,6 @@
-use crate::simulation::scenario::setup::ScenarioData;
 use crate::simulation::components::editor::{EditorSystemType, EditorSystems};
 use crate::simulation::components::lock_on::LockOn;
+use crate::simulation::scenario::setup::ScenarioData;
 use crate::simulation::ui::bottom_bar::get_date_from_seconds;
 use crate::simulation::ui::SimTime;
 use crate::simulation::SimState;
@@ -11,7 +11,7 @@ use bevy_egui::egui::Align;
 use bevy_egui::{egui, EguiContexts};
 
 pub fn editor_bottom_bar(
-    mut sim_time: ResMut<SimTime>,
+    sim_time: ResMut<SimTime>,
     mut egui_context: EguiContexts,
     mut windows: Query<&mut Window>,
     mut lock_on_parent: ResMut<LockOn>,

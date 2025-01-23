@@ -138,7 +138,7 @@ fn find_light_source(
     system_panel_set: &SystemPanelSet,
     entity: Entity,
 ) -> Option<SerializedLightSource> {
-    system_panel_set.lights.iter().find(|(s)| s.parent == entity).map(|(s)| SerializedLightSource {
+    system_panel_set.lights.iter().find(|s| s.parent == entity).map(|s| SerializedLightSource {
         intensity: s.intensity,
         range: s.range,
         color: s.color.to_srgba().to_hex(),

@@ -105,7 +105,7 @@ pub fn system_panel(
         return;
     }
     let show_button = *system_panel_set.sim_state_type == SimStateType::Editor;
-    if let Ok((entity, mut camera, mut pan, skybox)) = system_panel_set.camera.get_single_mut() {
+    if let Ok((entity, mut camera, pan, skybox)) = system_panel_set.camera.get_single_mut() {
         let ctrl_hold = system_panel_set.keys.pressed(KeyCode::ControlLeft);
         egui::SidePanel::left("system_panel")
             // .default_width(250.0)
