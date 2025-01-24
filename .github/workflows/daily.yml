@@ -15,5 +15,5 @@ jobs:
       - name: Get new commits
         run: echo "NEW_COMMIT_COUNT=$(git log --oneline --since '24 hours ago' | wc -l)" >> $GITHUB_ENV
       - name: Release new build, if there are new commits
-        uses: ./.github/workflows/release.yml@main
+        uses: ./.github/workflows/release.yml
         if: ${{ env.NEW_COMMIT_COUNT > 0 }}
