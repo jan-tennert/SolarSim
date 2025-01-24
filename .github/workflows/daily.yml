@@ -17,6 +17,8 @@ jobs:
         run: echo "{new_commit_count}={$(git log --oneline --since '24 hours ago' | wc -l)}" >> $GITHUB_OUTPUT
       - name: Debug
         run: echo "${{ needs.check-release.outputs.new_commit_count != '0' }} ${{ needs.check-release.outputs.new_commit_count}}"
+      - name: Dir
+        run: ls -la
   release:
     needs: check-release
     uses: ./.github/workflows/release.yml
