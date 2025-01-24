@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - '*'
+  workflow_call:
 
 env:
   # update with the name of the main binary
@@ -16,16 +17,14 @@ jobs:
   # Build for Linux
   release-linux:
     runs-on: ubuntu-latest
-
     steps:
+      - uses: actions/checkout@v4
       - uses: olegtarasov/get-tag@v2.1.2
         id: get_version
-      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-unknown-linux-gnu
           toolchain: 1.81.0
-
       - name: install dependencies
         run: |
           sudo apt-get update; sudo apt-get install pkg-config libx11-dev libasound2-dev libudev-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libwayland-dev
@@ -60,7 +59,7 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ env.binary }}.zip
           asset_name: ${{ env.binary }}-linux-${{ steps.get_version.outputs.tag }}.zip
-          tag: ${{ github.ref }}
+          tag: latest
           overwrite: true
 
   # Build for Windows
@@ -107,7 +106,7 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ env.binary }}.zip
           asset_name: ${{ env.binary }}-windows-${{ steps.get_version.outputs.tag }}.zip
-          tag: ${{ github.ref }}
+          tag: latest
           overwrite: true
 
   # Build for MacOS x86_64
@@ -154,7 +153,7 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file:  ${{ env.binary }}-macOS-intel.dmg
           asset_name: ${{ env.binary }}-macOS-intel-${{ steps.get_version.outputs.tag }}.dmg
-          tag: ${{ github.ref }}
+          tag: latest
           overwrite: true
 
   # Build for MacOS Apple Silicon
@@ -202,5 +201,5 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ env.binary }}-macOS-apple-silicon.dmg
           asset_name: ${{ env.binary }}-macOS-apple-silicon-${{ steps.get_version.outputs.tag }}.dmg
-          tag: ${{ github.ref }}
+          tag: latest
           overwrite: true

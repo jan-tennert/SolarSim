@@ -1,0 +1,19 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *' # runs daily at 00:00
+
+jobs:
+  check-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required to count the commits
+      - name: Get new commits
+        run: echo "NEW_COMMIT_COUNT=$(git log --oneline --since '24 hours ago' | wc -l)" >> $GITHUB_ENV
+      - name: Release new build, if there are new commits
+        uses: ./.github/workflows/release.yml@main
+        if: ${{ env.NEW_COMMIT_COUNT > 0 }}
