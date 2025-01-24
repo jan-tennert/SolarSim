@@ -13,7 +13,9 @@ jobs:
         with:
           fetch-depth: 0 # Required to count the commits
       - name: Get new commits
-        run: echo "NEW_COMMIT_COUNT=$(git log --oneline --since '24 hours ago' | wc -l)" >> $GITHUB_ENV
+        id: get_commits
+        run: echo "::set-output name=new_commit_count::$(git log --oneline --since '24 hours ago' | wc -l)"
   release:
+    needs: check-release
     uses: ./.github/workflows/release.yml
-    if: ${{ env.NEW_COMMIT_COUNT > 0 }}
+    if: ${{ needs.check-release.outputs.new_commit_count > 0 }}
