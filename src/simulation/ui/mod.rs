@@ -8,7 +8,7 @@ mod sim_body_panel;
 pub mod sim_bottom_bar;
 pub mod editor_bottom_bar;
 pub mod toast;
-mod metadata;
+pub mod metadata;
 pub mod menu;
 
 //use crate::fps::Fps;

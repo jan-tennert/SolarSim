@@ -28,6 +28,10 @@ pub struct SerializedBody {
     pub data: SerializedBodyData
 }
 
+pub struct SerializedSpacecraftData {
+
+}
+
 #[derive(Debug, Deserialize, Serialize, TypePath, Clone, Copy)]
 pub struct SerializedVec {
     pub x: f64,

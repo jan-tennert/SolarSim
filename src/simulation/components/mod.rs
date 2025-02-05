@@ -30,6 +30,7 @@ pub mod editor;
 pub mod horizons;
 pub mod scale;
 pub mod anise;
+mod spacecraft;
 
 pub struct SimComponentPlugin;
 
