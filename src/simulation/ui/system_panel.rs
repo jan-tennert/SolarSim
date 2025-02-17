@@ -155,7 +155,7 @@ pub fn system_panel(
                                 system_panel_set.commands.run_system(system_panel_set.systems.0[EditorSystemType::CREATE_BODY]);
                             }
                         }
-                        if ui.button("+").on_hover_text("Create new major body").clicked() {
+                        if *system_panel_set.sim_state_type == SimStateType::Editor && ui.button("+").on_hover_text("Create new major body").clicked() {
                             *system_panel_set.create_body_state = CreateBodyState {
                                 parent: None,
                                 body_type: CreateBodyType::Star,
