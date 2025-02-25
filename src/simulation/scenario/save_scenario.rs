@@ -54,7 +54,7 @@ pub fn save_scenario(
         timestep: system_panel_set.speed.0 as i32,
         data_sets: scenario_data.spice_files.keys().cloned().collect(),
     };
-    let serialized_data = serde_json::to_string(&simulation_data).unwrap();
+    let serialized_data = serde_json::to_string_pretty(&simulation_data).unwrap();
     fs::write(format!("scenarios/{}", file_path), serialized_data).unwrap();
     system_panel_set.toasts.0.add(success_toast("Scenario saved"));
 }
