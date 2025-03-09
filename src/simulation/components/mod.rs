@@ -4,6 +4,7 @@ use crate::simulation::components::billboard::BodyBillboardPlugin;
 use crate::simulation::components::direction::DirectionPlugin;
 use crate::simulation::components::horizons::HorizonsPlugin;
 use crate::simulation::components::lock_on::LockOnPlugin;
+use crate::simulation::components::min_zoom::MinZoomPlugin;
 use crate::simulation::components::motion_line::MotionLinePlugin;
 use crate::simulation::components::reset::ResetPlugin;
 use crate::simulation::components::rotation::RotationPlugin;
@@ -30,6 +31,7 @@ pub mod editor;
 pub mod horizons;
 pub mod scale;
 pub mod anise;
+pub mod min_zoom;
 mod spacecraft;
 
 pub struct SimComponentPlugin;
@@ -45,6 +47,7 @@ impl Plugin for SimComponentPlugin {
             .add_plugins(DirectionPlugin)
             .add_plugins(IntegrationPlugin)
             .add_plugins(LockOnPlugin)
+            .add_plugins(MinZoomPlugin)
             .add_plugins(ScalePlugin)
             .add_plugins(MotionLinePlugin)
             .add_plugins(ResetPlugin)
