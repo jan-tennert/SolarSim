@@ -54,7 +54,7 @@ pub fn apply_camera_to_selection(
             cam.target_radius = scale.m_to_unit_32(diameter.ellipsoid.mean_equatorial_radius_km() as f32 * 2000. * SELECTION_MULTIPLIER);
             cam.focus = Vec3::ZERO;
             selected_entity.changed_focus = true;
-        }
+            cam.zoom_lower_limit = (diameter.ellipsoid.polar_radius_km/10000.0) as f32; }
     } else {
         if let Some((entity, _, _, _)) = bodies.iter().find(|(_, _, _, maybe_star)| {
             maybe_star.is_some()
