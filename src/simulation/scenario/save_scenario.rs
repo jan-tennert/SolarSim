@@ -8,10 +8,10 @@ use crate::simulation::ui::scenario_selection::SelectedScenario;
 use crate::simulation::ui::toast::{success_toast, ToastContainer};
 use anise::structure::planetocentric::ellipsoid::Ellipsoid;
 use bevy::app::Plugin;
-use bevy::core::Name;
 use bevy::ecs::system::SystemParam;
 use bevy::math::DVec3;
-use bevy::prelude::{AssetServer, Assets, Entity, Query, Res, ResMut};
+use bevy::prelude::Name;
+use bevy::prelude::{Assets, Entity, Query, Res, ResMut};
 use std::fs;
 
 pub struct SaveScenarioPlugin;
@@ -27,7 +27,6 @@ impl Plugin for SaveScenarioPlugin {
 
 #[derive(SystemParam)]
 pub struct SystemPanelSet<'w, 's> {
-    assets: Res<'w, AssetServer>,
     selected_scenario: ResMut<'w, SelectedScenario>,
     bodies_asset: ResMut<'w, Assets<SimulationData>>,
     scenario_data: ResMut<'w, ScenarioData>,
@@ -98,7 +97,7 @@ fn collect_moons(system_panel_set: &SystemPanelSet, children: BodyChildren) -> V
 
 fn find_body_data(system_panel_set: &SystemPanelSet, entity: Entity) -> Option<(SerializedBodyData, Option<BodyChildren>)> {
     system_panel_set.bodies.iter().find(|(e, _, _, _, _, _, _, _, _, _, _, _, _)| *e == entity)
-        .map(|(_, m, p, v, n, mp, d, rs, at, child, naif, rotation, _)| (
+        .map(|(_, m, p, v, n, mp, d, rs, _at, child, naif, rotation, _)| (
             create_serialized_body_data(m.0, p.current / 1000.0, v.0 / 1000.0, n.to_string(), mp.cleaned(), rs.0, None, naif.clone(), d.ellipsoid, *rotation),
             child.map(|c| c.clone())
         ))

@@ -3,14 +3,10 @@ use std::time::Instant;
 use bevy::app::{App, Plugin, Update};
 use bevy::diagnostic::Diagnostics;
 use bevy::math::DVec3;
-use bevy::prelude::{in_state, not, Entity, IntoSystemConfigs, Mut, Query, Res, ResMut, Time, Transform};
-use bevy::reflect::List;
+use bevy::prelude::{in_state, not, Entity, IntoScheduleConfigs, Mut, Query, Res, Time, Transform};
 
 use crate::constants::G;
 use crate::simulation::components::body::{Acceleration, Mass, OrbitSettings, SimPosition, Velocity};
-use crate::simulation::components::motion_line::OrbitOffset;
-use crate::simulation::components::scale::SimulationScale;
-use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::components::speed::Speed;
 use crate::simulation::integration::{paused, IntegrationType, SimulationStep, SubSteps, NBODY_STEPS, NBODY_STEP_TIME, NBODY_TOTAL_TIME};
 use crate::utils::sim_state_type_simulation;
@@ -30,11 +26,8 @@ fn apply_physics(
     mut query: Query<(Entity, &Mass, &mut Acceleration, &mut OrbitSettings, &mut Velocity, &mut SimPosition, &mut Transform)>,
     time: Res<Time>,
     speed: Res<Speed>,
-    selected_entity: Res<SelectedEntity>,
-    orbit_offset: ResMut<OrbitOffset>,
     sub_steps: Res<SubSteps>,
     mut diagnostics: Diagnostics,
-    scale: Res<SimulationScale>,
 ) {
     let count = query.iter().count();
     let delta = time.delta_secs_f64();
@@ -77,7 +70,7 @@ fn update_velocity_and_positions(
     delta_time: f64,
     speed: &Res<Speed>,
 ) {
-    for (entity, mass, mut acc, mut orbit_s, mut vel, mut sim_pos, transform) in query.iter_mut() {
+    for (_entity, mass, mut acc, mut orbit_s, mut vel, mut sim_pos, _transform) in query.iter_mut() {
         orbit_s.force_direction = acc.0.normalize();
         acc.0 /= mass.0; //actually apply the force to the body
         vel.0 += acc.0 * delta_time * speed.0;

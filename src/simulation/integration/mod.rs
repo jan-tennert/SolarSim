@@ -9,7 +9,7 @@ use crate::utils::sim_state_type_simulation;
 use bevy::app::App;
 use bevy::diagnostic::{Diagnostic, DiagnosticPath, RegisterDiagnostic};
 use bevy::math::{DVec3, Vec3};
-use bevy::prelude::{not, AppExtStates, Entity, IntoSystemConfigs, Plugin, Query, Res, ResMut, Resource, States, SystemSet, Transform, Update};
+use bevy::prelude::{not, AppExtStates, Entity, IntoScheduleConfigs, Plugin, Query, Res, ResMut, Resource, States, SystemSet, Transform, Update};
 
 mod euler;
 mod verlet;

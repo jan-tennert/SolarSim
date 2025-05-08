@@ -20,20 +20,20 @@ lto = "thin"
 
 [dependencies]
 #bevy = { git = "https://github.com/bevyengine/bevy", branch = "release-0.11.3", features = ["dynamic_linking"] } 
-bevy = { version = "0.15.1", features = ["jpeg", "file_watcher"] }
+bevy = { version = "0.16.0", features = ["jpeg", "file_watcher"] }
 #bevy_panorbit_camera = { git = "https://github.com/jan-tennert/bevy_panorbit_camera", rev = "7e3c3f8" }
-bevy-inspector-egui = { version = "0.28.1"}
+#bevy-inspector-egui = { version = "0.28.1"}
 #bevy_mod_picking = "0.15"
-bevy_egui = { version = "0.32.0", features = ["immutable_ctx"] }
+bevy_egui = { version = "0.34.1", features = ["immutable_ctx"] }
 chrono = "0.4.23"
 serde_json = "1.0.107"
 serde = { version = "1.0.189", features = ["derive"] }
-bevy_mod_billboard = { git = "https://github.com/voximity/bevy_mod_billboard", branch = "migrate-0.15" }
-egui-toast = "0.16.0"
+bevy_mod_billboard = { git = "https://github.com/mcobzarenco/bevy_mod_billboard", branch = "migrate-0.16" }
+egui-toast = "0.17.0"
 tinyfiledialogs = "3.0"
-egui_extras = { version = "0.30.0", features = ["chrono"] }
+egui_extras = { version = "0.31.0", features = ["chrono"] }
 reqwest = { version = "0.12.7", features = ["blocking", "json"] }
-anise = "0.5.2"
-bevy_async_task = "0.4.0"
-bevy_panorbit_camera = { version = "0.22.0", features = ["bevy_egui"] }
+anise = "0.5.4"
+bevy_async_task = "0.8.0"
+bevy_panorbit_camera = { version = "0.26.0", features = ["bevy_egui"] }
 

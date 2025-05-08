@@ -15,8 +15,8 @@ use anise::prelude::{Almanac, Epoch, Frame, SPK};
 use anise::structure::PlanetaryDataSet;
 use bevy::app::Plugin;
 use bevy::math::DVec3;
-use bevy::prelude::{IntoSystemConfigs, Name, Query, Res, ResMut, Resource, State, Update};
-use bevy_async_task::AsyncTaskPool;
+use bevy::prelude::{IntoScheduleConfigs, Name, Query, Res, ResMut, Resource, State, Update};
+use bevy_async_task::TaskPool;
 use std::fs;
 
 enum AlmanacType {
@@ -24,7 +24,8 @@ enum AlmanacType {
     PCA(PlanetaryDataSet, String)
 }
 
-struct Error(String);
+
+struct Error(pub String);
 
 pub struct AnisePlugin;
 
@@ -112,7 +113,7 @@ fn spk_file_loading(
     mut toasts: ResMut<ToastContainer>,
     mut scenario_data: ResMut<ScenarioData>,
     mut loading_state: ResMut<LoadingState>,
-    mut task_pool: AsyncTaskPool<Result<AlmanacType, Error>>,
+    mut task_pool: TaskPool<Result<AlmanacType, Error>>,
     sim_type: Res<SimStateType>,
     selection_state: Res<SelectionState>,
 ) {
@@ -141,7 +142,7 @@ fn spk_file_loading(
     for status in task_pool.iter_poll() {
         if let std::task::Poll::Ready(t) = status {
             match t {
-                Ok(Ok(AlmanacType::SPK(daf, path))) => {
+                Ok(AlmanacType::SPK(daf, path)) => {
                     let spk = almanac.0.with_spk(daf);
                     if let Ok(s) = spk {
                         scenario_data.spice_files.insert(path, true);
@@ -150,14 +151,13 @@ fn spk_file_loading(
                         toasts.0.add(error_toast(format!("Couldn't load SPICE file: {:?}", e).as_str()));
                     }
                 }
-                Ok(Ok(AlmanacType::PCA(set, path))) => {
+                Ok(AlmanacType::PCA(set, path)) => {
                     almanac.0 = almanac.0.with_planetary_data(set);
                     scenario_data.spice_files.insert(path, true);
                 }
                 Err(e) => {
-                    toasts.0.add(error_toast(format!("Couldn't load SPICE file: {:?}", e.to_string()).as_str()));
+                    toasts.0.add(error_toast(format!("Couldn't load SPICE file: {:?}", e.0).as_str()));
                 }
-                _ => {}
             }
             loading_state.spice_loaded += 1;
         }

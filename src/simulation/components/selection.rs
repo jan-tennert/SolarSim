@@ -1,10 +1,9 @@
 use crate::simulation::components::body::{BodyShape, Mass, Star};
-use crate::simulation::components::motion_line::OrbitOffset;
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::integration::SimulationStep;
 use crate::simulation::SimState;
 use bevy::app::{App, Plugin, Update};
-use bevy::prelude::{in_state, Entity, IntoSystemConfigs, Query, Res, ResMut, Resource, Transform, Vec3, With};
+use bevy::prelude::{in_state, Entity, IntoScheduleConfigs, Query, ResMut, Resource, Transform, Vec3, With};
 use bevy_panorbit_camera::PanOrbitCamera;
 
 pub const SELECTION_MULTIPLIER: f32 = 2.0;
@@ -42,7 +41,6 @@ pub fn apply_camera_to_selection(
     bodies: Query<(Entity, &Transform, &BodyShape, Option<&Star>), With<Mass>>,
     mut camera: Query<&mut PanOrbitCamera>,
     mut selected_entity: ResMut<SelectedEntity>,
-    orbit_offset: Res<OrbitOffset>,
     scale: ResMut<SimulationScale>
 ) {
     if let Some(entity) = selected_entity.entity {
@@ -50,7 +48,7 @@ pub fn apply_camera_to_selection(
              selected_entity.entity = None;
         } else if !selected_entity.changed_focus {
             let (_, _, diameter, _) = bodies.get(entity).unwrap();
-            let mut cam = camera.single_mut();            
+            let mut cam = camera.single_mut().unwrap();            
             cam.target_radius = scale.m_to_unit_32(diameter.ellipsoid.mean_equatorial_radius_km() as f32 * 2000. * SELECTION_MULTIPLIER);
             cam.focus = Vec3::ZERO;
             selected_entity.changed_focus = true;

@@ -4,7 +4,7 @@ use crate::utils::sim_state_type_simulation;
 use bevy::color::palettes::css;
 use bevy::math::DVec3;
 use bevy::prelude::{Camera, PostUpdate, Res};
-use bevy::{app::{App, Plugin}, prelude::{Entity, Gizmos, IntoSystemConfigs, Query, Transform, With}};
+use bevy::{app::{App, Plugin}, prelude::{Entity, Gizmos, IntoScheduleConfigs, Query, Transform, With}};
 use bevy_panorbit_camera::PanOrbitCameraSystemSet;
 
 pub struct DirectionPlugin;
@@ -25,7 +25,7 @@ fn display_force_and_velocity(
     scale: Res<SimulationScale>,
     camera: Query<&Transform, With<Camera>>
 ) {
-    let cam = camera.single();
+    let cam = camera.single().unwrap();
     for (transform, _, orbit, shape, velocity) in &planet_query {
         let multiplier = multiplier(orbit, cam, transform, shape, &scale);
         if orbit.display_force {

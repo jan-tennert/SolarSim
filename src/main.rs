@@ -78,7 +78,7 @@ fn main() {
       //  .add_plugins(WorldInspectorPlugin::default())
         .add_plugins(EditorPlugin)
         .add_plugins(SimulationPlugin)
-        .add_plugins(EguiPlugin)
+        .add_plugins(EguiPlugin { enable_multipass_for_primary_context: true })
         .add_plugins(SerializationPlugin)
         .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(BillboardPlugin)

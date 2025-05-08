@@ -16,13 +16,13 @@ jobs:
   release-linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
       - uses: olegtarasov/get-tag@v2.1.2
         id: get_version
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-unknown-linux-gnu
-          toolchain: 1.84.0
+          toolchain: 1.86.0
       - name: install dependencies
         run: |
           sudo apt-get update; sudo apt-get install pkg-config libx11-dev libasound2-dev libudev-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libwayland-dev
@@ -44,7 +44,7 @@ jobs:
           zip --recurse-paths ../${{ env.binary }}.zip .
 
       - name: Upload binaries to artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.6.2
         with:
           path: ${{ env.binary }}.zip
           name: linux
@@ -52,7 +52,7 @@ jobs:
 
       - name: Upload binaries to release
         if: ${{ env.add_binaries_to_github_release == 'true' }}
-        uses: svenstaro/upload-release-action@v2
+        uses: svenstaro/upload-release-action@v2.9.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ env.binary }}.zip
@@ -73,7 +73,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-pc-windows-msvc
-          toolchain: 1.84.0
+          toolchain: 1.86.0
 
       - name: Build
         run: |
@@ -91,7 +91,7 @@ jobs:
           Compress-Archive -Path windows/* -DestinationPath ${{ env.binary }}.zip
 
       - name: Upload binaries to artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.6.2
         with:
           path: ${{ env.binary }}.zip
           name: windows
@@ -99,7 +99,7 @@ jobs:
 
       - name: Upload binaries to release
         if: ${{ env.add_binaries_to_github_release == 'true' }}
-        uses: svenstaro/upload-release-action@v2
+        uses: svenstaro/upload-release-action@v2.9.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ env.binary }}.zip
@@ -118,7 +118,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-apple-darwin
-          toolchain: 1.84.0
+          toolchain: 1.86.0
 
       - name: Environment Setup
         run: |
@@ -138,7 +138,7 @@ jobs:
           hdiutil create -fs HFS+ -volname "${{ env.binary }}" -srcfolder ${{ env.binary }}.app ${{ env.binary }}-macOS-intel.dmg
 
       - name: Upload binaries to artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.6.2
         with:
           path: ${{ env.binary }}-macOS-intel.dmg
           name: macOS-intel
@@ -146,7 +146,7 @@ jobs:
 
       - name: Upload binaries to release
         if: ${{ env.add_binaries_to_github_release == 'true' }}
-        uses: svenstaro/upload-release-action@v2
+        uses: svenstaro/upload-release-action@v2.9.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file:  ${{ env.binary }}-macOS-intel.dmg
@@ -165,7 +165,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-apple-darwin
-          toolchain: 1.84.0
+          toolchain: 1.86.0
 
 
       - name: Environment 
@@ -186,7 +186,7 @@ jobs:
           hdiutil create -fs HFS+ -volname "${{ env.binary }}-macOS-apple-silicon" -srcfolder ${{ env.binary }}.app ${{ env.binary }}-macOS-apple-silicon.dmg
 
       - name: Upload binaries to artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.6.2
         with:
           path: ${{ env.binary }}-macOS-apple-silicon.dmg
           name: macOS-apple-silicon
@@ -194,7 +194,7 @@ jobs:
 
       - name: Upload binaries to release
         if: ${{ env.add_binaries_to_github_release == 'true' }}
-        uses: svenstaro/upload-release-action@v2
+        uses: svenstaro/upload-release-action@v2.9.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ env.binary }}-macOS-apple-silicon.dmg

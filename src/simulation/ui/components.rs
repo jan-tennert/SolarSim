@@ -14,7 +14,7 @@ pub fn vector_field(ui: &mut Ui, name: &str, state: &mut DVec3) {
 
 pub fn copy_value_button(ui: &mut Ui, value: &mut f64, container: &mut ToastContainer) {
     if ui.button("Copy value").on_hover_text("Copy the value to the clipboard").clicked() {
-        ui.output_mut(|o| o.copied_text = value.to_string());
+        ui.ctx().copy_text(value.to_string());
         container.0.add(success_toast("Value copied to clipboard"));
     }
 }

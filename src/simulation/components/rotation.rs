@@ -9,8 +9,7 @@ use crate::simulation::scenario::setup::setup_scenario;
 use crate::simulation::SimState;
 use crate::utils::sim_state_type_simulation;
 use bevy::app::{App, Plugin};
-use bevy::hierarchy::Children;
-use bevy::prelude::{in_state, not, IntoSystemConfigs, Quat, Query, Res, ResMut, Transform, Update, With, Without};
+use bevy::prelude::{in_state, not, Children, IntoScheduleConfigs, Quat, Query, Res, ResMut, Transform, Update, With, Without};
 use bevy::scene::SceneInstance;
 use bevy::time::Time;
 
@@ -55,7 +54,7 @@ fn rotate_bodies(
     speed: Res<Speed>,
     sub_steps: Res<SubSteps>,
 ) {
-        for (rotation_speed, diameter, tilt, children) in &query {
+        for (rotation_speed, _diameter, tilt, children) in &query {
             if rotation_speed.0 == 0.0 || !tilt.applied {
                 continue;
             }

@@ -12,7 +12,7 @@ use crate::utils::sim_state_type_editor;
 use bevy::app::{App, Plugin};
 use bevy::color::palettes::css::WHITE;
 use bevy::ecs::system::SystemId;
-use bevy::prelude::{AssetServer, Assets, Commands, Entity, FromWorld, IntoSystemConfigs, Local, Mesh, OnEnter, Query, Res, ResMut, Resource, Transform, Update, Vec3, Visibility, World};
+use bevy::prelude::{AssetServer, Assets, Commands, Entity, FromWorld, IntoScheduleConfigs, Local, Mesh, OnEnter, Query, Res, ResMut, Resource, Transform, Update, Vec3, Visibility, World};
 use std::collections::HashMap;
 
 #[non_exhaustive]

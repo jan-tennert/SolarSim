@@ -1,7 +1,6 @@
 use crate::simulation::asset::default_values::*;
 use anise::structure::planetocentric::ellipsoid::Ellipsoid;
 use bevy::asset::io::Reader;
-use bevy::asset::AsyncReadExt;
 use bevy::prelude::{Asset, AssetApp, Mat3, Vec3};
 use bevy::{
     asset::{AssetLoader, LoadContext},

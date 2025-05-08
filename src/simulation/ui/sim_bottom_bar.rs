@@ -33,7 +33,7 @@ pub fn simulation_bottom_bar(
         sim_time.0 += time.delta_secs() * (speed.0 * sub_steps.0 as f64) as f32;
     }
     let date = get_date_from_seconds(scenario_data.starting_time_millis, sim_time.0);
-    let mut window = windows.single_mut();
+    let mut window = windows.single_mut().unwrap();
     egui::TopBottomPanel::bottom("time_panel")
         .resizable(false)
         .show(egui_context.ctx_mut(), |ui| {

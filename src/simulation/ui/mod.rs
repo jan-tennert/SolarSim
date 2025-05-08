@@ -33,16 +33,16 @@ use crate::simulation::ui::toast::ToastPlugin;
 use crate::simulation::SimState;
 //use crate::fps::Fps;
 use crate::utils::{sim_state_type_editor, sim_state_type_simulation};
-use bevy::app::Update;
 use bevy::prelude::in_state;
 use bevy::utils::default;
 use bevy::{
     prelude::{
         App,
-        IntoSystemConfigs, Plugin, Resource,
+        IntoScheduleConfigs, Plugin, Resource,
     },
     reflect::Reflect,
 };
+use bevy_egui::EguiContextPass;
 
 #[derive(Resource, Reflect, Default)]
 pub struct SimTime(pub f32);
@@ -90,7 +90,7 @@ impl Plugin for InterfacePlugin {
             .add_plugins(ToastPlugin)
             .add_plugins(MetadataPlugin)
             .add_systems(
-                Update,
+                EguiContextPass,
                 (
                     system_panel.run_if(in_state(SimState::Loaded)),
                     (editor_body_panel.run_if(sim_state_type_editor), sim_body_panel.run_if(sim_state_type_simulation).after(SimulationStep)),

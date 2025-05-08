@@ -2,7 +2,7 @@ use crate::simulation::components::body::{BodyChildren, Moon, Planet, SimPositio
 use crate::simulation::integration::{paused, SimulationStep};
 use crate::utils::sim_state_type_simulation;
 use bevy::prelude::{not, Transform};
-use bevy::{math::DVec3, prelude::{App, Component, Entity, IntoSystemConfigs, Plugin, Query, Reflect, Update, With, Without}};
+use bevy::{math::DVec3, prelude::{App, Component, Entity, IntoScheduleConfigs, Plugin, Query, Reflect, Update, With, Without}};
 
 pub struct ApsisPlugin;
 
@@ -43,7 +43,7 @@ fn update_apsis(
     mut planets: Query<(Entity, &SimPosition, &Transform, &mut ApsisBody, &BodyChildren), (With<Planet>, Without<Star>, Without<Moon>)>,
     mut moons: Query<(Entity, &SimPosition, &Transform, &mut ApsisBody), (With<Moon>, Without<Star>, Without<Planet>)>,
 ) {
-    for (entity, position, tra, mut apsis, _) in &mut planets {
+    for (entity, position, _, mut apsis, _) in &mut planets {
         let mut parent = None;
         for (s_pos, s_child) in &stars {
             if s_child.0.contains(&entity) {
@@ -64,7 +64,7 @@ fn update_apsis(
             }
         }
     }
-    for (entity, position, tra, mut apsis) in &mut moons {
+    for (entity, position, _, mut apsis) in &mut moons {
         let mut parent = None;
         for (_, s_pos, _, _, s_child) in &planets {
             if s_child.0.contains(&entity) {

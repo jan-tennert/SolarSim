@@ -8,11 +8,11 @@ use crate::simulation::ui::toast::{error_toast, success_toast, ToastContainer};
 use crate::simulation::units::text_formatter::format_seconds;
 use crate::utils::sim_state_type_editor;
 use anise::almanac::Almanac;
-use bevy::app::{App, Plugin, Update};
-use bevy::prelude::{IntoSystemConfigs, Local, ResMut, Resource};
-use bevy_async_task::AsyncTaskRunner;
+use bevy::app::{App, Plugin};
+use bevy::prelude::{IntoScheduleConfigs, Local, ResMut, Resource};
+use bevy_async_task::TaskRunner;
 use bevy_egui::egui::{Button, ComboBox};
-use bevy_egui::{egui, EguiContexts};
+use bevy_egui::{egui, EguiContextPass, EguiContexts};
 use chrono::{NaiveTime, Timelike};
 use egui_extras::DatePickerButton;
 use std::fs;
@@ -26,7 +26,7 @@ impl Plugin for MetadataPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<MetadataUiState>()
-            .add_systems(Update, metadata_editor.run_if(sim_state_type_editor));
+            .add_systems(EguiContextPass, metadata_editor.run_if(sim_state_type_editor));
     }
 }
 
@@ -49,7 +49,7 @@ fn metadata_editor(
     mut speed: ResMut<Speed>,
     mut toasts: ResMut<ToastContainer>,
     mut almanac_holder: ResMut<AlmanacHolder>,
-    mut task_executor: AsyncTaskRunner<Result<(Almanac, String), String>>,
+    mut task_executor: TaskRunner<Result<(Almanac, String), String>>,
     mut loading_state: ResMut<LoadingState>,
     mut loading: Local<bool>
 ) {
@@ -134,7 +134,7 @@ fn edit_spk_files(
     new_spice_file: &mut String,
     toasts: &mut ToastContainer,
     almanac_holder: &mut AlmanacHolder,
-    task_executor: &mut AsyncTaskRunner<Result<(Almanac, String), String>>,
+    task_executor: &mut TaskRunner<Result<(Almanac, String), String>>,
     loading_state: &mut ResMut<LoadingState>,
     loading: &mut bool
 ) {
@@ -146,15 +146,12 @@ fn edit_spk_files(
             Poll::Ready(v) => {
                 *loading = false;
                 match v {
-                    Ok(Ok((almanac, name))) => {
+                    Ok((almanac, name)) => {
                         scenario_data.spice_files.insert(name, true);
                         almanac_holder.0 = almanac;
                         toasts.0.add(success_toast("SPICE file loaded"));
                     }
                     Err(e) => {
-                        toasts.0.add(error_toast(format!("Couldn't load SPICE file: {}", e).as_str()));
-                    }
-                    Ok(Err(e)) => {
                         toasts.0.add(error_toast(format!("Couldn't load SPICE file: {}", e).as_str()));
                     }
                 }

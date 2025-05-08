@@ -1,7 +1,7 @@
 use crate::simulation::scenario::setup::camera::setup_camera;
 pub use crate::simulation::scenario::setup::scenario::{setup_scenario, ScenarioData};
 use crate::simulation::SimState;
-use bevy::prelude::{in_state, App, IntoSystemConfigs, Plugin, Startup, Update};
+use bevy::prelude::{in_state, App, IntoScheduleConfigs, Plugin, Startup, Update};
 
 pub mod camera;
 pub mod scenario;

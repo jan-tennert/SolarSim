@@ -3,7 +3,7 @@ use bevy::asset::AssetServer;
 use bevy::core_pipeline::bloom::Bloom;
 use bevy::core_pipeline::Skybox;
 use bevy::prelude::{default, Camera, Camera3d, Commands, PerspectiveProjection, Projection, Res};
-use bevy::render::view::{GpuCulling, NoCpuCulling};
+use bevy::render::view::NoCpuCulling;
 use bevy_panorbit_camera::PanOrbitCamera;
 
 pub fn setup_camera(
@@ -34,7 +34,6 @@ pub fn setup_camera(
             intensity: 0.3, // the default is 0.3,
             ..default()
         },
-        GpuCulling,
         NoCpuCulling
     ));
 

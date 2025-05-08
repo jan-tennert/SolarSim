@@ -10,9 +10,8 @@ use crate::simulation::ui::toast::ToastContainer;
 use crate::simulation::ui::{SimTime, UiState};
 use crate::simulation::units::text_formatter::{format_length, format_seconds};
 use bevy::color::Srgba;
-use bevy::core::Name;
 use bevy::ecs::system::SystemParam;
-use bevy::prelude::{Camera, Commands, DespawnRecursiveExt, Entity, Mut, Query, Res, ResMut, Transform, Without};
+use bevy::prelude::{Camera, Commands, Entity, Mut, Name, Query, Res, ResMut, Transform, Without};
 use bevy_egui::egui::{RichText, ScrollArea, SliderClamping, Ui};
 use bevy_egui::{egui, EguiContexts};
 
@@ -95,7 +94,7 @@ pub fn sim_body_panel(
                             ui.label(format!("{}", format_seconds(rotation_speed.0 * 60.0)));
 
                             ui.label(RichText::new("Distance to Camera").size(16.0).underline());
-                            let (_, camera_pos) = set.camera.single();
+                            let (_, camera_pos) = set.camera.single().unwrap();
                             let c_distance_in_units = camera_pos.translation.distance(transform.translation) as f64;
                             ui.label(format!("{}", format_length(set.s_scale.unit_to_m_32(c_distance_in_units as f32))));
                             ui.label(format!("{:.3} au", set.s_scale.unit_to_m(c_distance_in_units) * M_TO_AU as f64));
@@ -168,11 +167,11 @@ pub fn sim_body_panel(
                             ui.separator();
                             if ui.button("Delete Children").clicked() {
                                 for (entity, _) in &s_children {
-                                    set.commands.entity(*entity).despawn_recursive();
+                                    set.commands.entity(*entity).despawn();
                                 }
                             }
                             if ui.button("Delete").clicked() {
-                                set.commands.entity(entity).despawn_recursive();
+                                set.commands.entity(entity).despawn();
                             }
                         });
                 });

@@ -11,12 +11,11 @@ use crate::simulation::units::converter::scale_lumen;
 use crate::simulation::SimState;
 use bevy::asset::AssetServer;
 use bevy::color::palettes::css::WHITE;
-use bevy::core::Name;
 use bevy::ecs::system::EntityCommands;
-use bevy::hierarchy::BuildChildren;
 use bevy::math::{DVec3, Vec3};
 use bevy::pbr::{MeshMaterial3d, PointLight};
-use bevy::prelude::{default, Assets, ChildBuild, ChildBuilder, Circle, Color, Commands, Entity, Handle, Hsva, JustifyText, Mesh, Mesh3d, NextState, Query, Res, ResMut, Resource, Srgba, TextFont, Transform, Visibility};
+use bevy::prelude::{default, Assets, Circle, Color, Commands, Entity, Handle, Hsva, JustifyText, Mesh, Mesh3d, NextState, Query, Res, ResMut, Resource, Srgba, TextFont, Transform, Visibility};
+use bevy::prelude::{ChildSpawnerCommands, Name};
 use bevy::scene::{Scene, SceneRoot};
 use bevy::text::{TextColor, TextLayout};
 use bevy_mod_billboard::BillboardText;
@@ -99,7 +98,7 @@ pub fn setup_scenario(
     if total_count == 0 {
         sim_state.set(SimState::Loaded);
     } else {
-        let mut cam = cam.single_mut();
+        let mut cam = cam.single_mut().unwrap();
         let star = data.bodies.first().unwrap();
         cam.target_radius = scale.m_to_unit_32(star.data.ellipsoid.mean_equatorial_radius_km() as f32 * 2000. * SELECTION_MULTIPLIER);
     }
@@ -259,7 +258,7 @@ pub fn apply_body(
 
 fn spawn_imposter(
     bundle: BodyBundle,
-    parent: &mut ChildBuilder,
+    parent: &mut ChildSpawnerCommands,
     meshes: &mut ResMut<Assets<Mesh>>,
     color: Srgba,
     parent_id: Entity,
@@ -278,7 +277,7 @@ fn spawn_imposter(
 fn spawn_billboard(
     bundle: BodyBundle,
     color: Color,
-    parent: &mut ChildBuilder
+    parent: &mut ChildSpawnerCommands
 ) {
     parent.spawn(
         (
@@ -297,7 +296,7 @@ fn spawn_billboard(
 pub fn spawn_scene(
     asset_handle: Handle<Scene>,
     name: &str,
-    parent: &mut ChildBuilder,
+    parent: &mut ChildSpawnerCommands,
 ) -> Entity {
     parent.spawn(SceneRoot::from(asset_handle))
         .insert(SceneEntity)

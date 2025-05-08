@@ -1,8 +1,8 @@
 use crate::simulation::ui::menu::BackgroundImage;
 use crate::simulation::{SimState, SimStateType};
-use bevy::prelude::{ChildBuild, Text};
+use bevy::prelude::Text;
 use bevy::text::{TextColor, TextFont};
-use bevy::{app::{App, Plugin}, prelude::{default, in_state, BuildChildren, Children, Color, Commands, Component, DespawnRecursiveExt, Entity, IntoSystemConfigs, Label, NextState, OnEnter, OnExit, Query, Res, ResMut, Resource, Update, Visibility, With}, ui::{Node, UiRect, Val}};
+use bevy::{app::{App, Plugin}, prelude::{default, in_state, Children, Color, Commands, Component, Entity, IntoScheduleConfigs, Label, NextState, OnEnter, OnExit, Query, Res, ResMut, Resource, Update, Visibility, With}, ui::{Node, UiRect, Val}};
 
 pub struct LoadingPlugin;
 
@@ -64,9 +64,9 @@ fn despawn_loading(
     mut commands: Commands,
     mut background: Query<(&Children, &mut Visibility), (With<Node>, With<BackgroundImage>)>
 ) {
-    let (children, mut visibility) = background.single_mut();
+    let (children, mut visibility) = background.single_mut().unwrap();
     for entity in children.iter() {
-        commands.entity(*entity).despawn_recursive();   
+        commands.entity(*entity).despawn();   
     }
     *visibility = Visibility::Hidden;
 }
@@ -75,7 +75,7 @@ fn spawn_loading(
     mut commands: Commands,
     mut parent: Query<(Entity, &mut Visibility), With<BackgroundImage>>
 ) {
-    let (background, mut b_visibility) = parent.get_single_mut().unwrap();
+    let (background, mut b_visibility) = parent.single_mut().unwrap();
     let mut parent = commands.entity(background);
     parent.with_children(|parent| {
         parent.spawn((
@@ -122,7 +122,7 @@ fn update_progress(
     let text2 = loading_text("Rotating bodies", loading_state.tilted_bodies, false);
     let text3 = loading_text(format!("Loading SPK files: {}/{}", loading_state.spice_loaded, loading_state.spice_total).as_str(), loading_state.loaded_spice_files, *sim_type == SimStateType::Simulation);
     let new_text = format!("{}\n{}\n{}\n{}", text0, text1, text2, text3);
-    if let Ok(mut text) = marker.get_single_mut() {
+    if let Ok(mut text) = marker.single_mut() {
         let old_text = text.0.clone();
         if old_text != new_text {
             text.0 = new_text;

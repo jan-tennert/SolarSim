@@ -1,6 +1,6 @@
-use bevy::app::{App, Plugin, Update};
+use bevy::app::{App, Plugin};
 use bevy::prelude::{default, ResMut, Resource};
-use bevy_egui::EguiContexts;
+use bevy_egui::{EguiContextPass, EguiContexts};
 use egui_toast::{Toast, ToastKind, ToastOptions, Toasts};
 
 pub struct ToastPlugin;
@@ -10,7 +10,7 @@ impl Plugin for ToastPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<ToastContainer>()
-            .add_systems(Update, show_toasts);
+            .add_systems(EguiContextPass, show_toasts);
     }
 
 }

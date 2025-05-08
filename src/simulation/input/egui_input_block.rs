@@ -1,5 +1,5 @@
 use bevy::app::{PostUpdate, PreUpdate};
-use bevy::prelude::{ButtonInput, IntoSystemConfigs};
+use bevy::prelude::{ButtonInput, IntoScheduleConfigs};
 use bevy::{input::InputSystem, prelude::{KeyCode, MouseButton, Plugin, Res, ResMut, Resource}};
 use bevy_egui::{EguiContexts, EguiPostUpdateSet};
 

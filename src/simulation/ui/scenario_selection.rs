@@ -5,12 +5,12 @@ use crate::simulation::components::speed::Speed;
 use crate::simulation::integration::IntegrationType;
 use crate::simulation::ui::toast::{error_toast, ToastContainer};
 use crate::simulation::{SimState, SimStateType};
-use bevy::app::{App, Plugin, Update};
+use bevy::app::{App, Plugin};
 use bevy::asset::LoadedFolder;
-use bevy::prelude::{in_state, AssetServer, Assets, Commands, Handle, Image, IntoSystemConfigs, Local, NextState, OnEnter, Res, ResMut, Resource, State};
-use bevy::utils::HashMap;
+use bevy::platform::collections::HashMap;
+use bevy::prelude::{in_state, AssetServer, Assets, Commands, Handle, Image, IntoScheduleConfigs, Local, NextState, OnEnter, Res, ResMut, Resource, State};
 use bevy_egui::egui::{Align, CentralPanel, ComboBox, Layout, SidePanel, TextureId};
-use bevy_egui::{egui, EguiContexts};
+use bevy_egui::{egui, EguiContextPass, EguiContexts};
 use std::fs;
 
 pub struct ScenarioSelectionPlugin;
@@ -22,7 +22,7 @@ impl Plugin for ScenarioSelectionPlugin {
             .init_resource::<SelectedScenario>()
             .insert_resource(SelectionState { auto_load_spk: true, ..Default::default() })
             .add_systems(OnEnter(SimState::ScenarioSelection), load_scenarios)
-            .add_systems(Update, (creation_sidebar, show_menu).chain().run_if(in_state(SimState::ScenarioSelection)));
+            .add_systems(EguiContextPass, (creation_sidebar, show_menu).chain().run_if(in_state(SimState::ScenarioSelection)));
     }
 }
 
@@ -218,7 +218,7 @@ fn show_menu(
                                     let edit_button = ui.button("Edit").on_hover_text("Edit scenario in editor");
                                     let duplicate_button = ui.button("Duplicate").on_hover_text("Duplicate scenario");
                                     if let Some(delete_confirm) = &selection_state.delete_confirm {
-                                        if delete_confirm == file_name.clone() {
+                                        if delete_confirm == &file_name.to_string() {
                                             ui.label("Are you sure you want to delete this scenario?");
                                             ui.horizontal(|ui| {
                                                 if ui.button("Yes").on_hover_text("Delete scenario").clicked() {

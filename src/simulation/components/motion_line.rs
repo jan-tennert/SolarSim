@@ -4,8 +4,7 @@ use crate::simulation::components::speed::Speed;
 use crate::simulation::integration::{paused, Pause, SimulationStep, SubSteps};
 use crate::utils::sim_state_type_simulation;
 use bevy::prelude::not;
-use bevy::{prelude::{App, Camera, Entity, Gizmos, IntoSystemConfigs, Plugin, PreUpdate, Query, Res, Resource, Transform, Vec3, With, Without}, time::Time};
-use bevy_panorbit_camera::PanOrbitCamera;
+use bevy::{prelude::{App, Entity, Gizmos, IntoScheduleConfigs, Plugin, PreUpdate, Query, Res, Resource, Transform, Vec3, With, Without}, time::Time};
 
 pub struct MotionLinePlugin;
 
@@ -41,7 +40,6 @@ const HIDE_MULTIPLIER: f32 = 100.0;
 fn update_lines(
     mut planet_query: Query<(Entity, &mut OrbitSettings, &SimPosition, &BodyChildren, &BodyShape, &BillboardVisible), (With<Planet>, Without<Moon>, Without<Star>)>,
     mut moon_query: Query<(Entity, &SimPosition, &mut OrbitSettings, &BodyShape, &BillboardVisible), (With<Moon>, Without<Planet>, Without<Star>)>,
-    camera: Query<&PanOrbitCamera, With<Camera>>,
     time: Res<Time>,
     speed: Res<Speed>,
     substeps: Res<SubSteps>,
@@ -51,10 +49,9 @@ fn update_lines(
     if pause.0 {
         return;
     }
-    let cam = camera.single();
-    for (entity, mut orbit, pos, _, diameter, billboard_visible) in &mut planet_query {
+    for (_entity, mut orbit, pos, _, _diameter, _billboard_visible) in &mut planet_query {
         if orbit.draw_lines {
-            //orbit.hide_lines = (cam.radius < scale.m_to_unit_32(diameter.ellipsoid.mean_equatorial_radius_km() as f32 * 2.) * PLANET_HIDE_MULTIPLIER && entity == selected_entity.entity.unwrap() || !billboard_visible.0) && ui_state.dyn_hide_orbit_lines;
+            //orbit.hide_lines = (cam.radius < scale.m_to_unit_32(_diameter.ellipsoid.mean_equatorial_radius_km() as f32 * 2.) * PLANET_HIDE_MULTIPLIER && _entity == selected_entity._entity.unwrap() || !_billboard_visible.0) && ui_state.dyn_hide_orbit_lines;
             let speed = speed.0 as f32 * (substeps.0 as f32);
             let max_step = (orbit.period as f32 / speed) * MULTIPLIER;
             if orbit.step >= max_step {
@@ -66,12 +63,12 @@ fn update_lines(
             }
         }
     }
-    for (entity, pos, mut orbit, diameter, billboard_visible) in &mut moon_query {
+    for (entity, pos, mut orbit, _diameter, _billboard_visible) in &mut moon_query {
         if orbit.draw_lines {
             if let Some((_, _, p_pos, _, _, _)) = planet_query.iter().find(|(_, _, _, children, _, _)| {
                 children.0.contains(&entity)
             }) {
-           //     orbit.hide_lines = (cam.radius < scale.m_to_unit_32(diameter.ellipsoid.mean_equatorial_radius_km() as f32 * 2.)  * HIDE_MULTIPLIER && entity == selected_entity.entity.unwrap() || !billboard_visible.0) && ui_state.dyn_hide_orbit_lines;
+           //     orbit.hide_lines = (cam.radius < scale.m_to_unit_32(_diameter.ellipsoid.mean_equatorial_radius_km() as f32 * 2.)  * HIDE_MULTIPLIER && _entity == selected_entity._entity.unwrap() || !_billboard_visible.0) && ui_state.dyn_hide_orbit_lines;
                 let speed = speed.0 as f32 * (substeps.0 as f32);
                 let max_step = (orbit.period as f32 / speed) * MULTIPLIER;
                 if orbit.step >= max_step {

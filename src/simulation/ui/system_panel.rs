@@ -7,11 +7,10 @@ use crate::simulation::render::skybox::Cubemap;
 use crate::simulation::ui::metadata::MetadataUiState;
 use crate::simulation::ui::UiState;
 use crate::simulation::{SimState, SimStateType};
-use bevy::core::Name;
 use bevy::core_pipeline::Skybox;
 use bevy::ecs::system::SystemParam;
 use bevy::input::ButtonInput;
-use bevy::prelude::{AabbGizmoConfigGroup, Camera, Commands, Entity, GizmoConfigStore, KeyCode, NextState, Query, Res, ResMut, Visibility, With, Without};
+use bevy::prelude::{AabbGizmoConfigGroup, Camera, Commands, Entity, GizmoConfigStore, KeyCode, Name, NextState, Query, Res, ResMut, Visibility, With, Without};
 use bevy::utils::default;
 use bevy_egui::egui::{Align, Layout, ScrollArea, Ui};
 use bevy_egui::{egui, EguiContexts};
@@ -105,7 +104,7 @@ pub fn system_panel(
         return;
     }
     let show_button = *system_panel_set.sim_state_type == SimStateType::Editor;
-    if let Ok((entity, mut camera, pan, skybox)) = system_panel_set.camera.get_single_mut() {
+    if let Ok((entity, mut camera, _, skybox)) = system_panel_set.camera.single_mut() {
         let ctrl_hold = system_panel_set.keys.pressed(KeyCode::ControlLeft);
         egui::SidePanel::left("system_panel")
             // .default_width(250.0)

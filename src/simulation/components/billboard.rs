@@ -3,8 +3,8 @@ use crate::simulation::components::body::{BillboardVisible, BodyParent, BodyShap
 use crate::simulation::SimState;
 use bevy::app::{App, Plugin};
 use bevy::math::Vec3;
-use bevy::prelude::{in_state, Camera, Children, Entity, GlobalTransform, Has, IntoSystemConfigs, PostUpdate, Query, Res, Resource, Transform, Vec2, Visibility, With, Without};
-use bevy::utils::HashMap;
+use bevy::platform::collections::HashMap;
+use bevy::prelude::{in_state, Camera, Children, Entity, GlobalTransform, Has, IntoScheduleConfigs, PostUpdate, Query, Res, Resource, Transform, Vec2, Visibility, With, Without};
 use bevy_mod_billboard::text::BillboardTextBounds;
 use bevy_mod_billboard::BillboardText;
 use bevy_panorbit_camera::PanOrbitCameraSystemSet;
@@ -52,12 +52,12 @@ fn auto_scale_billboards(
         }
         return;
     }
-    let (c_transform, global_trans, cam) = camera.single();
-    let mut parent_pos = HashMap::default();
-    for (entity, _, transform, _, _, _, _, _, p) in &mut bodies {
+    let (c_transform, global_trans, cam) = camera.single().unwrap();
+    let mut parent_pos: HashMap<Entity, Vec3> = HashMap::default();
+    for (entity, _, transform, _, _, _, _, _, _) in &mut bodies {
         parent_pos.insert(entity, transform.translation.clone());
     }
-    for (_, children, p_transform, shape, mut billboard_visible, apsis, planet, star, p) in bodies.iter_mut() {
+    for (_, children, p_transform, _, mut billboard_visible, _, _planet, star, p) in bodies.iter_mut() {
         let mut predicate = true;
         if p.is_some() {
             let parent_transform = parent_pos.get(&p.unwrap().0).unwrap_or(&Vec3::ZERO);

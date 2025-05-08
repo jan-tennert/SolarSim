@@ -10,10 +10,9 @@ use crate::simulation::ui::toast::{success_toast, ToastContainer};
 use crate::simulation::units::converter::{km_to_m_dvec, m_to_km_dvec, scale_lumen};
 use anise::structure::planetocentric::ellipsoid::Ellipsoid;
 use bevy::asset::{AssetServer, Assets};
-use bevy::core::Name;
 use bevy::math::DVec3;
 use bevy::pbr::MeshMaterial3d;
-use bevy::prelude::{default, BuildChildren, ChildBuild, Color, Commands, DespawnRecursiveExt, Entity, Handle, Mat3, Mut, PointLight, Query, Res, ResMut, Resource, Scene, Srgba, Visibility, With};
+use bevy::prelude::{default, Color, Commands, Entity, Handle, Mat3, Mut, Name, PointLight, Query, Res, ResMut, Resource, Scene, Srgba, Visibility, With};
 use bevy_egui::egui::{Align, Context, Layout, ScrollArea};
 use bevy_egui::{egui, EguiContexts};
 
@@ -331,7 +330,7 @@ fn display_bottom_buttons(
             if state.show_delete_confirm {
                 ui.label("Are you sure?");
                 if ui.button("Yes").on_hover_text("Delete selected body").clicked() {
-                    commands.entity(state.entity.unwrap()).despawn_recursive();
+                    commands.entity(state.entity.unwrap()).despawn();
                     state.show_delete_confirm = false;
                 }
                 if ui.button("No").on_hover_text("Cancel deletion").clicked() {
@@ -423,7 +422,7 @@ fn apply_changes(
         *model_path = ModelPath::from_cleaned(state.new_model_path.as_str());
         shape.path = model_path.0.clone();
         let asset_handle: Handle<Scene> = assets.load(model_path.clone().0);
-        commands.entity(scene_query.get(scene.1).unwrap()).despawn_recursive();
+        commands.entity(scene_query.get(scene.1).unwrap()).despawn();
         scene.0 = asset_handle.clone();
         commands.entity(state.entity.unwrap()).with_children(|parent| {
             scene.1 = spawn_scene(

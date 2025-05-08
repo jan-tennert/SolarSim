@@ -1,6 +1,5 @@
-use crate::simulation::{SimState, SimStateType};
+use crate::simulation::SimState;
 use bevy::{app::AppExit, prelude::*};
-use bevy_egui::EguiContexts;
 
 pub struct MenuPlugin;
 
@@ -25,9 +24,9 @@ fn despawn_menu(
     mut commands: Commands,
     background: Query<&Children, (With<Node>, With<BackgroundImage>)>
 ) {
-    let children = background.single();
+    let children = background.single().unwrap();
     for entity in children.iter() {
-        commands.entity(*entity).despawn_recursive();   
+        commands.entity(entity).despawn();   
     }
 }
 
@@ -44,7 +43,6 @@ fn setup_background(
     mut commands: Commands, 
     asset_server: Res<AssetServer>,
     mut state: ResMut<NextState<SimState>>,
-    egui_context: EguiContexts
 ) {
     commands
         .spawn(Node {
@@ -65,7 +63,7 @@ fn spawn_menu(
     mut commands: Commands, 
     mut parent: Query<(Entity, &mut Visibility), With<BackgroundImage>>
 ) {
-    let (background, mut visibility) = parent.get_single_mut().unwrap();
+    let (background, mut visibility) = parent.single_mut().unwrap();
     let mut parent = commands.entity(background);
 
     parent.with_children(|parent| {
@@ -95,7 +93,7 @@ fn spawn_menu(
     *visibility = Visibility::Visible;
 }
 
-fn button(text: &str, button_type: MenuButtonType, builder: &mut ChildBuilder) {
+fn button(text: &str, button_type: MenuButtonType, builder: &mut ChildSpawnerCommands) {
     builder
         .spawn(Node {
             width: Val::Px(150.0),
@@ -130,10 +128,9 @@ fn button_system(
         (Changed<Interaction>, With<Button>),
     >,
     mut state: ResMut<NextState<SimState>>,
-    sim_type: ResMut<SimStateType>,
     mut exit: EventWriter<AppExit>
 ) {
-    for (interaction, mut color, border_color, button) in &mut interaction_query {
+    for (interaction, mut color, _, button) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
                 match button.0 {
@@ -141,7 +138,7 @@ fn button_system(
                         let _ = state.set(SimState::ScenarioSelection);
                     }
                     MenuButtonType::EXIT => {
-                        exit.send(AppExit::Success);
+                        exit.write(AppExit::Success);
                     }
                 }
             }

@@ -10,7 +10,7 @@ use crate::simulation::ui::scenario_selection::SelectedScenario;
 use crate::simulation::ui::{SimTime, StepType, UiState};
 use crate::simulation::SimState;
 use anise::prelude::Almanac;
-use bevy::prelude::{App, Camera, Commands, DespawnRecursiveExt, Entity, NextState, OnEnter, OnExit, Plugin, Query, Res, ResMut, Vec3, With, Without};
+use bevy::prelude::{App, Camera, Commands, Entity, NextState, OnEnter, OnExit, Plugin, Query, Res, ResMut, Vec3, With, Without};
 use bevy_panorbit_camera::PanOrbitCamera;
 
 pub struct ResetPlugin;
@@ -42,7 +42,7 @@ fn clean_up(
     mut almanac_holder: ResMut<AlmanacHolder>
 ) {
     for entity in m_entities.iter() {
-        commands.entity(entity).despawn_recursive()
+        commands.entity(entity).despawn()
     }
     almanac_holder.0 = Almanac::default();
     speed.0 = scenario_data.timestep as f64;
@@ -52,7 +52,7 @@ fn clean_up(
     sub_steps.0 = DEFAULT_SUB_STEPS;
     scenario.spawned = false;
     loading_state.reset();
-    let mut cam = camera.single_mut();
+    let mut cam = camera.single_mut().unwrap();
     cam.focus = Vec3::ZERO;
     ui_state.visible = true;
     ui_state.step_type = StepType::SUBSTEPS;

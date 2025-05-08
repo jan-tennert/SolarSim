@@ -7,9 +7,9 @@ use crate::simulation::ui::UiState;
 use crate::simulation::SimState;
 use bevy::app::{App, Plugin};
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
-use bevy::prelude::{in_state, IntoSystemConfigs, Query, Res, ResMut, Update};
+use bevy::prelude::{in_state, IntoScheduleConfigs, Query, Res, ResMut};
 use bevy_egui::egui::RichText;
-use bevy_egui::{egui::{self}, EguiContexts};
+use bevy_egui::{egui::{self}, EguiContextPass, EguiContexts};
 use bevy_panorbit_camera::PanOrbitCamera;
 
 pub struct DebugPlugin;
@@ -18,7 +18,7 @@ impl Plugin for DebugPlugin {
 
     fn build(&self, app: &mut App) {
         app
-            .add_systems(Update, (debug_window.after(system_panel)).run_if(in_state(SimState::Loaded)));
+            .add_systems(EguiContextPass, (debug_window.after(system_panel)).run_if(in_state(SimState::Loaded)));
     }
 
 }
@@ -33,7 +33,7 @@ fn debug_window(
     if !ui_state.visible || egui_ctx.try_ctx_mut().is_none() {
         return;
     }
-    let cam = camera.single();
+    let cam = camera.single().unwrap();
     egui::Window::new("Debug Information")
         .open(&mut ui_state.show_debug)
         .collapsible(true)

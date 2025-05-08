@@ -4,9 +4,8 @@ use crate::simulation::ui::editor_body_panel::LightSettings;
 use anise::structure::planetocentric::ellipsoid::Ellipsoid;
 use bevy::color::palettes::css;
 use bevy::color::Color;
-use bevy::core::Name;
 use bevy::math::{DVec3, Mat3, Vec3};
-use bevy::prelude::{default, Bundle, Component, Entity, Handle, Reflect, Scene, Srgba, Transform};
+use bevy::prelude::{default, Bundle, Component, Entity, Handle, Name, Reflect, Scene, Srgba, Transform};
 use std::collections::VecDeque;
 
 #[derive(Component, Clone, Default, Reflect, Copy)]

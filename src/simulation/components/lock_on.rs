@@ -1,4 +1,4 @@
-use bevy::prelude::{in_state, App, Camera, Entity, IntoSystemConfigs, Plugin, PreUpdate, Query, Res, Resource, Transform, Vec3, Without};
+use bevy::prelude::{in_state, App, Camera, Entity, IntoScheduleConfigs, Plugin, PreUpdate, Query, Res, Resource, Transform, Vec3, Without};
 
 use crate::simulation::components::body::{BodyChildren, Mass};
 use crate::simulation::components::selection::SelectedEntity;
@@ -42,7 +42,7 @@ fn lock_on(
             } 
         }
         if let Some(p_transform) = parent {
-            let (_, mut c_transform) = camera.single_mut();   
+            let (_, mut c_transform) = camera.single_mut().unwrap();   
             c_transform.look_at(p_transform.translation, Vec3::X);
         }
     }       

@@ -3,8 +3,7 @@ use std::time::Instant;
 use bevy::app::{App, Plugin, Update};
 use bevy::diagnostic::Diagnostics;
 use bevy::math::DVec3;
-use bevy::prelude::{in_state, not, Entity, IntoSystemConfigs, Mut, Query, Res, Time, Transform};
-use bevy::reflect::List;
+use bevy::prelude::{in_state, not, Entity, IntoScheduleConfigs, Mut, Query, Res, Time, Transform};
 
 use crate::constants::G;
 use crate::simulation::components::body::{Acceleration, Mass, OrbitSettings, SimPosition, Velocity};
