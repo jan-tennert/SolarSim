@@ -12,7 +12,7 @@ use bevy::app::{App, Plugin};
 use bevy::prelude::{IntoScheduleConfigs, Local, ResMut, Resource};
 use bevy_async_task::TaskRunner;
 use bevy_egui::egui::{Button, ComboBox};
-use bevy_egui::{egui, EguiContextPass, EguiContexts};
+use bevy_egui::{egui, EguiContexts, EguiPrimaryContextPass};
 use chrono::{NaiveTime, Timelike};
 use egui_extras::DatePickerButton;
 use std::fs;
@@ -26,7 +26,7 @@ impl Plugin for MetadataPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<MetadataUiState>()
-            .add_systems(EguiContextPass, metadata_editor.run_if(sim_state_type_editor));
+            .add_systems(EguiPrimaryContextPass, metadata_editor.run_if(sim_state_type_editor));
     }
 }
 
@@ -63,7 +63,7 @@ fn metadata_editor(
         .constrain(true)
         .scroll([true, true])
         .auto_sized()
-        .show(egui_context.ctx_mut(), |ui| {
+        .show(egui_context.ctx_mut().unwrap(), |ui| {
             ui.heading("Basic Information");
             edit_basic_info(ui, &mut scenario_data);
             edit_starting_time(ui, &mut scenario_data);

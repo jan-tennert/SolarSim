@@ -10,7 +10,7 @@ use bevy::asset::LoadedFolder;
 use bevy::platform::collections::HashMap;
 use bevy::prelude::{in_state, AssetServer, Assets, Commands, Handle, Image, IntoScheduleConfigs, Local, NextState, OnEnter, Res, ResMut, Resource, State};
 use bevy_egui::egui::{Align, CentralPanel, ComboBox, Layout, SidePanel, TextureId};
-use bevy_egui::{egui, EguiContextPass, EguiContexts};
+use bevy_egui::{egui, EguiContexts, EguiPrimaryContextPass, EguiTextureHandle};
 use std::fs;
 
 pub struct ScenarioSelectionPlugin;
@@ -22,7 +22,7 @@ impl Plugin for ScenarioSelectionPlugin {
             .init_resource::<SelectedScenario>()
             .insert_resource(SelectionState { auto_load_spk: true, ..Default::default() })
             .add_systems(OnEnter(SimState::ScenarioSelection), load_scenarios)
-            .add_systems(EguiContextPass, (creation_sidebar, show_menu).chain().run_if(in_state(SimState::ScenarioSelection)));
+            .add_systems(EguiPrimaryContextPass, (creation_sidebar, show_menu).chain().run_if(in_state(SimState::ScenarioSelection)));
     }
 }
 
@@ -63,10 +63,10 @@ fn creation_sidebar(
     mut selection_state: ResMut<SelectionState>,
     mut toasts: ResMut<ToastContainer>
 ) {
-    if !selection_state.show_creation {
+    if !selection_state.show_creation || egui_context.ctx_mut().is_err() {
         return;
     }
-    SidePanel::right("Create Scenario").default_width(300.0).resizable(true).show(&egui_context.ctx_mut(), |ui| {
+    SidePanel::right("Create Scenario").default_width(300.0).resizable(true).show(&egui_context.ctx_mut().unwrap(), |ui| {
             ui.horizontal(|ui| {
                 ui.heading("Create new scenario");
                 ui.separator();
@@ -164,7 +164,7 @@ fn show_menu(
     integrator: Res<State<IntegrationType>>
 ) {
     CentralPanel::default()
-        .show(&egui_context.ctx_mut().clone(), |ui| {
+        .show(&egui_context.ctx_mut().unwrap().clone(), |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
 
             ui.horizontal(|ui| {
@@ -200,7 +200,7 @@ fn show_menu(
                         images.get(file_name).unwrap().clone()
                     } else {
                         let handle: Handle<Image> = assets.load(from_scenario_source(file_name.replace("sim", "png").as_str()));
-                        let t_id = egui_context.add_image(handle);
+                        let t_id = egui_context.add_image(EguiTextureHandle::Strong(handle));
                         images.insert(file_name.to_string(), t_id);
                         t_id
                     };

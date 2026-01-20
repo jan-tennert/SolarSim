@@ -79,7 +79,7 @@ pub fn editor_body_panel(
     mut toast_container: ResMut<ToastContainer>,
     scale: Res<SimulationScale>
 ) {
-    if egui_context.try_ctx_mut().is_none() {
+    if egui_context.ctx_mut().is_err() {
         return;
     }
     let mut apply  = false;
@@ -90,7 +90,7 @@ pub fn editor_body_panel(
             if state.entity.is_none() || state.entity.unwrap() != s_entity {
                 initialize_state(state.as_mut(), s_entity, &name, &pos, &vel, &mass, &diameter, &rotation_speed,&model_path, light.as_ref(), &horizons_id, &rotation);
             }
-            display_body_panel(egui_context.ctx_mut(), state.as_mut(), &mut name, &mut pos, &mut vel, &mut mass, &mut diameter, &mut rotation_speed, &mut rotation, &mut model_path, &mut scene, &mut horizons_id, &mut commands, &systems, &assets, light, scene_query, billboard_material.as_mut(), &mut materials, &mut apply, &scale);
+            display_body_panel(egui_context.ctx_mut().unwrap(), state.as_mut(), &mut name, &mut pos, &mut vel, &mut mass, &mut diameter, &mut rotation_speed, &mut rotation, &mut model_path, &mut scene, &mut horizons_id, &mut commands, &systems, &assets, light, scene_query, billboard_material.as_mut(), &mut materials, &mut apply, &scale);
         }
     } else {
         state.entity = None;

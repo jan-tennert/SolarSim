@@ -42,7 +42,7 @@ use bevy::{
     },
     reflect::Reflect,
 };
-use bevy_egui::EguiContextPass;
+use bevy_egui::EguiPrimaryContextPass;
 
 #[derive(Resource, Reflect, Default)]
 pub struct SimTime(pub f32);
@@ -90,7 +90,7 @@ impl Plugin for InterfacePlugin {
             .add_plugins(ToastPlugin)
             .add_plugins(MetadataPlugin)
             .add_systems(
-                EguiContextPass,
+                EguiPrimaryContextPass,
                 (
                     system_panel.run_if(in_state(SimState::Loaded)),
                     (editor_body_panel.run_if(sim_state_type_editor), sim_body_panel.run_if(sim_state_type_simulation).after(SimulationStep)),

@@ -10,7 +10,7 @@ pub fn key_window(
     mut egui_ctx: EguiContexts,
     mut ui_state: ResMut<UiState>,
 ) {
-    if !ui_state.visible || egui_ctx.try_ctx_mut().is_none() {
+    if !ui_state.visible || egui_ctx.ctx_mut().is_err() {
         return;
     }
     egui::Window::new("Keybind Information")
@@ -19,7 +19,7 @@ pub fn key_window(
         .constrain(true)
         .scroll([true, true])
         .default_width(250.0)
-        .show(egui_ctx.ctx_mut(), |ui| {
+        .show(egui_ctx.ctx_mut().unwrap(), |ui| {
             ui.label("F11 - Toggle Fullscreen");
             ui.label("F10 - Hide Ui");
             ui.label("Space - Pause");

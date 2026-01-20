@@ -8,7 +8,7 @@ use bevy::asset::LoadState;
 use bevy::ecs::query::QueryManyIter;
 use bevy::platform::collections::HashMap;
 use bevy::prelude::{AssetServer, Entity, Mesh3d, Name, Resource};
-use bevy::{app::{App, Plugin}, math::Vec3A, prelude::{in_state, Children, GlobalTransform, IntoScheduleConfigs, Query, Res, ResMut, Transform, Update, Vec3, With}, render::primitives::{Aabb, Sphere}, scene::{SceneInstance, SceneSpawner}};
+use bevy::{app::{App, Plugin}, math::Vec3A, prelude::{in_state, Children, GlobalTransform, IntoScheduleConfigs, Query, Res, ResMut, Transform, Update, Vec3, With}, camera::primitives::{Aabb, Sphere}, scene::{SceneInstance, SceneSpawner}};
 
 pub struct DiameterPlugin;
 

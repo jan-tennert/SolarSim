@@ -10,11 +10,13 @@ use crate::simulation::{SimState, SimStateType};
 use bevy::core_pipeline::Skybox;
 use bevy::ecs::system::SystemParam;
 use bevy::input::ButtonInput;
-use bevy::prelude::{AabbGizmoConfigGroup, Camera, Commands, Entity, GizmoConfigStore, KeyCode, Name, NextState, Query, Res, ResMut, Visibility, With, Without};
+use bevy::prelude::{AabbGizmoConfigGroup, Camera, Commands, Entity, GizmoConfigStore, Has, KeyCode, Name, NextState, Query, Res, ResMut, Visibility, With, Without};
 use bevy::utils::default;
 use bevy_egui::egui::{Align, Layout, ScrollArea, Ui};
 use bevy_egui::{egui, EguiContexts};
 use bevy_panorbit_camera::PanOrbitCamera;
+use bevy::render::view::Hdr;
+
 
 #[derive(SystemParam)]
 pub struct SystemPanelSet<'w, 's> {
@@ -52,7 +54,7 @@ pub struct SystemPanelSet<'w, 's> {
     state: ResMut<'w, NextState<SimState>>,
     selected_entity: ResMut<'w, SelectedEntity>,
     config: ResMut<'w, GizmoConfigStore>,
-    camera: Query<'w, 's, (Entity, &'static mut Camera, &'static mut PanOrbitCamera, Option<&'static Skybox>)>,
+    camera: Query<'w, 's, (Entity, &'static mut Camera, &'static mut PanOrbitCamera, Has<Hdr>, Option<&'static Skybox>)>,
     commands: Commands<'w, 's>,
     cubemap: ResMut<'w, Cubemap>,
     billboard: ResMut<'w, BillboardSettings>,
@@ -100,16 +102,16 @@ pub fn system_panel(
 ) {
     let egui_context = &mut system_panel_set.egui_context;
     let ui_state = &mut system_panel_set.ui_state;
-    if !ui_state.visible || egui_context.try_ctx_mut().is_none() {
+    if !ui_state.visible || egui_context.ctx_mut().is_err() {
         return;
     }
     let show_button = *system_panel_set.sim_state_type == SimStateType::Editor;
-    if let Ok((entity, mut camera, _, skybox)) = system_panel_set.camera.single_mut() {
+    if let Ok((entity, mut camera, _, hdr, skybox)) = system_panel_set.camera.single_mut() {
         let ctrl_hold = system_panel_set.keys.pressed(KeyCode::ControlLeft);
         egui::SidePanel::left("system_panel")
             // .default_width(250.0)
             .resizable(true)
-            .show(egui_context.ctx_mut(), |ui| {
+            .show(egui_context.ctx_mut().unwrap(), |ui| {
                 ScrollArea::vertical()
                     .auto_shrink(true)
                     .show(ui, |ui| {
@@ -163,7 +165,8 @@ pub fn system_panel(
                         }
                         ui.separator();
                         ui.heading("Options");
-                        ui.checkbox(&mut camera.hdr, "HDR/Bloom");
+                        let mut new_hdr = hdr; //TODO: fix hdr
+                        ui.checkbox(&mut new_hdr, "HDR/Bloom");
                         let skybox_enabled = skybox.is_some();
                         let mut skybox_setting = skybox_enabled;
                         ui.checkbox(&mut skybox_setting, "Milky Way Skybox");

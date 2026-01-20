@@ -26,7 +26,7 @@ pub fn simulation_bottom_bar(
     diagnostics: Res<DiagnosticsStore>,
     sim_type: Res<SimStateType>
 ) {
-    if !ui_state.visible || windows.is_empty() || egui_context.try_ctx_mut().is_none() {
+    if !ui_state.visible || windows.is_empty() || egui_context.ctx_mut().is_err() {
         return;
     }
     if !pause.0 && *sim_type == SimStateType::Simulation {
@@ -36,7 +36,7 @@ pub fn simulation_bottom_bar(
     let mut window = windows.single_mut().unwrap();
     egui::TopBottomPanel::bottom("time_panel")
         .resizable(false)
-        .show(egui_context.ctx_mut(), |ui| {
+        .show(egui_context.ctx_mut().unwrap(), |ui| {
             ui.horizontal(|ui| {
                 ui.with_layout(egui::Layout::left_to_right(egui::Align::LEFT), |ui| {
                     ui.horizontal_centered(|ui| {

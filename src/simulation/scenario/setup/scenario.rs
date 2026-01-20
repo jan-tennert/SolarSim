@@ -13,14 +13,15 @@ use bevy::asset::AssetServer;
 use bevy::color::palettes::css::WHITE;
 use bevy::ecs::system::EntityCommands;
 use bevy::math::{DVec3, Vec3};
-use bevy::pbr::{MeshMaterial3d, PointLight};
-use bevy::prelude::{default, Assets, Circle, Color, Commands, Entity, Handle, Hsva, JustifyText, Mesh, Mesh3d, NextState, Query, Res, ResMut, Resource, Srgba, TextFont, Transform, Visibility};
+use bevy::pbr::{MeshMaterial3d};
+use bevy::prelude::{default, Assets, Circle, Color, Commands, Entity, Handle, Hsva, Justify, Mesh, Mesh3d, NextState, Query, Res, ResMut, Resource, Srgba, TextFont, Transform, Visibility};
 use bevy::prelude::{ChildSpawnerCommands, Name};
 use bevy::scene::{Scene, SceneRoot};
 use bevy::text::{TextColor, TextLayout};
 use bevy_mod_billboard::BillboardText;
 use bevy_panorbit_camera::PanOrbitCamera;
 use std::collections::HashMap;
+use bevy::light::PointLight;
 
 #[derive(Resource, Default, Clone, Debug)]
 pub struct ScenarioData {
@@ -284,7 +285,7 @@ fn spawn_billboard(
             BillboardText::from(bundle.name.as_str()),
             Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)),
             Visibility::Visible,
-            TextLayout::new_with_justify(JustifyText::Center),
+            TextLayout::new_with_justify(Justify::Center),
             TextFont::from_font_size(60.0),
             TextColor(color)
         )

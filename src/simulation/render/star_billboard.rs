@@ -5,9 +5,11 @@ use crate::simulation::SimState;
 use bevy::app::{App, Plugin, Update};
 use bevy::asset::Asset;
 use bevy::math::Vec3;
-use bevy::prelude::{in_state, AlphaMode, Camera, ChildOf, Children, Component, Entity, Handle, Image, IntoScheduleConfigs, LinearRgba, Material, MaterialPlugin, Query, Res, Transform, TypePath, Visibility, With, Without};
-use bevy::render::render_resource::{AsBindGroup, ShaderRef};
+use bevy::prelude::{in_state, AlphaMode, Camera, ChildOf, Children, Component, Entity, Handle, Has, Image, IntoScheduleConfigs, LinearRgba, Material, MaterialPlugin, Query, Res, Transform, TypePath, Visibility, With, Without};
+use bevy::render::render_resource::AsBindGroup;
+use bevy::render::view::Hdr;
 use bevy::scene::SceneInstance;
+use bevy::shader::ShaderRef;
 
 const STAR_IMPOSTER_THRESHOLD: f32 = 4_000.0;
 pub const STAR_IMPOSTER_DIVIDER: f32 = 10000.0;
@@ -66,27 +68,27 @@ impl Material for SunImposterMaterial {
 pub struct StarBillboard(pub Entity);
 
 fn change_sun_renderer(
-    camera: Query<(&Transform, &Camera), (Without<Star>, Without<StarBillboard>)>,
+    camera: Query<(&Transform, &Camera, Has<Hdr>), (Without<Star>, Without<StarBillboard>)>,
     mut stars: Query<(&Transform, &Children), (Without<Camera>, Without<StarBillboard>)>,
     mut star_billboards: Query<(&mut Transform, &mut Visibility, &ChildOf), (With<StarBillboard>, Without<Camera>, Without<Star>)>,
     mut scenes: Query<(&SceneInstance, &mut Visibility), (Without<StarBillboard>, Without<Star>)>,
     scale: Res<SimulationScale>
 ) {
-    let (c_transform, camera) = camera.single().unwrap();
+    let (c_transform, camera, has_hdr) = camera.single().unwrap();
     let multiplier = scale.0 / DEF_M_TO_UNIT as f32;
     let multiplier_sq = multiplier.powi(2);
     for (transform, children) in &mut stars {
         let distance = c_transform.translation.distance(transform.translation);
         for child in children.iter() {
             if let Ok((_, mut visibility)) = scenes.get_mut(*child) {
-                if distance > STAR_IMPOSTER_THRESHOLD * multiplier && camera.hdr {
+                if distance > STAR_IMPOSTER_THRESHOLD * multiplier && has_hdr {
                     *visibility = Visibility::Hidden;
                 } else {
                     *visibility = Visibility::Visible;
                 }
             }
             if let Ok((_, mut visibility, _)) = star_billboards.get_mut(*child) {
-                if distance > STAR_IMPOSTER_THRESHOLD * multiplier && camera.hdr {
+                if distance > STAR_IMPOSTER_THRESHOLD * multiplier && has_hdr {
                     *visibility = Visibility::Visible;
                 } else {
                     *visibility = Visibility::Hidden;

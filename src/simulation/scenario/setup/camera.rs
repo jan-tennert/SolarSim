@@ -1,9 +1,10 @@
 use crate::simulation::render::skybox::Cubemap;
 use bevy::asset::AssetServer;
-use bevy::core_pipeline::bloom::Bloom;
+use bevy::camera::visibility::NoCpuCulling;
+use bevy::post_process::bloom::Bloom;
 use bevy::core_pipeline::Skybox;
 use bevy::prelude::{default, Camera, Camera3d, Commands, PerspectiveProjection, Projection, Res};
-use bevy::render::view::NoCpuCulling;
+use bevy::render::view::Hdr;
 use bevy_panorbit_camera::PanOrbitCamera;
 
 pub fn setup_camera(
@@ -14,9 +15,9 @@ pub fn setup_camera(
     commands.spawn((
         Camera3d::default(),
         Camera {
-            hdr: true,
             ..default()
         },
+        Hdr::default(),
         Projection::Perspective(PerspectiveProjection {
             near: 0.00000001,
             ..default()

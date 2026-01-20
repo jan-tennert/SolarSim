@@ -21,14 +21,14 @@ pub fn editor_bottom_bar(
     systems: Res<EditorSystems>,
     mut commands: Commands
 ) {
-    if egui_context.try_ctx_mut().is_none() {
+    if egui_context.ctx_mut().is_err() {
         return;
     }
     let mut window = windows.single_mut().unwrap();
     let date = get_date_from_seconds(scenario_data.starting_time_millis, sim_time.0);
     egui::TopBottomPanel::bottom("time_panel")
         .resizable(false)
-        .show(egui_context.ctx_mut(), |ui| {
+        .show(egui_context.ctx_mut().unwrap(), |ui| {
             ui.horizontal(|ui| {
                 ui.with_layout(egui::Layout::left_to_right(egui::Align::LEFT), |ui| {
                     ui.horizontal_centered(|ui| {

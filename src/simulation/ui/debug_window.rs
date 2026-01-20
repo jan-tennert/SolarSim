@@ -9,7 +9,7 @@ use bevy::app::{App, Plugin};
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::{in_state, IntoScheduleConfigs, Query, Res, ResMut};
 use bevy_egui::egui::RichText;
-use bevy_egui::{egui::{self}, EguiContextPass, EguiContexts};
+use bevy_egui::{egui::{self}, EguiContexts, EguiPrimaryContextPass};
 use bevy_panorbit_camera::PanOrbitCamera;
 
 pub struct DebugPlugin;
@@ -18,7 +18,7 @@ impl Plugin for DebugPlugin {
 
     fn build(&self, app: &mut App) {
         app
-            .add_systems(EguiContextPass, (debug_window.after(system_panel)).run_if(in_state(SimState::Loaded)));
+            .add_systems(EguiPrimaryContextPass, (debug_window.after(system_panel)).run_if(in_state(SimState::Loaded)));
     }
 
 }
@@ -29,8 +29,8 @@ fn debug_window(
     diagnostics: Res<DiagnosticsStore>,
     bodies: Query<&Mass>,
     camera: Query<&PanOrbitCamera>
-) {
-    if !ui_state.visible || egui_ctx.try_ctx_mut().is_none() {
+)  {
+    if !ui_state.visible || egui_ctx.ctx_mut().is_err() {
         return;
     }
     let cam = camera.single().unwrap();
@@ -40,7 +40,7 @@ fn debug_window(
         .constrain(true)
         .scroll([true, true])
         .default_width(250.0)
-        .show(egui_ctx.ctx_mut(), |ui| {
+        .show(egui_ctx.ctx_mut().unwrap(), |ui| { // todo handle unwrap
             if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
                 if let Some(value) = fps.smoothed() {
                     // Update the value of the second section

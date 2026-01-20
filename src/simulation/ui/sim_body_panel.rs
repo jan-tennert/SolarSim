@@ -32,7 +32,7 @@ pub struct SimBodyPanelSet<'w, 's> {
 pub fn sim_body_panel(
     mut set: SimBodyPanelSet,
 ) {
-    if !set.ui_state.visible || set.egui_context.try_ctx_mut().is_none() {
+    if !set.ui_state.visible || set.egui_context.ctx_mut().is_err() {
         return;
     }
     if let Some(entity) = set.selected_entity.entity {
@@ -65,7 +65,7 @@ pub fn sim_body_panel(
             egui::SidePanel::right("body_panel")
                 //      .max_width(250.0)
                 .resizable(true)
-                .show(set.egui_context.ctx_mut(), |ui| {
+                .show(set.egui_context.ctx_mut().unwrap(), |ui| {
                     ScrollArea::vertical()
                         .auto_shrink(true)
                         .show(ui, |ui| {
