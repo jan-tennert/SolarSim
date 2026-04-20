@@ -30,7 +30,7 @@ pub struct ScenarioData {
     pub title: String,
     pub description: String,
     pub timestep: i32,
-    pub scale: f32,
+   // pub scale: f32,
     pub spice_files: HashMap<String, bool>
 
 }
@@ -43,7 +43,7 @@ impl From<SimulationData> for ScenarioData {
             title: value.title,
             description: value.description,
             timestep: value.timestep,
-            scale: value.scale,
+          //  scale: value.scale,
             spice_files: value.data_sets.iter().map(|d| (d.clone(), false)).collect()
         }
     }

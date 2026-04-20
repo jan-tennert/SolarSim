@@ -9,11 +9,11 @@ use bevy_mod_billboard::text::BillboardTextBounds;
 use bevy_mod_billboard::BillboardText;
 use bevy_panorbit_camera::PanOrbitCameraSystemSet;
 
-const STAR_VISIBILITY_THRESHOLD: f32 = 40_000_000.0; //if the camera's radius is less than this, stars' names will be hidden
-const PLANET_VISIBILITY_THRESHOLD: f32 = 1700.0; //if the camera's radius is less than this, planets' names will be hidden
+//const STAR_VISIBILITY_THRESHOLD: f32 = 40_000_000.0; //if the camera's radius is less than this, stars' names will be hidden
+//const PLANET_VISIBILITY_THRESHOLD: f32 = 1700.0; //if the camera's radius is less than this, planets' names will be hidden
 //const MOON_VISIBILITY_THRESHOLD: f32 = 0.001; //if the camera's radius is less than this, moons' names will be hidden
 const RADIUS_DIVIDER: f32 = 3000.0;
-const TRANSLATION_MULTIPLIER: f32 = 2000.0;
+//const TRANSLATION_MULTIPLIER: f32 = 2000.0;
 const VISIBILITY_THRESHOLD: f32 = 20.;
 
 pub struct BodyBillboardPlugin;

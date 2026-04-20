@@ -38,7 +38,7 @@ fn apply_physics(
     step(&mut query, count, timestep);
     diagnostics.add_measurement(&NBODY_STEP_TIME, || start_step.elapsed().as_nanos() as f64);
     diagnostics.add_measurement(&NBODY_TOTAL_TIME, || start.elapsed().as_nanos() as f64);
-    diagnostics.add_measurement(&NBODY_STEPS, || (sub_steps.0 as f64 / delta));
+    diagnostics.add_measurement(&NBODY_STEPS, || sub_steps.0 as f64 / delta);
 }
 
 fn step(

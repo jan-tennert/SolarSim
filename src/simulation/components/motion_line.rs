@@ -34,8 +34,8 @@ impl Default for OrbitOffset {
 }
 
 const MULTIPLIER: f32 = 0.0001;
-const PLANET_HIDE_MULTIPLIER: f32 = 10000.0;
-const HIDE_MULTIPLIER: f32 = 100.0;
+//const PLANET_HIDE_MULTIPLIER: f32 = 10000.0;
+//const HIDE_MULTIPLIER: f32 = 100.0;
 
 fn update_lines(
     mut planet_query: Query<(Entity, &mut OrbitSettings, &SimPosition, &BodyChildren, &BodyShape, &BillboardVisible), (With<Planet>, Without<Moon>, Without<Star>)>,

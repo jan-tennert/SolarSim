@@ -68,13 +68,13 @@ impl Material for SunImposterMaterial {
 pub struct StarBillboard(pub Entity);
 
 fn change_sun_renderer(
-    camera: Query<(&Transform, &Camera, Has<Hdr>), (Without<Star>, Without<StarBillboard>)>,
+    camera: Query<(&Transform, Has<Hdr>), (With<Camera>, Without<Star>, Without<StarBillboard>)>,
     mut stars: Query<(&Transform, &Children), (Without<Camera>, Without<StarBillboard>)>,
     mut star_billboards: Query<(&mut Transform, &mut Visibility, &ChildOf), (With<StarBillboard>, Without<Camera>, Without<Star>)>,
     mut scenes: Query<(&SceneInstance, &mut Visibility), (Without<StarBillboard>, Without<Star>)>,
     scale: Res<SimulationScale>
 ) {
-    let (c_transform, camera, has_hdr) = camera.single().unwrap();
+    let (c_transform, has_hdr) = camera.single().unwrap();
     let multiplier = scale.0 / DEF_M_TO_UNIT as f32;
     let multiplier_sq = multiplier.powi(2);
     for (transform, children) in &mut stars {

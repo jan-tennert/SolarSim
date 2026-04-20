@@ -128,7 +128,7 @@ fn button_system(
         (Changed<Interaction>, With<Button>),
     >,
     mut state: ResMut<NextState<SimState>>,
-    mut exit: EventWriter<AppExit>
+    mut exit: MessageWriter<AppExit>
 ) {
     for (interaction, mut color, _, button) in &mut interaction_query {
         match *interaction {

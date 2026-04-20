@@ -1,7 +1,6 @@
 use crate::simulation::components::billboard::BillboardSettings;
 use crate::simulation::components::body::{BodyChildren, Moon, Planet, Star};
 use crate::simulation::components::editor::{CreateBodyState, CreateBodyType, EditorSystemType, EditorSystems};
-use crate::simulation::components::motion_line::OrbitOffset;
 use crate::simulation::components::selection::SelectedEntity;
 use crate::simulation::render::skybox::Cubemap;
 use crate::simulation::ui::metadata::MetadataUiState;
@@ -10,12 +9,12 @@ use crate::simulation::{SimState, SimStateType};
 use bevy::core_pipeline::Skybox;
 use bevy::ecs::system::SystemParam;
 use bevy::input::ButtonInput;
-use bevy::prelude::{AabbGizmoConfigGroup, Camera, Commands, Entity, GizmoConfigStore, Has, KeyCode, Name, NextState, Query, Res, ResMut, Visibility, With, Without};
+use bevy::prelude::{AabbGizmoConfigGroup, Commands, Entity, GizmoConfigStore, KeyCode, Name, NextState, Query, Res, ResMut, Visibility, With, Without};
+use bevy::render::view::Hdr;
 use bevy::utils::default;
 use bevy_egui::egui::{Align, Layout, ScrollArea, Ui};
 use bevy_egui::{egui, EguiContexts};
 use bevy_panorbit_camera::PanOrbitCamera;
-use bevy::render::view::Hdr;
 
 
 #[derive(SystemParam)]
@@ -54,12 +53,11 @@ pub struct SystemPanelSet<'w, 's> {
     state: ResMut<'w, NextState<SimState>>,
     selected_entity: ResMut<'w, SelectedEntity>,
     config: ResMut<'w, GizmoConfigStore>,
-    camera: Query<'w, 's, (Entity, &'static mut Camera, &'static mut PanOrbitCamera, Has<Hdr>, Option<&'static Skybox>)>,
+    camera: Query<'w, 's, (Entity, &'static mut PanOrbitCamera, Option<&'static Hdr>, Option<&'static Skybox>)>,
     commands: Commands<'w, 's>,
     cubemap: ResMut<'w, Cubemap>,
     billboard: ResMut<'w, BillboardSettings>,
     ui_state: ResMut<'w, UiState>,
-    orbit_offset: ResMut<'w, OrbitOffset>,
     keys: Res<'w, ButtonInput<KeyCode>>,
     sim_state_type: Res<'w, SimStateType>,
     create_body_state: ResMut<'w, CreateBodyState>,
@@ -106,7 +104,7 @@ pub fn system_panel(
         return;
     }
     let show_button = *system_panel_set.sim_state_type == SimStateType::Editor;
-    if let Ok((entity, mut camera, _, hdr, skybox)) = system_panel_set.camera.single_mut() {
+    if let Ok((entity, _, hdr, skybox)) = system_panel_set.camera.single_mut() {
         let ctrl_hold = system_panel_set.keys.pressed(KeyCode::ControlLeft);
         egui::SidePanel::left("system_panel")
             // .default_width(250.0)
@@ -165,8 +163,13 @@ pub fn system_panel(
                         }
                         ui.separator();
                         ui.heading("Options");
-                        let mut new_hdr = hdr; //TODO: fix hdr
+                        let mut new_hdr = hdr.is_some();
                         ui.checkbox(&mut new_hdr, "HDR/Bloom");
+                        if !new_hdr && hdr.is_some() {
+                            system_panel_set.commands.entity(entity).remove::<Hdr>();
+                        } else if new_hdr && hdr.is_none() {
+                            system_panel_set.commands.entity(entity).insert(Hdr::default());
+                        }
                         let skybox_enabled = skybox.is_some();
                         let mut skybox_setting = skybox_enabled;
                         ui.checkbox(&mut skybox_setting, "Milky Way Skybox");

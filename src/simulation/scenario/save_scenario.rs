@@ -7,28 +7,16 @@ use crate::simulation::scenario::setup::ScenarioData;
 use crate::simulation::ui::scenario_selection::SelectedScenario;
 use crate::simulation::ui::toast::{success_toast, ToastContainer};
 use anise::structure::planetocentric::ellipsoid::Ellipsoid;
-use bevy::app::Plugin;
 use bevy::ecs::system::SystemParam;
 use bevy::math::DVec3;
 use bevy::prelude::Name;
 use bevy::prelude::{Assets, Entity, Query, Res, ResMut};
 use std::fs;
 
-pub struct SaveScenarioPlugin;
-
-impl Plugin for SaveScenarioPlugin {
-
-    fn build(&self, app: &mut bevy::prelude::App) {
-        app
-            ;
-    }
-
-}
-
 #[derive(SystemParam)]
 pub struct SystemPanelSet<'w, 's> {
     selected_scenario: ResMut<'w, SelectedScenario>,
-    bodies_asset: ResMut<'w, Assets<SimulationData>>,
+   // bodies_asset: ResMut<'w, Assets<SimulationData>>,
     scenario_data: ResMut<'w, ScenarioData>,
     bodies: Query<'w, 's, (Entity, &'static Mass, &'static SimPosition, &'static Velocity, &'static Name, &'static ModelPath, &'static BodyShape, &'static RotationSpeed, &'static BodyRotation, Option<&'static BodyChildren>, &'static AniseMetadata, &'static BodyRotation, Option<&'static Star>)>,
     lights: Query<'w, 's, &'static LightSource>,

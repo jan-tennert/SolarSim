@@ -2,7 +2,6 @@ use crate::simulation::components::anise::AnisePlugin;
 use crate::simulation::components::apsis::ApsisPlugin;
 use crate::simulation::components::billboard::BodyBillboardPlugin;
 use crate::simulation::components::direction::DirectionPlugin;
-use crate::simulation::components::horizons::HorizonsPlugin;
 use crate::simulation::components::lock_on::LockOnPlugin;
 use crate::simulation::components::motion_line::MotionLinePlugin;
 use crate::simulation::components::reset::ResetPlugin;
@@ -51,7 +50,6 @@ impl Plugin for SimComponentPlugin {
             .add_plugins(RotationPlugin)
             .add_plugins(SelectionPlugin)
             .add_plugins(SpeedPlugin)
-            .add_plugins(HorizonsPlugin)
             .add_plugins(AnisePlugin);
     }
 

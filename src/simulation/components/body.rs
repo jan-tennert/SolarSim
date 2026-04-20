@@ -94,14 +94,13 @@ impl Default for OrbitSettings {
 pub struct SimPosition {
 
     pub current: DVec3,
-    pub previous: Option<DVec3>,
 
 }
 
 impl SimPosition {
 
     pub fn new(value: DVec3) -> Self {
-        SimPosition { current: value, previous: None }
+        SimPosition { current: value }
     }
 
 }

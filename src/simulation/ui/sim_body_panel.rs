@@ -4,10 +4,9 @@ use crate::simulation::components::body::{BodyChildren, BodyParent, BodyShape, M
 use crate::simulation::components::horizons::AniseMetadata;
 use crate::simulation::components::scale::SimulationScale;
 use crate::simulation::components::selection::SelectedEntity;
-use crate::simulation::scenario::setup::scenario::ScenarioData;
 use crate::simulation::ui::components::{body_multiplier_field, body_property_field, copy_value_button};
 use crate::simulation::ui::toast::ToastContainer;
-use crate::simulation::ui::{SimTime, UiState};
+use crate::simulation::ui::UiState;
 use crate::simulation::units::text_formatter::{format_length, format_seconds};
 use bevy::color::Srgba;
 use bevy::ecs::system::SystemParam;
@@ -24,8 +23,8 @@ pub struct SimBodyPanelSet<'w, 's> {
     selected_entity: Res<'w, SelectedEntity>,
     ui_state: ResMut<'w, UiState>,
     s_scale: Res<'w, SimulationScale>,
-    scenario: Res<'w, ScenarioData>,
-    sim_time: Res<'w, SimTime>,
+   // scenario: Res<'w, ScenarioData>,
+    // sim_time: Res<'w, SimTime>,
     toast_container: ResMut<'w, ToastContainer>
 }
 
