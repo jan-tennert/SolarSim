@@ -130,7 +130,7 @@ pub struct SerializedLightSource {
     pub enabled: bool
 }
 
-#[derive(Default)]
+#[derive(Default, TypePath)]
 pub struct BodyAssetLoader;
 
 impl AssetLoader for BodyAssetLoader {
