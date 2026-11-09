@@ -13,8 +13,9 @@ use bevy::prelude::{IntoScheduleConfigs, Local, ResMut, Resource};
 use bevy_async_task::TaskRunner;
 use bevy_egui::egui::{Button, ComboBox};
 use bevy_egui::{egui, EguiContexts, EguiPrimaryContextPass};
-use chrono::{NaiveTime, Timelike};
 use egui_extras::DatePickerButton;
+use jiff::civil::Time;
+use jiff::tz::TimeZone;
 use std::fs;
 use std::path::Path;
 use std::task::Poll;
@@ -89,17 +90,24 @@ fn edit_basic_info(ui: &mut egui::Ui, scenario_data: &mut ScenarioData) {
 
 fn edit_starting_time(ui: &mut egui::Ui, scenario_data: &mut ScenarioData) {
     let current_date = get_date_from_seconds(scenario_data.starting_time_millis, 0.0);
-    let mut new_date = current_date.clone().date_naive();
+    let current_zoned = current_date.to_zoned(TimeZone::UTC);
+    let mut new_date = current_zoned.date();
+
     ui.horizontal(|ui| {
         ui.label("Starting Date");
         ui.add(DatePickerButton::new(&mut new_date));
-        if ui.button("Update bodies (TODO)").on_hover_text("Update bodies to new date").clicked() {
-
+        if ui.button("Update bodies (TODO)")
+            .on_hover_text("Update bodies to new date")
+            .clicked()
+        {
+            // TODO: update bodies
         }
     });
-    let mut hour = current_date.time().hour();
-    let mut minute = current_date.time().minute();
-    let mut second = current_date.time().second();
+
+    let mut hour = current_zoned.hour() as u8;
+    let mut minute = current_zoned.minute() as u8;
+    let mut second = current_zoned.second() as u8;
+
     ui.horizontal(|ui| {
         ui.label("Starting Time");
         ui.add(egui::DragValue::new(&mut hour).range(0..=23));
@@ -108,9 +116,13 @@ fn edit_starting_time(ui: &mut egui::Ui, scenario_data: &mut ScenarioData) {
         ui.label(":");
         ui.add(egui::DragValue::new(&mut second).range(0..=59));
     });
-    let changed_date = new_date.and_time(NaiveTime::from_hms_opt(hour, minute, second).unwrap());
-    if changed_date != current_date.naive_utc() {
-        scenario_data.starting_time_millis = changed_date.and_utc().timestamp_millis();
+
+    let new_time = Time::new(hour as i8, minute as i8, second as i8, 0).unwrap();
+    let changed_datetime = new_date.to_datetime(new_time);
+
+    if changed_datetime != current_zoned.datetime() {
+        let changed_zoned = changed_datetime.to_zoned(TimeZone::UTC).unwrap();
+        scenario_data.starting_time_millis = changed_zoned.timestamp().as_millisecond();
     }
 }
 

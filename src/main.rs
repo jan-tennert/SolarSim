@@ -68,10 +68,10 @@ fn main() {
                 ..default()
             })
             .set(RenderPlugin {
-                render_creation: RenderCreation::Automatic(WgpuSettings {
-              //      backends: Some(Backends::VULKAN),
+                render_creation: RenderCreation::Automatic(Box::from(WgpuSettings {
+                    //      backends: Some(Backends::VULKAN),
                     ..default()
-                }),
+                })),
                 ..default()
             })
         )

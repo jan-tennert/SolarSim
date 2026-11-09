@@ -30,8 +30,8 @@ impl Plugin for BlockInputPlugin {
 
 fn egui_wants_input(mut state: ResMut<EguiBlockInputState>, mut contexts: EguiContexts) {
     if let Ok(ctx) = contexts.ctx_mut() {
-        state.wants_keyboard_input = ctx.wants_keyboard_input();
-        state.wants_pointer_input = ctx.wants_pointer_input();
+        state.wants_keyboard_input = ctx.egui_wants_keyboard_input();
+        state.wants_pointer_input = ctx.egui_wants_pointer_input();
     }
 }
 

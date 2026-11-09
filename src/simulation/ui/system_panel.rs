@@ -10,12 +10,12 @@ use bevy::core_pipeline::Skybox;
 use bevy::ecs::system::SystemParam;
 use bevy::input::ButtonInput;
 use bevy::prelude::{AabbGizmoConfigGroup, Commands, Entity, GizmoConfigStore, KeyCode, Name, NextState, Query, Res, ResMut, Visibility, With, Without};
-use bevy::render::view::Hdr;
+use bevy::camera::Hdr;
 use bevy::utils::default;
 use bevy_egui::egui::{Align, Layout, ScrollArea, Ui};
 use bevy_egui::{egui, EguiContexts};
 use bevy_panorbit_camera::PanOrbitCamera;
-
+use crate::utils::create_viewport_ui;
 
 #[derive(SystemParam)]
 pub struct SystemPanelSet<'w, 's> {
@@ -99,6 +99,7 @@ pub fn system_panel(
     //  editor_systems: Res<EditorSystems>
 ) {
     let egui_context = &mut system_panel_set.egui_context;
+    let mut viewport = create_viewport_ui(egui_context.ctx_mut().unwrap());
     let ui_state = &mut system_panel_set.ui_state;
     if !ui_state.visible || egui_context.ctx_mut().is_err() {
         return;
@@ -106,10 +107,10 @@ pub fn system_panel(
     let show_button = *system_panel_set.sim_state_type == SimStateType::Editor;
     if let Ok((entity, _, hdr, skybox)) = system_panel_set.camera.single_mut() {
         let ctrl_hold = system_panel_set.keys.pressed(KeyCode::ControlLeft);
-        egui::SidePanel::left("system_panel")
+        egui::Panel::left("system_panel")
             // .default_width(250.0)
             .resizable(true)
-            .show(egui_context.ctx_mut().unwrap(), |ui| {
+            .show(&mut viewport, |ui| {
                 ScrollArea::vertical()
                     .auto_shrink(true)
                     .show(ui, |ui| {
@@ -178,7 +179,7 @@ pub fn system_panel(
                             system_panel_set.commands.entity(entity).remove::<Skybox>();
                             system_panel_set.cubemap.activated = false;
                         } else if !skybox_enabled && skybox_setting {
-                            system_panel_set.commands.entity(entity).insert(Skybox { image: system_panel_set.cubemap.image_handle.clone(), brightness: 1000.0, ..default() });
+                            system_panel_set.commands.entity(entity).insert(Skybox { image: Some(system_panel_set.cubemap.image_handle.clone()), brightness: 1000.0, ..default() });
                             system_panel_set.cubemap.activated = true;
                         }
 

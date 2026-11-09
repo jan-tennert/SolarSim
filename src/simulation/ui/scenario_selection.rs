@@ -9,9 +9,10 @@ use bevy::app::{App, Plugin};
 use bevy::asset::LoadedFolder;
 use bevy::platform::collections::HashMap;
 use bevy::prelude::{in_state, AssetServer, Assets, Commands, Handle, Image, IntoScheduleConfigs, Local, NextState, OnEnter, Res, ResMut, Resource, State};
-use bevy_egui::egui::{Align, CentralPanel, ComboBox, Layout, SidePanel, TextureId};
+use bevy_egui::egui::{Align, CentralPanel, ComboBox, Layout, Panel, TextureId};
 use bevy_egui::{egui, EguiContexts, EguiPrimaryContextPass, EguiTextureHandle};
 use std::fs;
+use crate::utils::create_viewport_ui;
 
 pub struct ScenarioSelectionPlugin;
 
@@ -66,7 +67,8 @@ fn creation_sidebar(
     if !selection_state.show_creation || egui_context.ctx_mut().is_err() {
         return;
     }
-    SidePanel::right("Create Scenario").default_width(300.0).resizable(true).show(&egui_context.ctx_mut().unwrap(), |ui| {
+    let mut viewport = create_viewport_ui(egui_context.ctx_mut().unwrap());
+    Panel::right("Create Scenario").default_size(300.0).resizable(true).show(&mut viewport, |ui| {
             ui.horizontal(|ui| {
                 ui.heading("Create new scenario");
                 ui.separator();
@@ -163,8 +165,9 @@ fn show_menu(
     mut next_integrator: ResMut<NextState<IntegrationType>>,
     integrator: Res<State<IntegrationType>>
 ) {
+    let mut viewport = create_viewport_ui(egui_context.ctx_mut().unwrap());
     CentralPanel::default()
-        .show(&egui_context.ctx_mut().unwrap().clone(), |ui| {
+        .show(&mut viewport, |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
 
             ui.horizontal(|ui| {

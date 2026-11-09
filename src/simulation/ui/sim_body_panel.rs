@@ -13,6 +13,7 @@ use bevy::ecs::system::SystemParam;
 use bevy::prelude::{Camera, Commands, Entity, Mut, Name, Query, Res, ResMut, Transform, Without};
 use bevy_egui::egui::{RichText, ScrollArea, SliderClamping, Ui};
 use bevy_egui::{egui, EguiContexts};
+use crate::utils::create_viewport_ui;
 
 #[derive(SystemParam)]
 pub struct SimBodyPanelSet<'w, 's> {
@@ -59,12 +60,14 @@ pub fn sim_body_panel(
                let frame = Frame::new(id, J2000);
                let epoch = Epoch::from_unix_milliseconds(set.scenario.starting_time_millis as f64 + set.sim_time.0 as f64);
            }*/
+        let ctx = set.egui_context.ctx_mut().unwrap();
+        let mut viewport_ui = create_viewport_ui(ctx);
 
         if let Some((name, entity, pos, ref mut velocity, rotation_speed, diameter, ref mut orbit, ref mut transform, ref mut mass, apsis, _,_)) = selected {
-            egui::SidePanel::right("body_panel")
+            egui::Panel::right("body_panel")
                 //      .max_width(250.0)
                 .resizable(true)
-                .show(set.egui_context.ctx_mut().unwrap(), |ui| {
+                .show(&mut viewport_ui, |ui| {
                     ScrollArea::vertical()
                         .auto_shrink(true)
                         .show(ui, |ui| {

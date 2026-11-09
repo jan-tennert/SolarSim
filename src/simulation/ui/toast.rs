@@ -2,6 +2,7 @@ use bevy::app::{App, Plugin};
 use bevy::prelude::{default, ResMut, Resource};
 use bevy_egui::{EguiContexts, EguiPrimaryContextPass};
 use egui_toast::{Toast, ToastKind, ToastOptions, Toasts};
+use crate::utils::create_viewport_ui;
 
 pub struct ToastPlugin;
 
@@ -28,7 +29,8 @@ fn show_toasts(
     mut egui_context: EguiContexts,
     mut toasts: ResMut<ToastContainer>
 ) {
-    toasts.0.show(egui_context.ctx_mut().unwrap());
+    let mut viewport = create_viewport_ui(egui_context.ctx_mut().unwrap());
+    toasts.0.show(&mut viewport);
 }
 
 pub fn success_toast(text: &str) -> Toast {

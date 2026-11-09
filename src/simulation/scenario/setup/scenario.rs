@@ -16,7 +16,7 @@ use bevy::math::{DVec3, Vec3};
 use bevy::pbr::{MeshMaterial3d};
 use bevy::prelude::{default, Assets, Circle, Color, Commands, Entity, Handle, Hsva, Justify, Mesh, Mesh3d, NextState, Query, Res, ResMut, Resource, Srgba, TextFont, Transform, Visibility};
 use bevy::prelude::{ChildSpawnerCommands, Name};
-use bevy::scene::{Scene, SceneRoot};
+use bevy::world_serialization::{WorldAsset, WorldAssetRoot};
 use bevy::text::{TextColor, TextLayout};
 use bevy_mod_billboard::BillboardText;
 use bevy_panorbit_camera::PanOrbitCamera;
@@ -165,7 +165,7 @@ fn add_light_source(
         parent.spawn(PointLight {
             color: *star_color,
             intensity: scale_lumen(source.intensity, &scale),
-            shadows_enabled: true,
+            shadow_maps_enabled: true,
             range: scale.m_to_unit_32(source.range),
             radius: scale.m_to_unit_32(entry.data.ellipsoid.mean_equatorial_radius_km() as f32),
             ..default()
@@ -204,7 +204,7 @@ pub fn apply_body(
     star_color: Color,
     scale: &SimulationScale
 ) {
-    let asset_handle: Handle<Scene> = assets.load(bundle.model_path.clone().0);
+    let asset_handle: Handle<WorldAsset> = assets.load(bundle.model_path.clone().0);
     let color: Color = Hsva::new(hue, 1.0, 1.0, 1.0).into();
     entity.insert(bundle.clone());
     match body_type {
@@ -285,7 +285,7 @@ fn spawn_billboard(
             BillboardText::from(bundle.name.as_str()),
             Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)),
             Visibility::Visible,
-            TextLayout::new_with_justify(Justify::Center),
+            TextLayout::justify(Justify::Center),
             TextFont::from_font_size(60.0),
             TextColor(color)
         )
@@ -295,11 +295,11 @@ fn spawn_billboard(
 }
 
 pub fn spawn_scene(
-    asset_handle: Handle<Scene>,
+    asset_handle: Handle<WorldAsset>,
     name: &str,
     parent: &mut ChildSpawnerCommands,
 ) -> Entity {
-    parent.spawn(SceneRoot::from(asset_handle))
+    parent.spawn(WorldAssetRoot::from(asset_handle))
         .insert(SceneEntity)
         .insert(Name::new(format!("{} Scene", name))).id()
 }

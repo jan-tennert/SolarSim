@@ -8,7 +8,7 @@ use bevy::asset::LoadState;
 use bevy::ecs::query::QueryManyIter;
 use bevy::platform::collections::HashMap;
 use bevy::prelude::{AssetServer, Entity, Mesh3d, Name, Resource};
-use bevy::{app::{App, Plugin}, math::Vec3A, prelude::{in_state, Children, GlobalTransform, IntoScheduleConfigs, Query, Res, ResMut, Transform, Update, Vec3, With}, camera::primitives::{Aabb, Sphere}, scene::{SceneInstance, SceneSpawner}};
+use bevy::{app::{App, Plugin}, math::Vec3A, prelude::{in_state, Children, GlobalTransform, IntoScheduleConfigs, Query, Res, ResMut, Transform, Update, Vec3, With}, camera::primitives::{Aabb, Sphere}, world_serialization::{WorldInstance, WorldInstanceSpawner}};
 
 pub struct DiameterPlugin;
 
@@ -27,9 +27,9 @@ pub struct SavedAabbs(HashMap<String, Aabb>);
 
 pub fn apply_real_diameter(
     mut bodies: Query<(&Children, &Name, &SceneHandle, &mut BodyShape, &mut Transform)>,
-    scenes: Query<&SceneInstance>,
+    scenes: Query<&WorldInstance>,
     meshes: Query<(&GlobalTransform, Option<&Aabb>), With<Mesh3d>>,
-    spawner: Res<SceneSpawner>,
+    spawner: Res<WorldInstanceSpawner>,
     mut loading_state: ResMut<LoadingState>,
     asset_server: Res<AssetServer>,
     s_scale: Res<SimulationScale>,

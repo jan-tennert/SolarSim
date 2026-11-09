@@ -10,7 +10,7 @@ use crate::simulation::SimState;
 use crate::utils::sim_state_type_simulation;
 use bevy::app::{App, Plugin};
 use bevy::prelude::{in_state, not, Children, IntoScheduleConfigs, Quat, Query, Res, ResMut, Transform, Update, With, Without};
-use bevy::scene::SceneInstance;
+use bevy::world_serialization::WorldInstance;
 use bevy::time::Time;
 
 pub struct RotationPlugin;
@@ -27,7 +27,7 @@ impl Plugin for RotationPlugin {
 
 pub fn initial_rotation(
     mut query: Query<(&mut BodyRotation, &BodyShape, &Children)>,
-    mut scenes: Query<&mut Transform, (With<SceneInstance>, Without<Star>)>,
+    mut scenes: Query<&mut Transform, (With<WorldInstance>, Without<Star>)>,
     mut loading_state: ResMut<LoadingState>,
 ) {
     if query.iter().all(|(tilt, _, _)| tilt.applied) {
@@ -49,7 +49,7 @@ pub fn initial_rotation(
 
 fn rotate_bodies(
     query: Query<(&RotationSpeed, &BodyShape, &BodyRotation, &Children)>,
-    mut scenes: Query<&mut Transform, With<SceneInstance>>,
+    mut scenes: Query<&mut Transform, With<WorldInstance>>,
     time: Res<Time>,
     speed: Res<Speed>,
     sub_steps: Res<SubSteps>,
@@ -70,5 +70,4 @@ fn rotate_bodies(
             }
             
         }
-
 }

@@ -8,6 +8,7 @@ use bevy::{
         TextureViewDescriptor, TextureViewDimension,
     },
 };
+use bevy::image::TextureReinterpretationError;
 
 pub struct SkyboxPlugin;
 
@@ -36,13 +37,18 @@ fn asset_loaded(
     if cubemap.activated && !cubemap.is_loaded
         && asset_server.get_load_state(&cubemap.image_handle.clone()).unwrap_or(LoadState::NotLoaded).is_loaded()
     {
-        let image = images.get_mut(&cubemap.image_handle).unwrap();
+        let mut image = images.get_mut(&cubemap.image_handle).unwrap();
         // NOTE: PNGs do not have any metadata that could indicate they contain a cubemap texture,
         // so they appear as one texture. The following code reconfigures the texture as necessary.
         if image.texture_descriptor.array_layer_count() == 1 {
-            image.reinterpret_stacked_2d_as_array(
-                image.height() / image.width(),
+            let layers = image.height() / image.width();
+            let res = image.reinterpret_stacked_2d_as_array(
+                layers,
             );
+            match res {
+                Ok(_) => {}
+                Err(e) => println!("Asset Loading error: {:?}", e)
+            }
             image.texture_view_descriptor = Some(TextureViewDescriptor {
                 dimension: Some(TextureViewDimension::Cube),
                 ..default()
@@ -50,7 +56,7 @@ fn asset_loaded(
         }
 
         for mut skybox in &mut skyboxes {
-            skybox.image = cubemap.image_handle.clone();
+            skybox.image = Some(cubemap.image_handle.clone());
         }
 
         cubemap.is_loaded = true;

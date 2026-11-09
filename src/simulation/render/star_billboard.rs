@@ -7,8 +7,8 @@ use bevy::asset::Asset;
 use bevy::math::Vec3;
 use bevy::prelude::{in_state, AlphaMode, Camera, ChildOf, Children, Component, Entity, Handle, Has, Image, IntoScheduleConfigs, LinearRgba, Material, MaterialPlugin, Query, Res, Transform, TypePath, Visibility, With, Without};
 use bevy::render::render_resource::AsBindGroup;
-use bevy::render::view::Hdr;
-use bevy::scene::SceneInstance;
+use bevy::camera::Hdr;
+use bevy::world_serialization::WorldInstance;
 use bevy::shader::ShaderRef;
 
 const STAR_IMPOSTER_THRESHOLD: f32 = 4_000.0;
@@ -71,7 +71,7 @@ fn change_sun_renderer(
     camera: Query<(&Transform, Has<Hdr>), (With<Camera>, Without<Star>, Without<StarBillboard>)>,
     mut stars: Query<(&Transform, &Children), (Without<Camera>, Without<StarBillboard>)>,
     mut star_billboards: Query<(&mut Transform, &mut Visibility, &ChildOf), (With<StarBillboard>, Without<Camera>, Without<Star>)>,
-    mut scenes: Query<(&SceneInstance, &mut Visibility), (Without<StarBillboard>, Without<Star>)>,
+    mut scenes: Query<(&WorldInstance, &mut Visibility), (Without<StarBillboard>, Without<Star>)>,
     scale: Res<SimulationScale>
 ) {
     let (c_transform, has_hdr) = camera.single().unwrap();

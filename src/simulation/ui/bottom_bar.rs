@@ -1,9 +1,8 @@
-use chrono::{DateTime, Duration, Utc};
+use jiff::{SignedDuration, Timestamp};
 
-pub fn get_date_from_seconds(start: i64, seconds: f32) -> DateTime<Utc> {
-    DateTime::from_timestamp_millis(start)
+pub fn get_date_from_seconds(start: i64, seconds: f32) -> Timestamp {
+    Timestamp::from_millisecond(start)
         .unwrap()
-        .checked_add_signed(Duration::seconds((seconds as f64).round() as i64))
-     //   .checked_add_days(Days::new((((millis * 100.0).round()) / 100.0) as u64))
+        .checked_add(SignedDuration::from_secs((seconds as f64).round() as i64))
         .unwrap()
 }

@@ -5,7 +5,7 @@ use anise::structure::planetocentric::ellipsoid::Ellipsoid;
 use bevy::color::palettes::css;
 use bevy::color::Color;
 use bevy::math::{DVec3, Mat3, Vec3};
-use bevy::prelude::{default, Bundle, Component, Entity, Handle, Name, Reflect, Scene, Srgba, Transform};
+use bevy::prelude::{default, Bundle, Component, Entity, Handle, Name, Reflect, Scene, Srgba, Transform, WorldAsset};
 use std::collections::VecDeque;
 
 #[derive(Component, Clone, Default, Reflect, Copy)]
@@ -123,7 +123,7 @@ impl Default for BodyShape {
 }
 
 #[derive(Component, Reflect, Clone)]
-pub struct SceneHandle(pub Handle<Scene>, pub Entity);
+pub struct SceneHandle(pub Handle<WorldAsset>, pub Entity);
 
 #[derive(Component, Reflect, Clone)]
 pub struct SceneEntity;

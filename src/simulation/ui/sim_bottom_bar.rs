@@ -10,6 +10,7 @@ use bevy::prelude::{NextState, Query, Res, ResMut, Time, Window};
 use bevy::window::PresentMode;
 use bevy_egui::egui::TextEdit;
 use bevy_egui::{egui, EguiContexts};
+use crate::utils::create_viewport_ui;
 
 pub fn simulation_bottom_bar(
     time: Res<Time>,
@@ -34,9 +35,10 @@ pub fn simulation_bottom_bar(
     }
     let date = get_date_from_seconds(scenario_data.starting_time_millis, sim_time.0);
     let mut window = windows.single_mut().unwrap();
-    egui::TopBottomPanel::bottom("time_panel")
+    let mut viewport = create_viewport_ui(egui_context.ctx_mut().unwrap());
+    egui::Panel::bottom("time_panel")
         .resizable(false)
-        .show(egui_context.ctx_mut().unwrap(), |ui| {
+        .show(&mut viewport, |ui| {
             ui.horizontal(|ui| {
                 ui.with_layout(egui::Layout::left_to_right(egui::Align::LEFT), |ui| {
                     ui.horizontal_centered(|ui| {
@@ -60,7 +62,7 @@ pub fn simulation_bottom_bar(
                         }
                         ui.label(format!(
                             "{} ({}/s)",
-                            date.format("%d.%m.%Y %H:%M:%S"),
+                            date.strftime("%d.%m.%Y %H:%M:%S"),
                             speed.format(sub_steps.0)
                         ));
                         let time_text = if !pause.0 { "Pause" } else { "Resume" };

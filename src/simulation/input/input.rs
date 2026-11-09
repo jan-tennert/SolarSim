@@ -3,7 +3,7 @@ use crate::simulation::integration::{Pause, SubSteps};
 use crate::simulation::ui::{StepType, UiState};
 use bevy::prelude::{ButtonInput, KeyCode, MonitorSelection, Query, Res, ResMut, Vec3, Window};
 use bevy::window::WindowMode;
-use bevy_egui::{egui, EguiContextSettings, EguiContexts};
+use bevy_egui::{egui, EguiContextSettings, EguiContexts, EguiZoomFactor};
 use bevy_panorbit_camera::PanOrbitCamera;
 
 pub fn key_window(
@@ -56,13 +56,13 @@ pub fn sim_input_system(
     mut pause: ResMut<Pause>,
     mut speed: ResMut<Speed>,
     mut sub_steps: ResMut<SubSteps>,
-    mut egui_settings: Query<&mut EguiContextSettings>,
+    mut zoom_factor: Query<&mut EguiZoomFactor>,
 ) {
     let timestep_selected = match ui_state.step_type {
         StepType::SUBSTEPS => false,
         StepType::TIMESTEPS => true
     };
-    let mut egui_settings = egui_settings.single_mut().unwrap();
+    let mut zoom_factor = zoom_factor.single_mut().unwrap();
     if keys.just_pressed(KeyCode::F10) {
         ui_state.visible = !ui_state.visible
     } else if keys.just_pressed(KeyCode::KeyC) {
@@ -88,8 +88,8 @@ pub fn sim_input_system(
             ui_state.step_type = StepType::TIMESTEPS;
         }
     } else if keys.pressed(KeyCode::ControlLeft) && keys.just_pressed(KeyCode::Comma) {
-        egui_settings.scale_factor *= 1.1;
+        zoom_factor.zoom_factor *= 1.1;
     } else if keys.pressed(KeyCode::ControlLeft) && keys.just_pressed(KeyCode::Period) {
-        egui_settings.scale_factor *= 0.9;
+        zoom_factor.zoom_factor *= 0.9;
     }
 }

@@ -12,9 +12,10 @@ use anise::structure::planetocentric::ellipsoid::Ellipsoid;
 use bevy::asset::{AssetServer, Assets};
 use bevy::math::DVec3;
 use bevy::pbr::MeshMaterial3d;
-use bevy::prelude::{default, Color, Commands, Entity, Handle, Mat3, Mut, Name, PointLight, Query, Res, ResMut, Resource, Scene, Srgba, Visibility, With};
+use bevy::prelude::{default, Color, Commands, Entity, Handle, Mat3, Mut, Name, PointLight, Query, Res, ResMut, Resource, WorldAsset, Srgba, Visibility, With};
 use bevy_egui::egui::{Align, Context, Layout, ScrollArea};
 use bevy_egui::{egui, EguiContexts};
+use crate::utils::create_viewport_ui;
 
 #[derive(Debug, Clone, Resource)]
 pub struct EditorPanelState {
@@ -161,9 +162,11 @@ fn display_body_panel(
     apply: &mut bool,
     scale: &SimulationScale,
 ) {
-    egui::SidePanel::right("body_panel")
+    let mut viewport_ui = create_viewport_ui(ctx);
+
+    egui::Panel::right("body_panel")
         .resizable(true)
-        .show(ctx, |ui| {
+        .show(&mut viewport_ui, |ui| {
             ScrollArea::vertical()
                 .auto_shrink(true)
                 .show(ui, |ui| {
@@ -390,7 +393,7 @@ fn apply_changes(
             let color = state.new_light_settings.unwrap().imposter_color.to_srgba();
             let rgb = [color.red, color.green, color.blue];
             let new_color: Color = Srgba::rgb(rgb[0] * 20.0, rgb[1] * 20.0, rgb[2] * 20.0).into();
-            let material = materials.get_mut(material.clone()).unwrap();
+            let mut material = materials.get_mut(material.clone()).unwrap();
             material.color = new_color.into();
         }
         light.intensity = scale_lumen(state.new_light_settings.as_ref().unwrap().intensity, scale);
@@ -421,7 +424,7 @@ fn apply_changes(
     if model_path.cleaned() != state.new_model_path {
         *model_path = ModelPath::from_cleaned(state.new_model_path.as_str());
         shape.path = model_path.0.clone();
-        let asset_handle: Handle<Scene> = assets.load(model_path.clone().0);
+        let asset_handle: Handle<WorldAsset> = assets.load(model_path.clone().0);
         commands.entity(scene_query.get(scene.1).unwrap()).despawn();
         scene.0 = asset_handle.clone();
         commands.entity(state.entity.unwrap()).with_children(|parent| {

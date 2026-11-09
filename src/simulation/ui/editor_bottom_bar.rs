@@ -9,6 +9,7 @@ use bevy::prelude::{Commands, NextState, Query, Res, ResMut, Window};
 use bevy::window::PresentMode;
 use bevy_egui::egui::Align;
 use bevy_egui::{egui, EguiContexts};
+use crate::utils::create_viewport_ui;
 
 pub fn editor_bottom_bar(
     sim_time: ResMut<SimTime>,
@@ -26,15 +27,16 @@ pub fn editor_bottom_bar(
     }
     let mut window = windows.single_mut().unwrap();
     let date = get_date_from_seconds(scenario_data.starting_time_millis, sim_time.0);
-    egui::TopBottomPanel::bottom("time_panel")
+    let mut viewport = create_viewport_ui(egui_context.ctx_mut().unwrap());
+    egui::Panel::bottom("time_panel")
         .resizable(false)
-        .show(egui_context.ctx_mut().unwrap(), |ui| {
+        .show(&mut viewport, |ui| {
             ui.horizontal(|ui| {
                 ui.with_layout(egui::Layout::left_to_right(egui::Align::LEFT), |ui| {
                     ui.horizontal_centered(|ui| {
                         ui.label(format!(
                             "Date: {}",
-                            date.format("%d.%m.%Y"),
+                            date.strftime("%d.%m.%Y"),
                         ));
                     });
                 });
